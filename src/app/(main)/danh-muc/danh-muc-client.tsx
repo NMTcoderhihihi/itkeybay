@@ -109,7 +109,9 @@ export function DanhMucClient({ initialData, serverTab }: { initialData: DanhMuc
               <div className="flex gap-2 items-center">
                 <h3 className="font-semibold text-base">{item.ten_danh_muc}</h3>
                 {item.la_he_thong && (
-                  <Shield className="w-4 h-4 text-blue-500" title="Mặc định hệ thống" />
+                  <span title="Mặc định hệ thống">
+                    <Shield className="w-4 h-4 text-blue-500" />
+                  </span>
                 )}
               </div>
               <div className="flex gap-1">
