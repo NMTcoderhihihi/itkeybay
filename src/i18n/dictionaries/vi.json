@@ -1,0 +1,9 @@
+{
+  "login": {
+    "title": "Đăng nhập",
+    "phone": "Số điện thoại",
+    "password": "Mật khẩu",
+    "submit": "Đăng nhập",
+    "error": "Sai thông tin đăng nhập"
+  }
+}

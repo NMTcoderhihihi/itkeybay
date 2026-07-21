@@ -1,0 +1,9 @@
+{
+  "login": {
+    "title": "Login",
+    "phone": "Phone number",
+    "password": "Password",
+    "submit": "Sign in",
+    "error": "Invalid credentials"
+  }
+}
