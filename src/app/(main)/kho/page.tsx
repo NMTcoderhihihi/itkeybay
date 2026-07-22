@@ -16,12 +16,7 @@ export default async function KhoPage() {
 
   return (
     <div className="flex flex-col h-full w-full max-w-7xl mx-auto space-y-4">
-      <div className="flex flex-col space-y-1.5">
-        <h1 className="text-2xl font-bold tracking-tight">Quản lý Kho</h1>
-        <p className="text-muted-foreground">
-          Theo dõi tồn kho, tạo phiếu nhập/xuất và quản lý danh mục vật tư.
-        </p>
-      </div>
+
       
       <KhoClient session={session} nguyenLieuList={nguyenLieuList} />
     </div>

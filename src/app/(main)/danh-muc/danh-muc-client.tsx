@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useActionState, useEffect } from "react";
+import { useTranslation } from "@/hooks/use-translation";
 import { saveDanhMuc, deleteDanhMuc } from "@/app/actions/danh-muc";
 import { Plus, Edit2, Trash2, Shield, Settings2, Info } from "lucide-react";
 import { toast } from "sonner";
@@ -34,6 +35,7 @@ const LOAI_GIAO_DICH_LABELS: Record<string, { label: string; color: string }> = 
 import { useSearchParams } from "next/navigation";
 
 export function DanhMucClient({ initialData, serverTimeMs }: { initialData: DanhMuc[], serverTimeMs: number }) {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get('tab') as PhapHeKey) || 'NGUYEN_LIEU';
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -89,6 +91,10 @@ export function DanhMucClient({ initialData, serverTimeMs }: { initialData: Danh
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="mb-2">
+        <h1 className="text-2xl font-bold tracking-tight">{t('categories.pageTitle')}</h1>
+        <p className="text-muted-foreground">{t('categories.pageDesc')}</p>
+      </div>
       {/* Tabs */}
       <div className="flex overflow-x-auto border-b hide-scrollbar">
         {(Object.keys(PHAN_HE_LABELS) as PhapHeKey[]).map((key) => (
@@ -101,7 +107,7 @@ export function DanhMucClient({ initialData, serverTimeMs }: { initialData: Danh
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            {PHAN_HE_LABELS[key]}
+            {key === 'NGUYEN_LIEU' ? t('categories.rawMaterials') : key === 'SAN_XUAT' ? t('categories.production') : t('categories.semiProducts')}
           </button>
         ))}
       </div>

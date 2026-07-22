@@ -12,8 +12,10 @@ import { CheckCircle2, ChevronRight, Loader2, Plus, X, Image as ImageIcon, Camer
 import { CldUploadWidget } from "next-cloudinary"
 import { toast } from "sonner"
 import Image from "next/image"
+import { useTranslation } from "@/hooks/use-translation"
 
 export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
+  const { t } = useTranslation()
   const [isPending, startTransition] = useTransition()
   const [step, setStep] = useState(1)
   const [danhMucList, setDanhMucList] = useState<any[]>([])
@@ -159,11 +161,9 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
     return (
       <div className="flex flex-col items-center justify-center p-8 md:py-24 bg-card rounded-xl border shadow-sm text-center">
         <Smartphone className="w-16 h-16 text-muted-foreground mb-4" />
-        <h2 className="text-2xl font-bold mb-3 text-destructive">Tính năng yêu cầu Điện thoại di động</h2>
+        <h2 className="text-2xl font-bold mb-3 text-destructive">{t('inventory.mobileRequired')}</h2>
         <p className="text-muted-foreground max-w-lg mx-auto">
-          Việc Nhập / Xuất kho yêu cầu bạn phải sử dụng máy ảnh để chụp minh chứng thực tế tại hiện trường (Hóa đơn, Xe tải, Hàng hóa...).
-          <br /><br />
-          Máy tính hoặc trình duyệt của bạn không được hỗ trợ để đảm bảo tính xác thực. <b>Vui lòng đăng nhập hệ thống trên điện thoại di động</b> để thực hiện tính năng này.
+          {t('inventory.mobileRequiredDesc')}
         </p>
       </div>
     )
@@ -180,7 +180,7 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
                 {step > num ? <CheckCircle2 className="w-5 h-5" /> : num}
               </div>
               <span className="font-medium hidden md:inline-block">
-                {num === 1 ? 'Thông tin chung' : num === 2 ? 'Chọn Vật tư' : 'Ảnh minh chứng'}
+                {num === 1 ? t('inventory.transactionStep1') : num === 2 ? t('inventory.transactionStep2') : t('inventory.transactionStep3')}
               </span>
               <ChevronRight className="w-4 h-4 md:hidden ml-auto" />
             </div>
@@ -194,13 +194,13 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
         {step === 1 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
             <div>
-              <h2 className="text-xl font-bold">Bước 1: Thông tin chung</h2>
-              <p className="text-muted-foreground text-sm">Chọn loại phiếu và lý do thực hiện giao dịch này.</p>
+              <h2 className="text-xl font-bold">{t('inventory.transactionStep1')}</h2>
+              <p className="text-muted-foreground text-sm">{t('inventory.transactionStep1Desc')}</p>
             </div>
             
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Loại Giao Dịch</Label>
+                <Label>{t('inventory.type')}</Label>
                 <div className="grid grid-cols-2 gap-4">
                   <Button 
                     type="button"
@@ -208,7 +208,7 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
                     onClick={() => { setLoaiGiaoDich('NHAP'); setIdDanhMuc('') }}
                     className="h-12"
                   >
-                    Nhập Kho (+)
+                    {t('inventory.import')}
                   </Button>
                   <Button 
                     type="button"
@@ -216,7 +216,7 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
                     onClick={() => { setLoaiGiaoDich('XUAT'); setIdDanhMuc('') }}
                     className="h-12"
                   >
-                    Xuất Kho (-)
+                    {t('inventory.export')}
                   </Button>
                 </div>
               </div>
@@ -244,13 +244,13 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
               )}
 
               <div className="space-y-2">
-                <Label>Ghi chú thêm (Tùy chọn)</Label>
-                <Input value={ghiChu} onChange={e => setGhiChu(e.target.value)} placeholder="VD: Chuyến xe tải biển số 51C..." />
+                <Label>{t('inventory.note')}</Label>
+                <Input value={ghiChu} onChange={e => setGhiChu(e.target.value)} />
               </div>
             </div>
 
             <div className="pt-4 flex justify-end">
-              <Button onClick={validateStep1}>Tiếp tục <ChevronRight className="ml-2 w-4 h-4" /></Button>
+              <Button onClick={validateStep1}>{t('inventory.continue')} <ChevronRight className="ml-2 w-4 h-4" /></Button>
             </div>
           </div>
         )}
@@ -260,18 +260,18 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-xl font-bold">Bước 2: Chi tiết Vật tư</h2>
-                <p className="text-muted-foreground text-sm">Chọn nguyên liệu và nhập số lượng muốn {loaiGiaoDich === 'NHAP' ? 'Nhập' : 'Xuất'}.</p>
+                <h2 className="text-xl font-bold">{t('inventory.transactionStep2')}</h2>
+                <p className="text-muted-foreground text-sm">{t('inventory.transactionStep2Desc')}</p>
               </div>
               <Button variant="outline" size="sm" onClick={handleAddChiTiet} className="gap-2">
-                <Plus className="w-4 h-4" /> Thêm dòng
+                <Plus className="w-4 h-4" /> {t('inventory.addRow')}
               </Button>
             </div>
             
             <div className="space-y-4">
               {chiTiet.length === 0 && (
                 <div className="text-center py-8 border-2 border-dashed rounded-lg text-muted-foreground">
-                  Bấm "Thêm dòng" để bắt đầu chọn vật tư.
+                  {t('inventory.noRows')}
                 </div>
               )}
 
@@ -283,14 +283,14 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
                 return (
                   <Card key={index} className="overflow-hidden">
                     <div className="flex bg-muted/50 p-2 justify-between items-center border-b">
-                      <span className="text-sm font-semibold ml-2">Dòng #{index + 1}</span>
+                      <span className="text-sm font-semibold ml-2">{t('inventory.row')} #{index + 1}</span>
                       <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive" onClick={() => handleRemoveChiTiet(index)}>
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
                     <CardContent className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Vật tư</Label>
+                        <Label className="text-xs">{t('inventory.material')}</Label>
                         <Select value={item.id_nguyen_lieu} onValueChange={(val) => updateChiTiet(index, 'id_nguyen_lieu', val || "")}>
                           <SelectTrigger>
                             <SelectValue placeholder="Chọn...">
@@ -306,7 +306,7 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Quy cách</Label>
+                        <Label className="text-xs">{t('inventory.spec')}</Label>
                         <Select 
                           value={item.ma_quy_cach} 
                           onValueChange={(val) => updateChiTiet(index, 'ma_quy_cach', val || "")}
@@ -326,7 +326,7 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Số lượng ({selectedNguyenLieu?.don_vi || '...'})</Label>
+                        <Label className="text-xs">{t('inventory.quantity')} ({selectedNguyenLieu?.don_vi || '...'})</Label>
                         <Input 
                           type="number" 
                           min="0" 
@@ -343,8 +343,8 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
             </div>
 
             <div className="pt-4 flex justify-between">
-              <Button variant="ghost" onClick={() => setStep(1)}>Quay lại</Button>
-              <Button onClick={validateStep2}>Tiếp tục <ChevronRight className="ml-2 w-4 h-4" /></Button>
+              <Button variant="ghost" onClick={() => setStep(1)}>{t('inventory.back')}</Button>
+              <Button onClick={validateStep2}>{t('inventory.continue')} <ChevronRight className="ml-2 w-4 h-4" /></Button>
             </div>
           </div>
         )}
@@ -353,8 +353,8 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
         {step === 3 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
             <div>
-              <h2 className="text-xl font-bold">Bước 3: Ảnh minh chứng (Khuyến nghị)</h2>
-              <p className="text-muted-foreground text-sm">Vui lòng sử dụng máy ảnh để chụp hình hóa đơn, biển số xe tải trực tiếp tại hiện trường nhằm đảm bảo tính xác thực.</p>
+              <h2 className="text-xl font-bold">{t('inventory.transactionStep3')}</h2>
+              <p className="text-muted-foreground text-sm">{t('inventory.transactionStep3Desc')}</p>
             </div>
             
             <div className="space-y-4">
@@ -377,7 +377,7 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
                       <Camera className="w-8 h-8 text-muted-foreground mb-2" />
                     )}
                     <span className="text-sm font-medium">
-                      {isUploadingImage ? 'Đang tải ảnh lên...' : 'Bấm để Mở Máy Ảnh'}
+                      {isUploadingImage ? t('inventory.uploading') : t('inventory.openCamera')}
                     </span>
                   </div>
                 </label>
@@ -387,7 +387,7 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
                   {danhSachAnh.map((url, i) => (
                     <div key={i} className="relative aspect-square rounded-md overflow-hidden border group">
-                      <Image src={url} alt="Minh chứng" fill className="object-cover" />
+                      <Image src={url} alt="Minh chứng" fill className="object-contain bg-muted/50 p-1" />
                       <button 
                         type="button"
                         className="absolute top-1 right-1 bg-destructive/80 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
@@ -402,10 +402,10 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
             </div>
 
             <div className="pt-8 flex justify-between">
-              <Button variant="ghost" onClick={() => setStep(2)} disabled={isPending}>Quay lại</Button>
+              <Button variant="ghost" onClick={() => setStep(2)} disabled={isPending}>{t('inventory.back')}</Button>
               <Button onClick={handleSubmit} disabled={isPending} className="bg-green-600 hover:bg-green-700">
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Xác nhận Hoàn tất Phiếu
+                {t('inventory.confirm')}
               </Button>
             </div>
           </div>

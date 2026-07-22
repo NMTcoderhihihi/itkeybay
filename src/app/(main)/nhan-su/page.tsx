@@ -24,12 +24,7 @@ export default async function NhanSuPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Quản lý Nhân sự</h1>
-        <p className="text-muted-foreground">
-          Quản lý tài khoản đăng nhập hệ thống và danh sách công nhân phân xưởng.
-        </p>
-      </div>
+
       
       <NhanSuClient 
         taiKhoanData={dsTaiKhoan} 

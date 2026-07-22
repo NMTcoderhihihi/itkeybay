@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useActionState, useEffect } from "react";
+import { useTranslation } from "@/hooks/use-translation";
 import { saveTaiKhoan, deleteTaiKhoan, saveCongNhan, deleteCongNhan } from "@/app/actions/nhan-su";
 import { Plus, Edit2, Trash2, Settings2, Shield, Eye, EyeOff, CheckCircle2, XCircle, HardHat, Phone } from "lucide-react";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ import { useSearchParams } from "next/navigation";
 type NhanSuTab = 'TAI_KHOAN' | 'CONG_NHAN';
 
 export function NhanSuClient({ taiKhoanData, congNhanData, serverTimeMs }: { taiKhoanData: any[], congNhanData: any[], serverTimeMs: number }) {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') === 'CONG_NHAN' ? 'CONG_NHAN' : 'TAI_KHOAN';
   const [activeTab, setActiveTab] = useState<NhanSuTab>(initialTab);
@@ -70,6 +72,10 @@ export function NhanSuClient({ taiKhoanData, congNhanData, serverTimeMs }: { tai
 
   return (
     <div className="flex flex-col gap-4 pb-20 md:pb-4">
+      <div className="mb-2">
+        <h1 className="text-2xl font-bold tracking-tight">{t('personnel.pageTitle')}</h1>
+        <p className="text-muted-foreground">{t('personnel.pageDesc')}</p>
+      </div>
       {/* Tabs */}
       <div className="flex overflow-x-auto border-b hide-scrollbar">
         <button
@@ -78,7 +84,7 @@ export function NhanSuClient({ taiKhoanData, congNhanData, serverTimeMs }: { tai
             activeTab === 'TAI_KHOAN' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
           }`}
         >
-          <Shield className="w-4 h-4" /> Tài khoản Hệ thống
+          <Shield className="w-4 h-4" /> {t('personnel.systemAccounts')}
         </button>
         <button
           onClick={() => handleTabChange('CONG_NHAN')}
@@ -86,7 +92,7 @@ export function NhanSuClient({ taiKhoanData, congNhanData, serverTimeMs }: { tai
             activeTab === 'CONG_NHAN' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
           }`}
         >
-          <HardHat className="w-4 h-4" /> Công nhân Sản xuất
+          <HardHat className="w-4 h-4" /> {t('personnel.workers')}
         </button>
       </div>
 
@@ -150,7 +156,7 @@ function TaiKhoanCard({ item, onEdit, onDelete }: { item: any, onEdit: () => voi
           <div className="w-10 h-10 rounded-full bg-secondary overflow-hidden shrink-0">
             {item.anh_dai_dien ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={item.anh_dai_dien} alt={item.ho_ten} className="w-full h-full object-cover" />
+              <img src={item.anh_dai_dien} alt={item.ho_ten} className="w-full h-full object-contain bg-muted/30 p-0.5" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-secondary-foreground font-bold">
                 {item.ho_ten.charAt(0).toUpperCase()}

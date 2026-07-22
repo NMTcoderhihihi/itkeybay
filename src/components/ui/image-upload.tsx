@@ -71,7 +71,7 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
       {value ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={value} alt="Avatar" className="w-full h-full object-cover" />
+          <img src={value} alt="Avatar" className="w-full h-full object-contain p-1" />
           <div 
             className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
             onClick={() => inputRef.current?.click()}

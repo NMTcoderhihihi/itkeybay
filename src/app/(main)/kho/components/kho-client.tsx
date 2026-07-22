@@ -21,7 +21,14 @@ export function KhoClient({
   const [activeTab, setActiveTab] = useState("tong-quan")
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
+    <div className="w-full flex-1 flex flex-col">
+      <div className="flex flex-col space-y-1.5 mb-4">
+        <h1 className="text-2xl font-bold tracking-tight">{t('inventory.pageTitle')}</h1>
+        <p className="text-muted-foreground">
+          {t('inventory.pageDesc')}
+        </p>
+      </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex-1 flex flex-col">
       <TabsList className="w-full justify-start overflow-x-auto h-auto py-1">
         <TabsTrigger value="tong-quan" className="gap-2">
           <Package2 className="h-4 w-4" />
@@ -55,5 +62,6 @@ export function KhoClient({
         )}
       </div>
     </Tabs>
+    </div>
   )
 }

@@ -60,7 +60,7 @@ export async function taoPhieuGiaoDichKho(payload: {
       .select('ton_kho_hien_tai')
       .eq('id_nguyen_lieu', item.id_nguyen_lieu)
       .eq('ma_quy_cach', item.ma_quy_cach)
-      .order('ngay_tao', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(1)
       .single()
 
@@ -108,7 +108,7 @@ export async function getTongQuanTonKho() {
   const { data, error } = await supabase.rpc('get_current_stock') // Cần tạo function, hoặc lấy hết rồi tính
   // Để đơn giản (vì không có RPC sẵn), ta lấy toàn bộ nguyen_lieu và map với sổ cái
   const { data: nlData } = await supabase.from('nguyen_lieu').select('*')
-  const { data: scData } = await supabase.from('so_cai_vat_tu').select('*').order('ngay_tao', { ascending: false })
+  const { data: scData } = await supabase.from('so_cai_vat_tu').select('*').order('created_at', { ascending: false })
   
   if (!nlData || !scData) return []
 
@@ -148,13 +148,14 @@ export async function getSoCaiChiTiet(id_nguyen_lieu: string) {
       lo_giao_dich (
         ma_lo,
         ghi_chu,
+        danh_sach_anh,
         ngay_tao,
         danh_muc_giao_dich (ten_danh_muc, loai_giao_dich),
         tai_khoan (ho_ten)
       )
     `)
     .eq('id_nguyen_lieu', id_nguyen_lieu)
-    .order('ngay_tao', { ascending: false })
+    .order('created_at', { ascending: false })
 
   return data || []
 }

@@ -24,7 +24,7 @@ export default async function CaiDatPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">{t('settings.title')}</h1>
         <p className="text-muted-foreground">
-          Quản lý thông tin cá nhân và tùy chỉnh hệ thống.
+          {t('settings.desc')}
         </p>
       </div>
       
