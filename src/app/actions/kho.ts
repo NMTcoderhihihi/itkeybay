@@ -23,7 +23,7 @@ export async function getNguyenLieuList() {
   const { data, error } = await supabase
     .from('nguyen_lieu')
     .select('*')
-    .order('ngay_tao', { ascending: false })
+    .order('created_at', { ascending: false })
 
   if (error) {
     console.error("Lỗi lấy danh sách vật tư:", error)

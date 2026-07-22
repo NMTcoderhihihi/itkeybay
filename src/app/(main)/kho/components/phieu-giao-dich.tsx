@@ -162,7 +162,9 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
                   <Label>Lý do (Danh mục)</Label>
                   <Select value={idDanhMuc} onValueChange={(val) => setIdDanhMuc(val || "")}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Chọn lý do..." />
+                      <SelectValue placeholder="Chọn lý do...">
+                        {idDanhMuc ? filteredDanhMuc.find(d => d.id === idDanhMuc)?.ten_danh_muc : "Chọn lý do..."}
+                      </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
                       {filteredDanhMuc.length === 0 ? (
@@ -227,7 +229,9 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
                         <Label className="text-xs">Vật tư</Label>
                         <Select value={item.id_nguyen_lieu} onValueChange={(val) => updateChiTiet(index, 'id_nguyen_lieu', val || "")}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Chọn..." />
+                            <SelectValue placeholder="Chọn...">
+                              {item.id_nguyen_lieu ? nguyenLieuList.find(nl => nl.id === item.id_nguyen_lieu)?.ten_nguyen_lieu : "Chọn..."}
+                            </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
                             {nguyenLieuList.map(nl => (
@@ -245,7 +249,9 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
                           disabled={!item.id_nguyen_lieu}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Chọn..." />
+                            <SelectValue placeholder="Chọn...">
+                              {item.ma_quy_cach ? quyCachOptions.find((qc: any) => qc.ma_quy_cach === item.ma_quy_cach)?.ten : "Chọn..."}
+                            </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
                             {quyCachOptions.map((qc: any) => (
@@ -284,13 +290,13 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
             <div>
               <h2 className="text-xl font-bold">Bước 3: Ảnh minh chứng (Khuyến nghị)</h2>
-              <p className="text-muted-foreground text-sm">Chụp hoặc tải lên hình ảnh hóa đơn, phiếu giao hàng hoặc hình ảnh xe tải.</p>
+              <p className="text-muted-foreground text-sm">Vui lòng sử dụng máy ảnh để chụp hình hóa đơn, biển số xe tải trực tiếp tại hiện trường nhằm đảm bảo tính xác thực.</p>
             </div>
             
             <div className="space-y-4">
               <CldUploadWidget
                 uploadPreset="itkeybay_preset"
-                options={{ multiple: true, maxFiles: 5 }}
+                options={{ multiple: true, maxFiles: 5, sources: ['camera'] }}
                 onSuccess={(result: any) => {
                   setDanhSachAnh(prev => [...prev, result.info.secure_url])
                 }}
@@ -301,7 +307,7 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
                     className="w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-accent transition-colors"
                   >
                     <Camera className="w-8 h-8 text-muted-foreground mb-2" />
-                    <span className="text-sm font-medium">Bấm để Chụp / Tải ảnh lên</span>
+                    <span className="text-sm font-medium">Bấm để Mở Máy Ảnh</span>
                   </div>
                 )}
               </CldUploadWidget>
