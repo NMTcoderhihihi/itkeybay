@@ -31,13 +31,23 @@ const LOAI_GIAO_DICH_LABELS: Record<string, { label: string; color: string }> = 
   CHINH_SUA: { label: 'Điều chỉnh', color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30' },
 };
 
-export function DanhMucClient({ initialData, serverTab }: { initialData: DanhMuc[], serverTab: string }) {
+import { useSearchParams } from "next/navigation";
+
+export function DanhMucClient({ initialData, serverTimeMs }: { initialData: DanhMuc[], serverTimeMs: number }) {
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get('tab') as PhapHeKey) || 'NGUYEN_LIEU';
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<DanhMuc | null>(null);
 
   // Filtered Data
-  const [activeTab, setActiveTab] = useState<PhapHeKey>(serverTab as PhapHeKey);
+  const [activeTab, setActiveTab] = useState<PhapHeKey>(initialTab);
   const currentData = initialData.filter(item => item.phan_he === activeTab);
+
+  useEffect(() => {
+    // Log hiệu suất để đo đạc thời gian
+    console.log(`[Performance] Máy chủ xử lý DB & Render HTML mất: ${serverTimeMs}ms`);
+    console.log('[Performance] Giao diện Client đã mount thành công!');
+  }, [serverTimeMs]);
 
   const handleTabChange = (key: PhapHeKey) => {
     setActiveTab(key);

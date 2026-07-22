@@ -8,14 +8,24 @@ import { toast } from "sonner";
 import { useConfirm } from "@/store/confirm-store";
 import { ImageUpload } from "@/components/ui/image-upload";
 
+import { useSearchParams } from "next/navigation";
+
 type NhanSuTab = 'TAI_KHOAN' | 'CONG_NHAN';
 
-export function NhanSuClient({ serverTab, taiKhoanData, congNhanData }: { serverTab: string, taiKhoanData: any[], congNhanData: any[] }) {
-  const [activeTab, setActiveTab] = useState<NhanSuTab>((serverTab === 'CONG_NHAN' ? 'CONG_NHAN' : 'TAI_KHOAN') as NhanSuTab);
+export function NhanSuClient({ taiKhoanData, congNhanData, serverTimeMs }: { taiKhoanData: any[], congNhanData: any[], serverTimeMs: number }) {
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'CONG_NHAN' ? 'CONG_NHAN' : 'TAI_KHOAN';
+  const [activeTab, setActiveTab] = useState<NhanSuTab>(initialTab);
   const [isTaiKhoanModalOpen, setIsTaiKhoanModalOpen] = useState(false);
   const [editingTaiKhoan, setEditingTaiKhoan] = useState<any>(null);
   const [isCongNhanModalOpen, setIsCongNhanModalOpen] = useState(false);
   const [editingCongNhan, setEditingCongNhan] = useState<any>(null);
+
+  useEffect(() => {
+    // Log thời gian từ lúc React mount
+    console.log(`[Performance] Máy chủ xử lý DB & Render HTML mất: ${serverTimeMs}ms`);
+    console.log('[Performance] Giao diện Client đã mount thành công!');
+  }, [serverTimeMs]);
 
   const handleTabChange = (key: NhanSuTab) => {
     setActiveTab(key);
