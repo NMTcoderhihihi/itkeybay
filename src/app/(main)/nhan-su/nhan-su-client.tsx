@@ -11,11 +11,16 @@ import { ImageUpload } from "@/components/ui/image-upload";
 type NhanSuTab = 'TAI_KHOAN' | 'CONG_NHAN';
 
 export function NhanSuClient({ serverTab, taiKhoanData, congNhanData }: { serverTab: string, taiKhoanData: any[], congNhanData: any[] }) {
-  const activeTab = (serverTab === 'CONG_NHAN' ? 'CONG_NHAN' : 'TAI_KHOAN') as NhanSuTab;
+  const [activeTab, setActiveTab] = useState<NhanSuTab>((serverTab === 'CONG_NHAN' ? 'CONG_NHAN' : 'TAI_KHOAN') as NhanSuTab);
   const [isTaiKhoanModalOpen, setIsTaiKhoanModalOpen] = useState(false);
   const [editingTaiKhoan, setEditingTaiKhoan] = useState<any>(null);
   const [isCongNhanModalOpen, setIsCongNhanModalOpen] = useState(false);
   const [editingCongNhan, setEditingCongNhan] = useState<any>(null);
+
+  const handleTabChange = (key: NhanSuTab) => {
+    setActiveTab(key);
+    window.history.replaceState(null, '', `?tab=${key}`);
+  };
 
   const { showConfirm } = useConfirm();
 
@@ -57,22 +62,22 @@ export function NhanSuClient({ serverTab, taiKhoanData, congNhanData }: { server
     <div className="flex flex-col gap-4 pb-20 md:pb-4">
       {/* Tabs */}
       <div className="flex overflow-x-auto border-b hide-scrollbar">
-        <Link
-          href="?tab=TAI_KHOAN"
+        <button
+          onClick={() => handleTabChange('TAI_KHOAN')}
           className={`px-4 py-3 font-medium text-sm whitespace-nowrap transition-colors border-b-2 flex items-center gap-2 ${
             activeTab === 'TAI_KHOAN' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
           }`}
         >
           <Shield className="w-4 h-4" /> Tài khoản Hệ thống
-        </Link>
-        <Link
-          href="?tab=CONG_NHAN"
+        </button>
+        <button
+          onClick={() => handleTabChange('CONG_NHAN')}
           className={`px-4 py-3 font-medium text-sm whitespace-nowrap transition-colors border-b-2 flex items-center gap-2 ${
             activeTab === 'CONG_NHAN' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
           }`}
         >
           <HardHat className="w-4 h-4" /> Công nhân Sản xuất
-        </Link>
+        </button>
       </div>
 
       {/* Content */}

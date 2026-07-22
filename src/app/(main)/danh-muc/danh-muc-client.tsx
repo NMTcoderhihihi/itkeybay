@@ -36,8 +36,13 @@ export function DanhMucClient({ initialData, serverTab }: { initialData: DanhMuc
   const [editingItem, setEditingItem] = useState<DanhMuc | null>(null);
 
   // Filtered Data
-  const activeTab = serverTab as PhapHeKey;
+  const [activeTab, setActiveTab] = useState<PhapHeKey>(serverTab as PhapHeKey);
   const currentData = initialData.filter(item => item.phan_he === activeTab);
+
+  const handleTabChange = (key: PhapHeKey) => {
+    setActiveTab(key);
+    window.history.replaceState(null, '', `?tab=${key}`);
+  };
 
   const handleAdd = () => {
     setEditingItem(null);
@@ -77,9 +82,9 @@ export function DanhMucClient({ initialData, serverTab }: { initialData: DanhMuc
       {/* Tabs */}
       <div className="flex overflow-x-auto border-b hide-scrollbar">
         {(Object.keys(PHAN_HE_LABELS) as PhapHeKey[]).map((key) => (
-          <Link
+          <button
             key={key}
-            href={`?tab=${key}`}
+            onClick={() => handleTabChange(key)}
             className={`px-4 py-2 font-medium text-sm whitespace-nowrap transition-colors border-b-2 ${
               activeTab === key
                 ? 'border-primary text-primary'
@@ -87,7 +92,7 @@ export function DanhMucClient({ initialData, serverTab }: { initialData: DanhMuc
             }`}
           >
             {PHAN_HE_LABELS[key]}
-          </Link>
+          </button>
         ))}
       </div>
 
