@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CheckCircle2, ChevronRight, Loader2, Plus, X, Image as ImageIcon, Camera } from "lucide-react"
+import { CheckCircle2, ChevronRight, Loader2, Plus, X, Image as ImageIcon, Camera, Smartphone } from "lucide-react"
 import { CldUploadWidget } from "next-cloudinary"
 import { toast } from "sonner"
 import Image from "next/image"
@@ -24,8 +24,15 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
   const [ghiChu, setGhiChu] = useState("")
   const [chiTiet, setChiTiet] = useState<ChiTietGiaoDich[]>([])
   const [danhSachAnh, setDanhSachAnh] = useState<string[]>([])
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+
+  const [isMobile, setIsMobile] = useState(true)
 
   useEffect(() => {
+    const ua = navigator.userAgent;
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+    setIsMobile(isMobileDevice);
+
     fetchDanhMuc()
   }, [])
 
@@ -36,6 +43,49 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
   }
 
   const filteredDanhMuc = danhMucList.filter(dm => dm.phan_he === 'NGUYEN_LIEU' && dm.loai_giao_dich === loaiGiaoDich)
+
+  const handleCameraCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploadingImage(true);
+    try {
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+      const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+      if (!cloudName || !uploadPreset) throw new Error('Chưa cấu hình Cloudinary');
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error(`Ảnh ${file.name} quá lớn (tối đa 10MB)`);
+          continue;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', uploadPreset);
+
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        if (res.ok && data.secure_url) {
+          setDanhSachAnh(prev => [...prev, data.secure_url]);
+        } else {
+          toast.error(`Lỗi khi tải ảnh ${file.name}`);
+        }
+      }
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error('Lỗi kết nối khi tải ảnh lên');
+    } finally {
+      setIsUploadingImage(false);
+      e.target.value = '';
+    }
+  };
 
   const handleAddChiTiet = () => {
     setChiTiet([...chiTiet, { id_nguyen_lieu: "", ma_quy_cach: "", so_luong: 0 }])
@@ -103,6 +153,20 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
         toast.error(result.error || "Có lỗi xảy ra khi lưu phiếu")
       }
     })
+  }
+
+  if (!isMobile) {
+    return (
+      <div className="flex flex-col items-center justify-center p-8 md:py-24 bg-card rounded-xl border shadow-sm text-center">
+        <Smartphone className="w-16 h-16 text-muted-foreground mb-4" />
+        <h2 className="text-2xl font-bold mb-3 text-destructive">Tính năng yêu cầu Điện thoại di động</h2>
+        <p className="text-muted-foreground max-w-lg mx-auto">
+          Việc Nhập / Xuất kho yêu cầu bạn phải sử dụng máy ảnh để chụp minh chứng thực tế tại hiện trường (Hóa đơn, Xe tải, Hàng hóa...).
+          <br /><br />
+          Máy tính hoặc trình duyệt của bạn không được hỗ trợ để đảm bảo tính xác thực. <b>Vui lòng đăng nhập hệ thống trên điện thoại di động</b> để thực hiện tính năng này.
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -294,23 +358,30 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
             </div>
             
             <div className="space-y-4">
-              <CldUploadWidget
-                uploadPreset="itkeybay_preset"
-                options={{ multiple: true, maxFiles: 5, sources: ['camera'] }}
-                onSuccess={(result: any) => {
-                  setDanhSachAnh(prev => [...prev, result.info.secure_url])
-                }}
-              >
-                {({ open }) => (
-                  <div 
-                    onClick={() => open()} 
-                    className="w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-accent transition-colors"
-                  >
-                    <Camera className="w-8 h-8 text-muted-foreground mb-2" />
-                    <span className="text-sm font-medium">Bấm để Mở Máy Ảnh</span>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  multiple
+                  id="camera-upload"
+                  className="hidden"
+                  onChange={handleCameraCapture}
+                  disabled={isUploadingImage}
+                />
+                <label htmlFor="camera-upload">
+                  <div className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center transition-colors ${isUploadingImage ? 'bg-muted cursor-not-allowed opacity-70' : 'cursor-pointer hover:bg-accent'}`}>
+                    {isUploadingImage ? (
+                      <Loader2 className="w-8 h-8 text-muted-foreground mb-2 animate-spin" />
+                    ) : (
+                      <Camera className="w-8 h-8 text-muted-foreground mb-2" />
+                    )}
+                    <span className="text-sm font-medium">
+                      {isUploadingImage ? 'Đang tải ảnh lên...' : 'Bấm để Mở Máy Ảnh'}
+                    </span>
                   </div>
-                )}
-              </CldUploadWidget>
+                </label>
+              </div>
 
               {danhSachAnh.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
