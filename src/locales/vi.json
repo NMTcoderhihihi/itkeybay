@@ -1,0 +1,36 @@
+{
+  "common": {
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "add": "Thêm mới",
+    "edit": "Sửa",
+    "delete": "Xóa",
+    "search": "Tìm kiếm...",
+    "confirm": "Xác nhận",
+    "success": "Thành công",
+    "error": "Lỗi"
+  },
+  "nav": {
+    "home": "Trang chủ",
+    "inventory": "Kho",
+    "production": "Sản xuất",
+    "hr": "Nhân sự",
+    "settings": "Cài đặt",
+    "categories": "Danh mục"
+  },
+  "settings": {
+    "title": "Cài đặt Hệ thống",
+    "profile": "Hồ sơ cá nhân",
+    "system": "Hệ thống",
+    "avatar": "Ảnh đại diện",
+    "fullname": "Họ và tên",
+    "phone": "Số điện thoại",
+    "changePassword": "Đổi mật khẩu",
+    "language": "Ngôn ngữ",
+    "theme": "Giao diện",
+    "themeLight": "Sáng",
+    "themeDark": "Tối",
+    "themeSystem": "Hệ thống",
+    "logout": "Đăng xuất"
+  }
+}

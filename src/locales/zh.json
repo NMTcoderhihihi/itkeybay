@@ -1,0 +1,36 @@
+{
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "add": "新增",
+    "edit": "编辑",
+    "delete": "删除",
+    "search": "搜索...",
+    "confirm": "确认",
+    "success": "成功",
+    "error": "错误"
+  },
+  "nav": {
+    "home": "首页",
+    "inventory": "库存",
+    "production": "生产",
+    "hr": "人事",
+    "settings": "设置",
+    "categories": "类别"
+  },
+  "settings": {
+    "title": "系统设置",
+    "profile": "个人资料",
+    "system": "系统",
+    "avatar": "头像",
+    "fullname": "姓名",
+    "phone": "电话号码",
+    "changePassword": "修改密码",
+    "language": "语言",
+    "theme": "主题",
+    "themeLight": "浅色",
+    "themeDark": "深色",
+    "themeSystem": "系统默认",
+    "logout": "退出登录"
+  }
+}

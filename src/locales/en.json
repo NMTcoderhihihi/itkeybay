@@ -1,0 +1,36 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "add": "Add New",
+    "edit": "Edit",
+    "delete": "Delete",
+    "search": "Search...",
+    "confirm": "Confirm",
+    "success": "Success",
+    "error": "Error"
+  },
+  "nav": {
+    "home": "Home",
+    "inventory": "Inventory",
+    "production": "Production",
+    "hr": "Human Resources",
+    "settings": "Settings",
+    "categories": "Categories"
+  },
+  "settings": {
+    "title": "System Settings",
+    "profile": "Profile",
+    "system": "System",
+    "avatar": "Avatar",
+    "fullname": "Full Name",
+    "phone": "Phone Number",
+    "changePassword": "Change Password",
+    "language": "Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "logout": "Logout"
+  }
+}

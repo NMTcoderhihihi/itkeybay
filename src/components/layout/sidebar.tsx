@@ -9,19 +9,21 @@ import {
 } from "lucide-react";
 import { getSession } from "@/lib/session";
 
+import { getDictionary } from "@/lib/i18n";
+
 export async function Sidebar() {
   const session = await getSession();
   const isManager = session?.role === 'Quan ly';
+  const { t } = await getDictionary();
 
   const navItems = [
-    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, show: isManager },
-    { name: "Kho & Vật tư", href: "/kho", icon: Package, show: true },
-    { name: "Sản xuất", href: "/san-xuat", icon: Factory, show: true },
-    { name: "Nhân sự", href: "/nhan-su", icon: Users, show: isManager },
-    { name: "Danh mục", href: "/danh-muc", icon: Box, show: isManager },
-    { name: "Cài đặt", href: "/cai-dat", icon: Settings, show: true },
+    { name: t('nav.home'), href: "/dashboard", icon: LayoutDashboard, show: isManager },
+    { name: t('nav.inventory'), href: "/kho", icon: Package, show: true },
+    { name: t('nav.production'), href: "/san-xuat", icon: Factory, show: true },
+    { name: t('nav.hr'), href: "/nhan-su", icon: Users, show: isManager },
+    { name: t('nav.categories'), href: "/danh-muc", icon: Box, show: isManager },
+    { name: t('nav.settings'), href: "/cai-dat", icon: Settings, show: true },
   ].filter(item => item.show);
-
 
   return (
     <aside className="hidden md:flex w-64 flex-col border-r bg-muted/40 h-screen sticky top-0">

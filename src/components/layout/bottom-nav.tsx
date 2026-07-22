@@ -9,17 +9,20 @@ import {
 } from "lucide-react";
 import { getSession } from "@/lib/session";
 
+import { getDictionary } from "@/lib/i18n";
+
 export async function BottomNav() {
   const session = await getSession();
   const isManager = session?.role === 'Quan ly';
+  const { t } = await getDictionary();
 
   const navItems = [
-    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, show: isManager },
-    { name: "Kho", href: "/kho", icon: Package, show: true },
-    { name: "Sản xuất", href: "/san-xuat", icon: Factory, show: true },
-    { name: "Nhân sự", href: "/nhan-su", icon: Users, show: isManager },
-    { name: "Danh mục", href: "/danh-muc", icon: Box, show: isManager },
-    { name: "Cài đặt", href: "/cai-dat", icon: Settings, show: true },
+    { name: t('nav.home'), href: "/dashboard", icon: LayoutDashboard, show: isManager },
+    { name: t('nav.inventory'), href: "/kho", icon: Package, show: true },
+    { name: t('nav.production'), href: "/san-xuat", icon: Factory, show: true },
+    { name: t('nav.hr'), href: "/nhan-su", icon: Users, show: isManager },
+    { name: t('nav.categories'), href: "/danh-muc", icon: Box, show: isManager },
+    { name: t('nav.settings'), href: "/cai-dat", icon: Settings, show: true },
   ].filter(item => item.show);
 
   return (

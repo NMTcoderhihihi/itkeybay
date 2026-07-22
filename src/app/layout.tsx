@@ -22,14 +22,20 @@ export const metadata: Metadata = {
   description: "Phần mềm quản lý kho và sản xuất",
 };
 
-export default function RootLayout({
+import { cookies } from "next/headers";
+import { I18nProvider } from "@/components/providers/i18n-provider";
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const locale = cookieStore.get('NEXT_LOCALE')?.value || 'vi';
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
@@ -40,10 +46,12 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ProgressProvider />
-          {children}
-          <Toaster richColors position="top-center" />
-          <GlobalConfirmDialog />
+          <I18nProvider defaultLocale={locale}>
+            <ProgressProvider />
+            {children}
+            <Toaster richColors position="top-center" />
+            <GlobalConfirmDialog />
+          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>
