@@ -32,5 +32,10 @@
     "themeDark": "Dark",
     "themeSystem": "System",
     "logout": "Logout"
+  },
+  "inventoryTabs": {
+    "stock": "Stock",
+    "transactions": "In / Out",
+    "materials": "Materials"
   }
 }

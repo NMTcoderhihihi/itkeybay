@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslation } from "@/hooks/use-translation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SessionPayload } from "@/lib/session"
 import { NguyenLieu } from "@/app/actions/kho"
@@ -16,6 +17,7 @@ export function KhoClient({
   session: SessionPayload,
   nguyenLieuList: NguyenLieu[]
 }) {
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState("tong-quan")
 
   return (
@@ -23,16 +25,16 @@ export function KhoClient({
       <TabsList className="w-full justify-start overflow-x-auto h-auto py-1">
         <TabsTrigger value="tong-quan" className="gap-2">
           <Package2 className="h-4 w-4" />
-          Tổng quan Tồn kho
+          {t('inventoryTabs.stock')}
         </TabsTrigger>
         <TabsTrigger value="giao-dich" className="gap-2">
           <History className="h-4 w-4" />
-          Phiếu Nhập / Xuất
+          {t('inventoryTabs.transactions')}
         </TabsTrigger>
         {session.role === 'Quan ly' && (
           <TabsTrigger value="danh-muc" className="gap-2">
             <ClipboardList className="h-4 w-4" />
-            Master Data (Vật tư)
+            {t('inventoryTabs.materials')}
           </TabsTrigger>
         )}
       </TabsList>

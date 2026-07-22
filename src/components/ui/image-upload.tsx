@@ -4,13 +4,15 @@ import { useState, useRef } from "react";
 import { Camera, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
+import { cn } from "@/lib/utils";
+
 interface ImageUploadProps {
   value?: string | null;
   onChange: (url: string) => void;
   className?: string;
 }
 
-export function ImageUpload({ value, onChange, className = "" }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -65,7 +67,7 @@ export function ImageUpload({ value, onChange, className = "" }: ImageUploadProp
   };
 
   return (
-    <div className={`relative flex flex-col items-center justify-center w-24 h-24 rounded-full border-2 border-dashed bg-muted/30 overflow-hidden group ${className}`}>
+    <div className={cn("relative flex flex-col items-center justify-center w-24 h-24 rounded-full border-2 border-dashed bg-muted/30 overflow-hidden group", className)}>
       {value ? (
         <>
           {/* eslint-disable-next-line @next/next/no-img-element */}

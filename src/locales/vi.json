@@ -32,5 +32,10 @@
     "themeDark": "Tối",
     "themeSystem": "Hệ thống",
     "logout": "Đăng xuất"
+  },
+  "inventoryTabs": {
+    "stock": "Tồn kho",
+    "transactions": "Nhập / Xuất",
+    "materials": "QL Vật tư"
   }
 }

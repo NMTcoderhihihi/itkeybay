@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Plus, X, Pencil, Trash2, Image as ImageIcon, Loader2 } from "lucide-react"
-import { CldUploadWidget } from "next-cloudinary"
+import { ImageUpload } from "@/components/ui/image-upload"
 import { toast } from "sonner"
 import Image from "next/image"
 
@@ -133,25 +133,11 @@ export function DanhMucVatTu({ initialData }: { initialData: NguyenLieu[] }) {
                 <div className="flex gap-4">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <Label>Ảnh minh họa</Label>
-                    <CldUploadWidget
-                      uploadPreset="itkeybay_preset"
-                      onSuccess={(result: any) => {
-                        setAnhMinhHoa(result.info.secure_url);
-                      }}
-                    >
-                      {({ open }) => (
-                        <div 
-                          onClick={() => open()} 
-                          className="w-24 h-24 border-2 border-dashed rounded-lg flex items-center justify-center cursor-pointer hover:bg-accent transition-colors overflow-hidden"
-                        >
-                          {anhMinhHoa ? (
-                            <Image src={anhMinhHoa} alt="Minh họa" width={96} height={96} className="object-cover w-full h-full" />
-                          ) : (
-                            <ImageIcon className="w-8 h-8 text-muted-foreground" />
-                          )}
-                        </div>
-                      )}
-                    </CldUploadWidget>
+                    <ImageUpload 
+                      value={anhMinhHoa}
+                      onChange={setAnhMinhHoa}
+                      className="w-24 h-24 rounded-xl" // Ghi đè rounded-full mặc định
+                    />
                   </div>
                   
                   <div className="flex-1 flex flex-col gap-3">

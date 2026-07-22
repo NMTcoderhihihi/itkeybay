@@ -32,5 +32,10 @@
     "themeDark": "深色",
     "themeSystem": "系统默认",
     "logout": "退出登录"
+  },
+  "inventoryTabs": {
+    "stock": "库存",
+    "transactions": "入 / 出",
+    "materials": "物料"
   }
 }
