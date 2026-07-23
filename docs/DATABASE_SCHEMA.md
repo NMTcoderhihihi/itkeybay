@@ -20,6 +20,7 @@ erDiagram
         string mat_khau
         string vai_tro "Quan ly / Nhan vien"
         string ho_ten
+        string anh_dai_dien "URL ảnh Cloudinary"
         boolean dang_hoat_dong
     }
 
@@ -30,6 +31,9 @@ erDiagram
         uuid id PK
         string ten_nguyen_lieu "Ví dụ: Gỗ sồi, Gỗ xoan"
         string don_vi "Ví dụ: Khối, Tấm"
+        string anh_minh_hoa "URL ảnh Cloudinary"
+        numeric muc_canh_bao_ton_kho
+        string ghi_chu
         jsonb danh_sach_quy_cach "VD: [{ma_quy_cach: '2x4', ten: '2x4 inch'}]"
     }
 
@@ -84,6 +88,7 @@ erDiagram
         enum_loai_giao_dich loai_giao_dich "NHAP, XUAT, CHINH_SUA"
         string ten_danh_muc "Lý do (Nhập đổi, Xuất bù...)"
         boolean la_he_thong "Tự động/Cố định không cho sửa"
+        boolean dang_hoat_dong
         string ghi_chu
     }
     %% Lô giao dịch (Chứa mảng JSONB ảnh đính kèm)
