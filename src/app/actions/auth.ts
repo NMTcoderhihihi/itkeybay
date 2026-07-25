@@ -59,11 +59,12 @@ export async function login(prevState: any, formData: FormData) {
   const { data, error } = await supabase
     .from('tai_khoan')
     .select('*')
-    .eq('tai_khoan', account)
-    .single()
+    .ilike('tai_khoan', account)
+    .limit(1)
+    .maybeSingle()
 
   if (error || !data) {
-    return { error: 'Sai tài khoản hoặc tài khoản không tồn tại' }
+    return { error: 'Tên đăng nhập không chính xác hoặc không tồn tại.' }
   }
 
   if (!data.dang_hoat_dong) {
