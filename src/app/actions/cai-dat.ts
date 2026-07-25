@@ -9,24 +9,24 @@ export async function updateProfile(prevState: any, formData: FormData) {
   if (!session) return { error: 'Vui lòng đăng nhập.' };
 
   const ho_ten = formData.get('ho_ten') as string;
-  const so_dien_thoai = formData.get('so_dien_thoai') as string;
+  const tai_khoan = formData.get('tai_khoan') as string;
   const anh_dai_dien = formData.get('anh_dai_dien') as string;
 
-  if (!ho_ten || !so_dien_thoai) {
-    return { error: 'Họ tên và Số điện thoại không được để trống.' };
+  if (!ho_ten || !tai_khoan) {
+    return { error: 'Họ tên và Tài khoản không được để trống.' };
   }
 
   try {
     const { error } = await supabase
       .from('tai_khoan')
-      .update({ ho_ten, so_dien_thoai, anh_dai_dien })
+      .update({ ho_ten, tai_khoan, anh_dai_dien })
       .eq('id', session.id);
     
     if (error) throw error;
     revalidatePath('/');
     return { success: true };
   } catch (error: any) {
-    if (error.code === '23505') return { error: 'Số điện thoại này đã được sử dụng bởi người khác.' };
+    if (error.code === '23505') return { error: 'Tài khoản này đã được sử dụng bởi người khác.' };
     return { error: error.message || 'Lỗi khi cập nhật hồ sơ.' };
   }
 }

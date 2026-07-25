@@ -13,7 +13,7 @@ export default async function CaiDatPage() {
   // Lấy dữ liệu cá nhân mới nhất
   const { data: userProfile } = await supabase
     .from('tai_khoan')
-    .select('id, ho_ten, so_dien_thoai, anh_dai_dien')
+    .select('id, ho_ten, tai_khoan, anh_dai_dien')
     .eq('id', session.id)
     .single();
 

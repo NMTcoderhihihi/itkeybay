@@ -26,7 +26,7 @@ export function UserNav({ session }: { session: SessionPayload }) {
     <div className="flex items-center gap-3 relative group">
       <div className="text-right flex flex-col justify-center max-w-[140px] sm:max-w-none">
         <p className="text-sm font-medium leading-none truncate">{session.name}</p>
-        <p className="text-xs text-muted-foreground mt-1 truncate">{session.phone}</p>
+        <p className="text-xs text-muted-foreground mt-1 truncate">{session.account}</p>
       </div>
       
       {/* Nút bấm để mở dropdown (Dùng tabindex để hỗ trợ focus trên di động) */}

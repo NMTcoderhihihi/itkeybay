@@ -1,7 +1,7 @@
 {
   "login": {
     "title": "登录",
-    "phone": "手机号码",
+    "account": "账号",
     "password": "密码",
     "submit": "登录",
     "error": "登录信息有误"

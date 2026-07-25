@@ -2,7 +2,7 @@ import { cookies } from 'next/headers';
 
 export type SessionPayload = {
   id: string;
-  phone: string;
+  account: string;
   role: string;
   name: string;
   avatar: string | null;

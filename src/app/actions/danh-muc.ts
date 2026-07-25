@@ -34,6 +34,16 @@ export async function saveDanhMuc(prevState: any, formData: FormData) {
     return { error: 'Vui lòng nhập đầy đủ thông tin bắt buộc.' };
   }
 
+  // Kiểm tra trùng lặp tên danh mục
+  let checkQuery = supabase.from('danh_muc_giao_dich').select('id').eq('ten_danh_muc', ten_danh_muc.trim());
+  if (id) {
+    checkQuery = checkQuery.neq('id', id);
+  }
+  const { data: existData } = await checkQuery.limit(1);
+  if (existData && existData.length > 0) {
+    return { error: 'Tên danh mục này đã tồn tại, vui lòng chọn tên khác.' };
+  }
+
   try {
     if (id) {
       // Update

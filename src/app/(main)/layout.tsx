@@ -28,7 +28,7 @@ export default async function MainLayout({
             <Factory className="h-6 w-6 text-primary" />
             <span>ITKeyBay</span>
           </Link>
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 ml-auto">
             <UserNav session={session} />
             <ThemeToggle />
           </div>

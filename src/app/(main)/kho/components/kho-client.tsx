@@ -8,14 +8,21 @@ import { NguyenLieu } from "@/app/actions/kho"
 import { DanhMucVatTu } from "./danh-muc-vat-tu"
 import { TongQuanKho } from "./tong-quan-kho"
 import { PhieuGiaoDich } from "./phieu-giao-dich"
-import { Package2, History, ClipboardList } from "lucide-react"
+import { BanThanhPhamList } from "./ban-thanh-pham"
+import { Package2, History, ClipboardList, Boxes } from "lucide-react"
 
 export function KhoClient({ 
   session, 
-  nguyenLieuList 
+  nguyenLieuList,
+  congHangList,
+  tongQuanTonKho,
+  danhMucList
 }: { 
   session: SessionPayload,
-  nguyenLieuList: NguyenLieu[]
+  nguyenLieuList: NguyenLieu[],
+  congHangList: any[],
+  tongQuanTonKho: any[],
+  danhMucList: any[]
 }) {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState("tong-quan")
@@ -34,6 +41,10 @@ export function KhoClient({
           <Package2 className="h-4 w-4" />
           {t('inventoryTabs.stock')}
         </TabsTrigger>
+        <TabsTrigger value="ban-thanh-pham" className="gap-2">
+          <Boxes className="h-4 w-4" />
+          Kho Bán Thành Phẩm
+        </TabsTrigger>
         <TabsTrigger value="giao-dich" className="gap-2">
           <History className="h-4 w-4" />
           {t('inventoryTabs.transactions')}
@@ -48,11 +59,15 @@ export function KhoClient({
 
       <div className="flex-1 mt-4 overflow-y-auto pb-4">
         <TabsContent value="tong-quan" className="m-0 h-full">
-          <TongQuanKho />
+          <TongQuanKho initialData={tongQuanTonKho} />
+        </TabsContent>
+
+        <TabsContent value="ban-thanh-pham" className="m-0 h-full">
+          <BanThanhPhamList congHangList={congHangList} />
         </TabsContent>
 
         <TabsContent value="giao-dich" className="m-0 h-full">
-          <PhieuGiaoDich nguyenLieuList={nguyenLieuList} />
+          <PhieuGiaoDich nguyenLieuList={nguyenLieuList} congHangList={congHangList} initialDanhMucList={danhMucList} />
         </TabsContent>
 
         {session.role === 'Quan ly' && (

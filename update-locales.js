@@ -1,0 +1,132 @@
+const fs = require('fs');
+
+const vi = JSON.parse(fs.readFileSync('./src/locales/vi.json', 'utf8'));
+const en = JSON.parse(fs.readFileSync('./src/locales/en.json', 'utf8'));
+const zh = JSON.parse(fs.readFileSync('./src/locales/zh.json', 'utf8'));
+
+const newKeys = {
+  vi: {
+    searchPlaceholder: "Tìm kiếm danh mục...",
+    object: "Đối tượng",
+    allObjects: "Tất cả đối tượng",
+    transaction: "Giao dịch",
+    allTransactions: "Tất cả giao dịch",
+    import: "Nhập kho (+)",
+    export: "Xuất kho (-)",
+    other: "Khác",
+    addCategory: "Thêm danh mục",
+    categoryName: "Tên danh mục",
+    categoryNameLabel: "Tên danh mục / Lý do",
+    categoryNamePlaceholder: "VD: Xuất trả liệu dư...",
+    type: "Loại giao dịch",
+    notFound: "Không tìm thấy danh mục nào phù hợp.",
+    system: "Hệ thống",
+    disabled: "Đã tắt",
+    details: "Chi tiết Danh mục",
+    createNew: "Thêm mới Danh mục",
+    editing: "Đang sửa",
+    viewOnly: "Chỉ xem",
+    updateSuccess: "Cập nhật thành công!",
+    addSuccess: "Thêm mới thành công!",
+    deleteSuccess: "Xoá thành công",
+    systemWarning: "Đây là danh mục hệ thống, bạn không thể chỉnh sửa nội dung hoặc xoá, chỉ có thể xem chi tiết.",
+    note: "Ghi chú (Tùy chọn)",
+    notePlaceholder: "Mô tả chi tiết mục đích...",
+    noNote: "Không có ghi chú",
+    active: "Đang hoạt động (Cho phép sử dụng)",
+    statusActive: "Trạng thái: Đang hoạt động",
+    statusInactive: "Trạng thái: Đã vô hiệu hoá",
+    saving: "Đang lưu...",
+    saveChanges: "Lưu thay đổi",
+    confirmDeleteTitle: "Bạn có chắc chắn?",
+    confirmDeleteDesc: "Lưu ý: Không thể xoá nếu danh mục đã được sử dụng. Nếu xoá, hành động này không thể hoàn tác.",
+    deleteBtn: "Xoá ngay",
+    closeBtn: "Đóng"
+  },
+  en: {
+    searchPlaceholder: "Search categories...",
+    object: "Object",
+    allObjects: "All objects",
+    transaction: "Transaction",
+    allTransactions: "All transactions",
+    import: "Import (+)",
+    export: "Export (-)",
+    other: "Other",
+    addCategory: "Add Category",
+    categoryName: "Category Name",
+    categoryNameLabel: "Category Name / Reason",
+    categoryNamePlaceholder: "E.g: Return excess materials...",
+    type: "Transaction Type",
+    notFound: "No matching categories found.",
+    system: "System",
+    disabled: "Disabled",
+    details: "Category Details",
+    createNew: "Create New Category",
+    editing: "Editing",
+    viewOnly: "View Only",
+    updateSuccess: "Updated successfully!",
+    addSuccess: "Created successfully!",
+    deleteSuccess: "Deleted successfully",
+    systemWarning: "This is a system category, you cannot edit or delete it, only view details.",
+    note: "Note (Optional)",
+    notePlaceholder: "Detailed purpose description...",
+    noNote: "No note provided",
+    active: "Active (Allowed to use)",
+    statusActive: "Status: Active",
+    statusInactive: "Status: Disabled",
+    saving: "Saving...",
+    saveChanges: "Save Changes",
+    confirmDeleteTitle: "Are you sure?",
+    confirmDeleteDesc: "Note: Cannot be deleted if used in transactions. This action cannot be undone.",
+    deleteBtn: "Delete now",
+    closeBtn: "Close"
+  },
+  zh: {
+    searchPlaceholder: "搜索类别...",
+    object: "对象",
+    allObjects: "所有对象",
+    transaction: "交易",
+    allTransactions: "所有交易",
+    import: "入库 (+)",
+    export: "出库 (-)",
+    other: "其他",
+    addCategory: "添加类别",
+    categoryName: "类别名称",
+    categoryNameLabel: "类别名称 / 原因",
+    categoryNamePlaceholder: "例如：退回多余材料...",
+    type: "交易类型",
+    notFound: "未找到匹配的类别。",
+    system: "系统",
+    disabled: "已禁用",
+    details: "类别详情",
+    createNew: "创建新类别",
+    editing: "编辑中",
+    viewOnly: "仅查看",
+    updateSuccess: "更新成功！",
+    addSuccess: "创建成功！",
+    deleteSuccess: "删除成功",
+    systemWarning: "这是系统类别，您不能编辑或删除，只能查看详情。",
+    note: "备注 (可选)",
+    notePlaceholder: "详细目的描述...",
+    noNote: "没有备注",
+    active: "活动 (允许使用)",
+    statusActive: "状态: 活动",
+    statusInactive: "状态: 已禁用",
+    saving: "保存中...",
+    saveChanges: "保存更改",
+    confirmDeleteTitle: "您确定吗？",
+    confirmDeleteDesc: "注意：如果已在交易中使用，则无法删除。此操作无法撤销。",
+    deleteBtn: "立即删除",
+    closeBtn: "关闭"
+  }
+};
+
+Object.assign(vi.categories, newKeys.vi);
+Object.assign(en.categories, newKeys.en);
+Object.assign(zh.categories, newKeys.zh);
+
+fs.writeFileSync('./src/locales/vi.json', JSON.stringify(vi, null, 2));
+fs.writeFileSync('./src/locales/en.json', JSON.stringify(en, null, 2));
+fs.writeFileSync('./src/locales/zh.json', JSON.stringify(zh, null, 2));
+
+console.log('Locales updated!');

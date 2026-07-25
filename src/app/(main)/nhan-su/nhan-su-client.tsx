@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useActionState, useEffect } from "react";
+import { useState, useActionState, useEffect, useMemo } from "react";
 import { useTranslation } from "@/hooks/use-translation";
 import { saveTaiKhoan, deleteTaiKhoan, saveCongNhan, deleteCongNhan } from "@/app/actions/nhan-su";
-import { Plus, Edit2, Trash2, Settings2, Shield, Eye, EyeOff, CheckCircle2, XCircle, HardHat, Phone } from "lucide-react";
+import { Plus, Trash2, Settings2, Shield, Eye, EyeOff, CheckCircle2, XCircle, HardHat, Phone, User, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useConfirm } from "@/store/confirm-store";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 
 import { useSearchParams } from "next/navigation";
 
@@ -18,64 +21,55 @@ export function NhanSuClient({ taiKhoanData, congNhanData, serverTimeMs }: { tai
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') === 'CONG_NHAN' ? 'CONG_NHAN' : 'TAI_KHOAN';
   const [activeTab, setActiveTab] = useState<NhanSuTab>(initialTab);
+  
   const [isTaiKhoanModalOpen, setIsTaiKhoanModalOpen] = useState(false);
   const [editingTaiKhoan, setEditingTaiKhoan] = useState<any>(null);
+  
   const [isCongNhanModalOpen, setIsCongNhanModalOpen] = useState(false);
   const [editingCongNhan, setEditingCongNhan] = useState<any>(null);
 
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
   useEffect(() => {
-    // Log thời gian từ lúc React mount
     console.log(`[Performance] Máy chủ xử lý DB & Render HTML mất: ${serverTimeMs}ms`);
-    console.log('[Performance] Giao diện Client đã mount thành công!');
   }, [serverTimeMs]);
 
   const handleTabChange = (key: NhanSuTab) => {
     setActiveTab(key);
+    setSearchQuery("");
     window.history.replaceState(null, '', `?tab=${key}`);
   };
 
-  const { showConfirm } = useConfirm();
+  const filteredTaiKhoan = useMemo(() => {
+    return taiKhoanData.filter(item => 
+      item.ho_ten.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      item.tai_khoan.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [taiKhoanData, searchQuery]);
+
+  const filteredCongNhan = useMemo(() => {
+    return congNhanData.filter(item => 
+      item.ho_ten.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      item.ma_cong_nhan.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [congNhanData, searchQuery]);
 
   // Handlers for Tài khoản
-  const handleAddTaiKhoan = () => { setEditingTaiKhoan(null); setIsTaiKhoanModalOpen(true); };
-  const handleEditTaiKhoan = (item: any) => { setEditingTaiKhoan(item); setIsTaiKhoanModalOpen(true); };
-  const handleDeleteTaiKhoan = (item: any) => {
-    showConfirm({
-      title: 'Khóa / Xóa Tài khoản?',
-      description: `Bạn có chắc muốn xóa tài khoản ${item.ho_ten}? Nếu đã có phiếu giao dịch, tài khoản chỉ bị khóa.`,
-      confirmText: 'Xác nhận',
-      variant: 'danger',
-      onConfirm: async () => {
-        const res = await deleteTaiKhoan(item.id);
-        if (res.error) toast.error(res.error);
-        else toast.success('Đã xử lý tài khoản thành công');
-      }
-    });
-  };
-
+  const handleAddTaiKhoan = () => { setEditingTaiKhoan(null); setIsEditMode(true); setIsTaiKhoanModalOpen(true); };
+  const handleRowClickTaiKhoan = (item: any) => { setEditingTaiKhoan(item); setIsEditMode(false); setIsTaiKhoanModalOpen(true); };
+  
   // Handlers for Công nhân
-  const handleAddCongNhan = () => { setEditingCongNhan(null); setIsCongNhanModalOpen(true); };
-  const handleEditCongNhan = (item: any) => { setEditingCongNhan(item); setIsCongNhanModalOpen(true); };
-  const handleDeleteCongNhan = (item: any) => {
-    showConfirm({
-      title: 'Xóa Công nhân?',
-      description: `Bạn có chắc muốn xóa công nhân ${item.ho_ten}?`,
-      confirmText: 'Xóa ngay',
-      variant: 'danger',
-      onConfirm: async () => {
-        const res = await deleteCongNhan(item.id);
-        if (res.error) toast.error(res.error);
-        else toast.success('Đã xóa công nhân');
-      }
-    });
-  };
+  const handleAddCongNhan = () => { setEditingCongNhan(null); setIsEditMode(true); setIsCongNhanModalOpen(true); };
+  const handleRowClickCongNhan = (item: any) => { setEditingCongNhan(item); setIsEditMode(false); setIsCongNhanModalOpen(true); };
 
   return (
-    <div className="flex flex-col gap-4 pb-20 md:pb-4">
+    <div className="flex flex-col gap-6 pb-20 md:pb-4">
       <div className="mb-2">
         <h1 className="text-2xl font-bold tracking-tight">{t('personnel.pageTitle')}</h1>
         <p className="text-muted-foreground">{t('personnel.pageDesc')}</p>
       </div>
+
       {/* Tabs */}
       <div className="flex overflow-x-auto border-b hide-scrollbar">
         <button
@@ -96,47 +90,93 @@ export function NhanSuClient({ taiKhoanData, congNhanData, serverTimeMs }: { tai
         </button>
       </div>
 
-      {/* Content */}
-      <div className="grid gap-3 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {activeTab === 'TAI_KHOAN' ? (
-          <>
-            <button
-              onClick={handleAddTaiKhoan}
-              className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl text-muted-foreground hover:text-primary hover:border-primary hover:bg-muted/50 transition-all min-h-[140px]"
-            >
-              <Plus className="w-8 h-8 mb-2" />
-              <span className="font-medium">Thêm Tài khoản</span>
-            </button>
-            {taiKhoanData.map(item => (
-              <TaiKhoanCard key={item.id} item={item} onEdit={() => handleEditTaiKhoan(item)} onDelete={() => handleDeleteTaiKhoan(item)} />
-            ))}
-          </>
-        ) : (
-          <>
-            <button
-              onClick={handleAddCongNhan}
-              className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-xl text-muted-foreground hover:text-primary hover:border-primary hover:bg-muted/50 transition-all min-h-[140px]"
-            >
-              <Plus className="w-8 h-8 mb-2" />
-              <span className="font-medium">Thêm Công nhân</span>
-            </button>
-            {congNhanData.map(item => (
-              <CongNhanCard key={item.id} item={item} onEdit={() => handleEditCongNhan(item)} onDelete={() => handleDeleteCongNhan(item)} />
-            ))}
-          </>
-        )}
+      {/* Toolbar */}
+      <div className="flex flex-col sm:flex-row gap-3 items-center bg-card p-3 rounded-lg border shadow-sm">
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={activeTab === 'TAI_KHOAN' ? 'Tìm kiếm tài khoản, tên nhân viên...' : 'Tìm kiếm mã công nhân, tên...'}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 w-full bg-background"
+          />
+        </div>
+        <div className="flex gap-2 w-full sm:w-auto overflow-x-auto">
+          {activeTab === 'TAI_KHOAN' ? (
+            <Button onClick={handleAddTaiKhoan} className="shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Plus className="w-4 h-4 mr-2" /> Thêm tài khoản
+            </Button>
+          ) : (
+            <Button onClick={handleAddCongNhan} className="shrink-0 bg-primary hover:bg-primary/90 text-primary-foreground">
+              <Plus className="w-4 h-4 mr-2" /> Thêm công nhân
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* List View */}
+      <div className="rounded-xl border shadow-sm overflow-x-auto bg-card">
+        <div className="flex flex-col min-w-[600px]">
+          {activeTab === 'TAI_KHOAN' ? (
+            <>
+              <div className="grid grid-cols-[250px_200px_1fr] md:grid-cols-[300px_250px_1fr] gap-4 p-3 md:p-4 bg-muted/80 border-b text-sm font-semibold text-foreground">
+                <div>Thông tin nhân viên</div>
+                <div>Tài khoản</div>
+                <div>Vai trò</div>
+              </div>
+              <div className="flex flex-col divide-y">
+                {filteredTaiKhoan.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">Không tìm thấy tài khoản nào.</div>
+                ) : (
+                  filteredTaiKhoan.map(item => (
+                    <TaiKhoanRow key={item.id} item={item} onClick={() => handleRowClickTaiKhoan(item)} />
+                  ))
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-[250px_200px_1fr] md:grid-cols-[300px_250px_1fr] gap-4 p-3 md:p-4 bg-muted/80 border-b text-sm font-semibold text-foreground">
+                <div>Thông tin công nhân</div>
+                <div>Số điện thoại</div>
+                <div>Vị trí</div>
+              </div>
+              <div className="flex flex-col divide-y">
+                {filteredCongNhan.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">Không tìm thấy công nhân nào.</div>
+                ) : (
+                  filteredCongNhan.map(item => (
+                    <CongNhanRow key={item.id} item={item} onClick={() => handleRowClickCongNhan(item)} />
+                  ))
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Modals */}
       {isTaiKhoanModalOpen && (
-        <ModalWrapper title={editingTaiKhoan ? 'Sửa Tài khoản' : 'Thêm Tài khoản'} onClose={() => setIsTaiKhoanModalOpen(false)}>
-          <TaiKhoanForm initialData={editingTaiKhoan} onSuccess={() => setIsTaiKhoanModalOpen(false)} />
+        <ModalWrapper 
+          title={editingTaiKhoan ? 'Chi tiết Tài khoản' : 'Thêm mới Tài khoản'} 
+          isEditMode={isEditMode}
+          setIsEditMode={setIsEditMode}
+          showToggle={!!editingTaiKhoan}
+          onClose={() => setIsTaiKhoanModalOpen(false)}
+        >
+          <TaiKhoanForm initialData={editingTaiKhoan} isEditMode={isEditMode} onSuccess={() => setIsTaiKhoanModalOpen(false)} />
         </ModalWrapper>
       )}
 
       {isCongNhanModalOpen && (
-        <ModalWrapper title={editingCongNhan ? 'Sửa Công nhân' : 'Thêm Công nhân'} onClose={() => setIsCongNhanModalOpen(false)}>
-          <CongNhanForm initialData={editingCongNhan} onSuccess={() => setIsCongNhanModalOpen(false)} />
+        <ModalWrapper 
+          title={editingCongNhan ? 'Chi tiết Công nhân' : 'Thêm mới Công nhân'} 
+          isEditMode={isEditMode}
+          setIsEditMode={setIsEditMode}
+          showToggle={!!editingCongNhan}
+          onClose={() => setIsCongNhanModalOpen(false)}
+        >
+          <CongNhanForm initialData={editingCongNhan} isEditMode={isEditMode} onSuccess={() => setIsCongNhanModalOpen(false)} />
         </ModalWrapper>
       )}
     </div>
@@ -144,74 +184,107 @@ export function NhanSuClient({ taiKhoanData, congNhanData, serverTimeMs }: { tai
 }
 
 // ===================================
-// TÀI KHOẢN COMPONENTS
+// LIST ROWS COMPONENTS
 // ===================================
-function TaiKhoanCard({ item, onEdit, onDelete }: { item: any, onEdit: () => void, onDelete: () => void }) {
-  const [showPass, setShowPass] = useState(false);
-
+function TaiKhoanRow({ item, onClick }: { item: any, onClick: () => void }) {
   return (
-    <div className={`flex flex-col p-4 border rounded-xl bg-card shadow-sm relative overflow-hidden ${!item.dang_hoat_dong ? 'opacity-60 grayscale-[50%]' : ''}`}>
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex gap-3 items-center">
-          <div className="w-10 h-10 rounded-full bg-secondary overflow-hidden shrink-0">
-            {item.anh_dai_dien ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={item.anh_dai_dien} alt={item.ho_ten} className="w-full h-full object-contain bg-muted/30 p-0.5" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-secondary-foreground font-bold">
-                {item.ho_ten.charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
-          <div>
-            <h3 className="font-semibold text-base leading-tight">{item.ho_ten}</h3>
-            <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full mt-1 inline-block ${item.vai_tro === 'Quan ly' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
-              {item.vai_tro}
-            </span>
-          </div>
+    <div 
+      onClick={onClick}
+      className={`grid grid-cols-[250px_200px_1fr] md:grid-cols-[300px_250px_1fr] gap-4 p-3 md:p-4 items-center transition-colors hover:bg-accent cursor-pointer ${!item.dang_hoat_dong ? 'opacity-60 bg-muted/30' : ''}`}
+    >
+      <div className="flex items-center gap-3 overflow-x-auto custom-scrollbar whitespace-nowrap pb-1 -mb-1">
+        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-secondary overflow-hidden shrink-0 border border-muted-foreground/20">
+          {item.anh_dai_dien ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={item.anh_dai_dien} alt={item.ho_ten} className="w-full h-full object-contain bg-muted/30 p-0.5" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-secondary-foreground font-bold text-xs md:text-sm">
+              {item.ho_ten.charAt(0).toUpperCase()}
+            </div>
+          )}
         </div>
-        <div className="flex gap-1 shrink-0">
-          <button onClick={onEdit} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-muted rounded-md">
-            <Edit2 className="w-4 h-4" />
-          </button>
-          <button onClick={onDelete} className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md">
-            <Trash2 className="w-4 h-4" />
-          </button>
+        <div className="flex flex-col">
+          <span className="font-semibold text-sm flex items-center gap-2">
+            {item.ho_ten}
+            {!item.dang_hoat_dong && <span className="text-[10px] bg-destructive text-destructive-foreground px-1.5 py-0.5 rounded-sm shrink-0 font-medium">Đã khóa</span>}
+          </span>
+          <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5"><User className="w-3 h-3" /> {item.tai_khoan}</span>
         </div>
       </div>
-
-      <div className="mt-auto flex flex-col gap-1.5 text-sm">
-        <div className="flex items-center gap-2">
-          <Phone className="w-4 h-4 text-muted-foreground" />
-          <span>{item.so_dien_thoai}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4 text-muted-foreground" />
-          <div className="flex items-center gap-1.5">
-            <span className="font-mono bg-muted px-1.5 rounded">{showPass ? item.mat_khau : '••••••••'}</span>
-            <button onClick={() => setShowPass(!showPass)} className="text-muted-foreground hover:text-foreground">
-              {showPass ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-            </button>
-          </div>
-        </div>
-        {!item.dang_hoat_dong && (
-          <div className="flex items-center gap-1.5 text-destructive mt-1 font-medium">
-            <XCircle className="w-4 h-4" /> Đã khóa
-          </div>
-        )}
+      <div className="flex items-center text-sm font-medium overflow-x-auto custom-scrollbar whitespace-nowrap pb-1 -mb-1">
+        <span className="font-mono bg-muted px-2 py-0.5 rounded border">••••••••</span>
+      </div>
+      <div className="flex items-center">
+        <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${item.vai_tro === 'Quan ly' ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground border'}`}>
+          {item.vai_tro === 'Quan ly' ? 'Quản lý' : 'Nhân viên'}
+        </span>
       </div>
     </div>
   );
 }
 
-function TaiKhoanForm({ initialData, onSuccess }: { initialData: any, onSuccess: () => void }) {
+function CongNhanRow({ item, onClick }: { item: any, onClick: () => void }) {
+  return (
+    <div 
+      onClick={onClick}
+      className={`grid grid-cols-[250px_200px_1fr] md:grid-cols-[300px_250px_1fr] gap-4 p-3 md:p-4 items-center transition-colors hover:bg-accent cursor-pointer`}
+    >
+      <div className="flex items-center gap-3 overflow-x-auto custom-scrollbar whitespace-nowrap pb-1 -mb-1">
+        <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-secondary overflow-hidden shrink-0 border border-muted-foreground/20">
+          <div className="w-full h-full flex items-center justify-center text-secondary-foreground font-bold text-xs md:text-sm">
+            {item.ho_ten.charAt(0).toUpperCase()}
+          </div>
+        </div>
+        <div className="flex flex-col">
+          <span className="font-semibold text-sm flex items-center gap-2">
+            {item.ho_ten}
+          </span>
+          <span className="text-xs font-mono text-muted-foreground flex items-center gap-1"><HardHat className="w-3 h-3" /> {item.ma_cong_nhan}</span>
+        </div>
+      </div>
+      <div className="flex items-center text-sm overflow-x-auto custom-scrollbar whitespace-nowrap pb-1 -mb-1">
+        {item.so_dien_thoai ? (
+          <span className="flex items-center gap-1.5 bg-secondary px-2 py-0.5 rounded font-mono text-secondary-foreground"><Phone className="w-3.5 h-3.5" /> {item.so_dien_thoai}</span>
+        ) : (
+          <span className="text-xs text-muted-foreground">Không có</span>
+        )}
+      </div>
+      <div className="flex items-center">
+        <span className="text-sm font-medium text-foreground truncate">{item.vai_tro || 'Chưa phân công'}</span>
+      </div>
+    </div>
+  );
+}
+
+// ===================================
+// FORMS
+// ===================================
+function TaiKhoanForm({ initialData, isEditMode, onSuccess }: { initialData: any, isEditMode: boolean, onSuccess: () => void }) {
   const [state, formAction, isPending] = useActionState(saveTaiKhoan, null);
   const [avatar, setAvatar] = useState(initialData?.anh_dai_dien || '');
+  const { showConfirm } = useConfirm();
 
   useEffect(() => {
     if (state?.success) { toast.success('Lưu thành công'); onSuccess(); }
     if (state?.error) { toast.error(state.error); }
   }, [state, onSuccess]);
+
+  const handleDelete = () => {
+    if (!initialData) return;
+    showConfirm({
+      title: 'Khóa / Xóa Tài khoản?',
+      description: `Bạn có chắc muốn xóa tài khoản ${initialData.ho_ten}? Nếu đã có phiếu giao dịch, tài khoản chỉ bị khóa. Hành động này không thể hoàn tác.`,
+      confirmText: 'Xóa ngay',
+      variant: 'danger',
+      onConfirm: async () => {
+        const res = await deleteTaiKhoan(initialData.id);
+        if (res.error) toast.error(res.error);
+        else { toast.success('Đã xử lý tài khoản thành công'); onSuccess(); }
+      }
+    });
+  };
+
+  const canEdit = isEditMode;
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -219,125 +292,161 @@ function TaiKhoanForm({ initialData, onSuccess }: { initialData: any, onSuccess:
       <input type="hidden" name="anh_dai_dien" value={avatar} />
 
       <div className="flex justify-center mb-2">
-        <ImageUpload value={avatar} onChange={setAvatar} />
+        {canEdit ? (
+          <ImageUpload value={avatar} onChange={setAvatar} />
+        ) : (
+          <div className="w-24 h-24 rounded-full border-2 overflow-hidden bg-muted">
+            {avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-secondary text-secondary-foreground text-2xl font-bold">
+                {initialData?.ho_ten?.charAt(0).toUpperCase() || 'U'}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium">Họ Tên</label>
-          <input type="text" name="ho_ten" defaultValue={initialData?.ho_ten} required className="px-3 py-2 border rounded-md text-sm outline-none focus:border-primary bg-background text-foreground" />
+          <Label>Họ Tên</Label>
+          {canEdit ? (
+            <Input type="text" name="ho_ten" defaultValue={initialData?.ho_ten} required className="bg-background" />
+          ) : (
+            <div className="px-3 py-2 border rounded-md text-sm bg-muted/30 font-medium">{initialData?.ho_ten}</div>
+          )}
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium">SĐT đăng nhập</label>
-          <input type="tel" name="so_dien_thoai" defaultValue={initialData?.so_dien_thoai} required className="px-3 py-2 border rounded-md text-sm outline-none focus:border-primary bg-background text-foreground" />
+          <Label>Tài khoản</Label>
+          {canEdit ? (
+            <Input type="text" name="tai_khoan" defaultValue={initialData?.tai_khoan} required className="bg-background" />
+          ) : (
+            <div className="px-3 py-2 border rounded-md text-sm bg-muted/30">{initialData?.tai_khoan}</div>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium">Mật khẩu</label>
-          <input type="text" name="mat_khau" defaultValue={initialData?.mat_khau} required placeholder="VD: 123456" className="px-3 py-2 border rounded-md text-sm outline-none focus:border-primary bg-background text-foreground" />
+          <Label>Mật khẩu</Label>
+          {canEdit ? (
+            <Input type="text" name="mat_khau" defaultValue={initialData?.mat_khau} required placeholder="VD: 123456" className="bg-background" />
+          ) : (
+            <div className="px-3 py-2 border rounded-md text-sm bg-muted/30 font-mono">••••••••</div>
+          )}
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium">Vai trò</label>
-          <select name="vai_tro" defaultValue={initialData?.vai_tro || 'Nhan vien'} className="px-3 py-2 border rounded-md text-sm outline-none focus:border-primary bg-background text-foreground">
-            <option value="Nhan vien" className="bg-background text-foreground">Nhân viên</option>
-            <option value="Quan ly" className="bg-background text-foreground">Quản lý</option>
-          </select>
+          <Label>Vai trò</Label>
+          {canEdit ? (
+            <select name="vai_tro" defaultValue={initialData?.vai_tro || 'Nhan vien'} className="px-3 py-2 border rounded-md text-sm outline-none focus:border-primary bg-background">
+              <option value="Nhan vien">Nhân viên</option>
+              <option value="Quan ly">Quản lý</option>
+            </select>
+          ) : (
+            <div className="px-3 py-2 border rounded-md text-sm bg-muted/30">
+              {initialData?.vai_tro === 'Quan ly' ? 'Quản lý' : 'Nhân viên'}
+            </div>
+          )}
         </div>
       </div>
 
       <div className="flex items-center gap-2 mt-2">
-        <input type="checkbox" name="dang_hoat_dong" id="dang_hoat_dong_tk" value="true" defaultChecked={initialData ? initialData.dang_hoat_dong : true} className="w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary" />
-        <label htmlFor="dang_hoat_dong_tk" className="text-sm cursor-pointer">Tài khoản đang hoạt động</label>
+        {canEdit ? (
+          <>
+            <input type="checkbox" name="dang_hoat_dong" id="dang_hoat_dong_tk" value="true" defaultChecked={initialData ? initialData.dang_hoat_dong : true} className="w-4 h-4 text-primary rounded border-input focus:ring-primary" />
+            <Label htmlFor="dang_hoat_dong_tk" className="cursor-pointer select-none">Tài khoản đang hoạt động (Cho phép đăng nhập)</Label>
+          </>
+        ) : (
+          <div className={`text-sm font-medium px-2.5 py-1 rounded-md ${initialData?.dang_hoat_dong ? 'bg-green-100 text-green-700 dark:bg-green-900/30' : 'bg-red-100 text-red-700 dark:bg-red-900/30'}`}>
+            Trạng thái: {initialData?.dang_hoat_dong ? 'Đang hoạt động' : 'Đã khóa'}
+          </div>
+        )}
       </div>
 
-      <ModalFooter isPending={isPending} onCancel={onSuccess} isEdit={!!initialData} />
+      <FormFooter isEditMode={isEditMode} isPending={isPending} initialData={initialData} onSuccess={onSuccess} onDelete={handleDelete} />
     </form>
   );
 }
 
-// ===================================
-// CÔNG NHÂN COMPONENTS
-// ===================================
-function CongNhanCard({ item, onEdit, onDelete }: { item: any, onEdit: () => void, onDelete: () => void }) {
-  return (
-    <div className="flex flex-col p-4 border rounded-xl bg-card shadow-sm relative overflow-hidden">
-      <div className="flex justify-between items-start mb-3">
-        <div>
-          <div className="flex gap-2 items-center">
-            <h3 className="font-semibold text-base">{item.ho_ten}</h3>
-          </div>
-          <span className="text-xs font-mono px-1.5 py-0.5 bg-muted rounded mt-1 inline-block">{item.ma_cong_nhan}</span>
-        </div>
-        <div className="flex gap-1 shrink-0">
-          <button onClick={onEdit} className="p-1.5 text-muted-foreground hover:text-primary hover:bg-muted rounded-md">
-            <Edit2 className="w-4 h-4" />
-          </button>
-          <button onClick={onDelete} className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-md">
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-auto flex flex-col gap-1.5 text-sm">
-        {item.vai_tro && (
-          <div className="flex items-center gap-2">
-            <HardHat className="w-4 h-4 text-orange-500" />
-            <span className="font-medium">{item.vai_tro}</span>
-          </div>
-        )}
-        {item.so_dien_thoai && (
-          <div className="flex items-center gap-2">
-            <Phone className="w-4 h-4 text-muted-foreground" />
-            <span>{item.so_dien_thoai}</span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function CongNhanForm({ initialData, onSuccess }: { initialData: any, onSuccess: () => void }) {
+function CongNhanForm({ initialData, isEditMode, onSuccess }: { initialData: any, isEditMode: boolean, onSuccess: () => void }) {
   const [state, formAction, isPending] = useActionState(saveCongNhan, null);
+  const { showConfirm } = useConfirm();
 
   useEffect(() => {
     if (state?.success) { toast.success('Lưu thành công'); onSuccess(); }
     if (state?.error) { toast.error(state.error); }
   }, [state, onSuccess]);
 
+  const handleDelete = () => {
+    if (!initialData) return;
+    showConfirm({
+      title: 'Xóa Công nhân?',
+      description: `Bạn có chắc muốn xóa công nhân ${initialData.ho_ten}? Hành động này không thể hoàn tác.`,
+      confirmText: 'Xóa ngay',
+      variant: 'danger',
+      onConfirm: async () => {
+        const res = await deleteCongNhan(initialData.id);
+        if (res.error) toast.error(res.error);
+        else { toast.success('Đã xóa công nhân'); onSuccess(); }
+      }
+    });
+  };
+
+  const canEdit = isEditMode;
+
   return (
     <form action={formAction} className="flex flex-col gap-4">
       {initialData && <input type="hidden" name="id" value={initialData.id} />}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium">Mã Công nhân</label>
-          <input type="text" name="ma_cong_nhan" defaultValue={initialData?.ma_cong_nhan} required placeholder="VD: CN-001" className="px-3 py-2 border rounded-md text-sm font-mono outline-none focus:border-primary bg-background text-foreground" />
+          <Label>Mã Công nhân</Label>
+          {canEdit ? (
+            <Input type="text" name="ma_cong_nhan" defaultValue={initialData?.ma_cong_nhan} required placeholder="VD: CN-001" className="font-mono bg-background" />
+          ) : (
+            <div className="px-3 py-2 border rounded-md text-sm bg-muted/30 font-mono font-medium">{initialData?.ma_cong_nhan}</div>
+          )}
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium">Họ Tên</label>
-          <input type="text" name="ho_ten" defaultValue={initialData?.ho_ten} required className="px-3 py-2 border rounded-md text-sm outline-none focus:border-primary bg-background text-foreground" />
+          <Label>Họ Tên</Label>
+          {canEdit ? (
+            <Input type="text" name="ho_ten" defaultValue={initialData?.ho_ten} required className="bg-background" />
+          ) : (
+            <div className="px-3 py-2 border rounded-md text-sm bg-muted/30 font-medium">{initialData?.ho_ten}</div>
+          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium">Chuyên môn / Vị trí</label>
-          <input type="text" name="vai_tro" defaultValue={initialData?.vai_tro} placeholder="VD: Thợ sơn" className="px-3 py-2 border rounded-md text-sm outline-none focus:border-primary bg-background text-foreground" />
+          <Label>Chuyên môn / Vị trí</Label>
+          {canEdit ? (
+            <Input type="text" name="vai_tro" defaultValue={initialData?.vai_tro} placeholder="VD: Thợ sơn" className="bg-background" />
+          ) : (
+            <div className="px-3 py-2 border rounded-md text-sm bg-muted/30">{initialData?.vai_tro || 'Chưa phân công'}</div>
+          )}
         </div>
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium">Số điện thoại</label>
-          <input type="tel" name="so_dien_thoai" defaultValue={initialData?.so_dien_thoai} className="px-3 py-2 border rounded-md text-sm outline-none focus:border-primary bg-background text-foreground" />
+          <Label>Số điện thoại</Label>
+          {canEdit ? (
+            <Input type="tel" name="so_dien_thoai" defaultValue={initialData?.so_dien_thoai} className="bg-background" />
+          ) : (
+            <div className="px-3 py-2 border rounded-md text-sm bg-muted/30">{initialData?.so_dien_thoai || 'Không có'}</div>
+          )}
         </div>
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium">Ghi chú</label>
-        <textarea name="ghi_chu" defaultValue={initialData?.ghi_chu} rows={2} className="px-3 py-2 border rounded-md text-sm outline-none focus:border-primary bg-background text-foreground" />
+        <Label>Ghi chú</Label>
+        {canEdit ? (
+          <textarea name="ghi_chu" defaultValue={initialData?.ghi_chu} rows={3} className="w-full px-3 py-2 border rounded-md text-sm outline-none focus:border-primary bg-background" />
+        ) : (
+          <div className="px-3 py-2 border rounded-md text-sm bg-muted/30 min-h-[60px] whitespace-pre-wrap text-muted-foreground">{initialData?.ghi_chu || 'Không có ghi chú'}</div>
+        )}
       </div>
 
-      <ModalFooter isPending={isPending} onCancel={onSuccess} isEdit={!!initialData} />
+      <FormFooter isEditMode={isEditMode} isPending={isPending} initialData={initialData} onSuccess={onSuccess} onDelete={handleDelete} />
     </form>
   );
 }
@@ -345,17 +454,33 @@ function CongNhanForm({ initialData, onSuccess }: { initialData: any, onSuccess:
 // ===================================
 // UTILS
 // ===================================
-function ModalWrapper({ title, onClose, children }: { title: string, onClose: () => void, children: React.ReactNode }) {
+function ModalWrapper({ title, isEditMode, setIsEditMode, showToggle, onClose, children }: { title: string, isEditMode: boolean, setIsEditMode: (v: boolean) => void, showToggle: boolean, onClose: () => void, children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in">
-      <div className="bg-background w-full max-w-md rounded-xl shadow-lg overflow-hidden animate-in zoom-in-95">
-        <div className="px-4 py-3 border-b flex justify-between items-center bg-muted/20">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-in fade-in"
+      onClick={() => onClose()}
+    >
+      <div 
+        className="bg-background w-full max-w-md rounded-xl shadow-lg overflow-hidden animate-in zoom-in-95"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-4 py-3 border-b flex justify-between items-center bg-muted/30">
           <h2 className="font-semibold flex items-center gap-2">
             <Settings2 className="w-4 h-4" /> {title}
           </h2>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-lg p-1 leading-none">&times;</button>
+          <div className="flex items-center gap-3">
+            {showToggle && (
+              <button 
+                onClick={() => setIsEditMode(!isEditMode)} 
+                className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors ${isEditMode ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}
+              >
+                {isEditMode ? 'Đang sửa' : 'Chỉ xem'}
+              </button>
+            )}
+            <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-2xl p-1 leading-none">&times;</button>
+          </div>
         </div>
-        <div className="p-4">
+        <div className="p-4 max-h-[80vh] overflow-y-auto">
           {children}
         </div>
       </div>
@@ -363,15 +488,38 @@ function ModalWrapper({ title, onClose, children }: { title: string, onClose: ()
   );
 }
 
-function ModalFooter({ isPending, onCancel, isEdit }: { isPending: boolean, onCancel: () => void, isEdit: boolean }) {
+function FormFooter({ isEditMode, isPending, initialData, onSuccess, onDelete }: { isEditMode: boolean, isPending: boolean, initialData: any, onSuccess: () => void, onDelete: () => void }) {
+  if (!isEditMode) {
+    return (
+      <div className="flex justify-end mt-4 pt-4 border-t">
+        <button type="button" onClick={onSuccess} className="px-4 py-2 text-sm font-medium bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors">
+          Đóng
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex justify-end gap-2 mt-4">
-      <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-medium bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80">
-        Huỷ
-      </button>
-      <button type="submit" disabled={isPending} className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50">
-        {isPending ? 'Đang lưu...' : (isEdit ? 'Lưu thay đổi' : 'Tạo mới')}
-      </button>
+    <div className="flex justify-between items-center mt-4 pt-4 border-t">
+      {initialData ? (
+        <button 
+          type="button" 
+          onClick={onDelete}
+          className="px-4 py-2 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-md transition-colors flex items-center gap-2"
+        >
+          <Trash2 className="w-4 h-4" /> Xóa
+        </button>
+      ) : (
+        <div></div>
+      )}
+      <div className="flex gap-2">
+        <button type="button" onClick={onSuccess} className="px-4 py-2 text-sm font-medium bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors">
+          Đóng
+        </button>
+        <button type="submit" disabled={isPending} className="px-4 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors">
+          {isPending ? 'Đang lưu...' : (initialData ? 'Lưu thay đổi' : 'Tạo mới')}
+        </button>
+      </div>
     </div>
   );
 }

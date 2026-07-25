@@ -14,7 +14,7 @@ CREATE TYPE enum_loai_giao_dich AS ENUM ('NHAP', 'XUAT', 'CHINH_SUA');
 -- ==========================================
 CREATE TABLE tai_khoan (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    so_dien_thoai VARCHAR(20) UNIQUE NOT NULL,
+    tai_khoan VARCHAR(100) UNIQUE NOT NULL,
     mat_khau VARCHAR(255) NOT NULL,
     vai_tro VARCHAR(50) NOT NULL, -- VD: 'Quan ly', 'Nhan vien'
     ho_ten VARCHAR(255) NOT NULL,

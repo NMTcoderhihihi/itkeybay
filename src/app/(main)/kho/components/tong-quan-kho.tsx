@@ -12,25 +12,19 @@ import { format } from "date-fns"
 import Image from "next/image"
 import { useTranslation } from "@/hooks/use-translation"
 
-export function TongQuanKho() {
+export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
   const { t } = useTranslation()
-  const [loading, setLoading] = useState(true)
-  const [inventory, setInventory] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  const [inventory, setInventory] = useState<any[]>(initialData)
   const [selectedItem, setSelectedItem] = useState<any | null>(null)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [ledgerData, setLedgerData] = useState<any[]>([])
   const [loadingLedger, setLoadingLedger] = useState(false)
 
+  // Nếu initialData thay đổi (do revalidate từ server), cập nhật state
   useEffect(() => {
-    fetchData()
-  }, [])
-
-  const fetchData = async () => {
-    setLoading(true)
-    const data = await getTongQuanTonKho()
-    setInventory(data)
-    setLoading(false)
-  }
+    setInventory(initialData)
+  }, [initialData])
 
   const openLedger = async (item: any) => {
     setSelectedItem(item)
@@ -115,7 +109,7 @@ export function TongQuanKho() {
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
             ) : (
-              <Table>
+              <Table className="min-w-[800px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>{t('inventory.date')}</TableHead>
@@ -195,7 +189,7 @@ export function TongQuanKho() {
           onClick={() => setPreviewImage(null)}
         >
           <button 
-            className="absolute top-4 right-4 text-white p-2 hover:bg-white/20 rounded-full transition-colors"
+            className="absolute top-4 right-4 text-white p-2 hover:bg-white/20 rounded-full transition-colors z-[110]"
             onClick={() => setPreviewImage(null)}
           >
             <X className="w-8 h-8" />

@@ -49,13 +49,13 @@ export default function SetupForm() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="phone">Số điện thoại</Label>
+            <Label htmlFor="account">Tài khoản</Label>
             <Input 
-              id="phone" 
-              name="phone" 
-              type="tel" 
+              id="account" 
+              name="account" 
+              type="text" 
               required 
-              placeholder="Nhập số điện thoại của bạn"
+              placeholder="Nhập tài khoản của bạn"
             />
           </div>
           <div className="space-y-2">

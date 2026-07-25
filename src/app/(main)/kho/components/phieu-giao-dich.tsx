@@ -14,15 +14,16 @@ import { toast } from "sonner"
 import Image from "next/image"
 import { useTranslation } from "@/hooks/use-translation"
 
-export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
+export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList = [] }: { nguyenLieuList: any[], congHangList?: any[], initialDanhMucList?: any[] }) {
   const { t } = useTranslation()
   const [isPending, startTransition] = useTransition()
   const [step, setStep] = useState(1)
-  const [danhMucList, setDanhMucList] = useState<any[]>([])
+  const [danhMucList, setDanhMucList] = useState<any[]>(initialDanhMucList)
 
   // Form Data
   const [loaiGiaoDich, setLoaiGiaoDich] = useState<'NHAP' | 'XUAT' | ''>('')
   const [idDanhMuc, setIdDanhMuc] = useState("")
+  const [idCongHang, setIdCongHang] = useState("")
   const [ghiChu, setGhiChu] = useState("")
   const [chiTiet, setChiTiet] = useState<ChiTietGiaoDich[]>([])
   const [danhSachAnh, setDanhSachAnh] = useState<string[]>([])
@@ -34,15 +35,11 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
     const ua = navigator.userAgent;
     const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
     setIsMobile(isMobileDevice);
-
-    fetchDanhMuc()
   }, [])
 
-  const fetchDanhMuc = async () => {
-    // Lấy fetch từ action (Tôi sẽ bổ sung hàm getDanhSachDanhMuc vào action kho hoặc giao-dich)
-    const data = await import("@/app/actions/giao-dich").then(m => m.getDanhSachDanhMuc())
-    setDanhMucList(data)
-  }
+  useEffect(() => {
+    setDanhMucList(initialDanhMucList)
+  }, [initialDanhMucList])
 
   const filteredDanhMuc = danhMucList.filter(dm => dm.phan_he === 'NGUYEN_LIEU' && dm.loai_giao_dich === loaiGiaoDich)
 
@@ -136,6 +133,7 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
       const { taoPhieuGiaoDichKho } = await import("@/app/actions/giao-dich")
       const result = await taoPhieuGiaoDichKho({
         id_danh_muc: idDanhMuc,
+        id_cong_hang: idCongHang,
         loai_giao_dich: loaiGiaoDich as 'NHAP' | 'XUAT',
         ghi_chu: ghiChu,
         danh_sach_anh: danhSachAnh,
@@ -238,6 +236,26 @@ export function PhieuGiaoDich({ nguyenLieuList }: { nguyenLieuList: any[] }) {
                           <SelectItem key={dm.id} value={dm.id}>{dm.ten_danh_muc}</SelectItem>
                         ))
                       )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Tùy chọn gán cho Công hàng (Thường dùng khi Xuất sản xuất) */}
+              {loaiGiaoDich === 'XUAT' && (
+                <div className="space-y-2 animate-in fade-in">
+                  <Label>Cấp cho Công Hàng (Tùy chọn)</Label>
+                  <Select value={idCongHang} onValueChange={(val) => setIdCongHang(val === "none" ? "" : (val || ""))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn công hàng...">
+                        {idCongHang ? congHangList?.find(c => c.id === idCongHang)?.ma_cong_hang : "Không áp dụng"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">-- Không áp dụng --</SelectItem>
+                      {congHangList?.filter(c => c.trang_thai_sx !== 'DA_LAM').map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.ma_cong_hang} ({c.trang_thai_sx === 'DANG_LAM' ? 'Đang SX' : 'Chưa SX'})</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

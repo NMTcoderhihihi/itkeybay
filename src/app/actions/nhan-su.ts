@@ -26,13 +26,13 @@ export async function saveTaiKhoan(prevState: any, formData: FormData) {
 
   const id = formData.get('id') as string;
   const ho_ten = formData.get('ho_ten') as string;
-  const so_dien_thoai = formData.get('so_dien_thoai') as string;
+  const tai_khoan = formData.get('tai_khoan') as string;
   const mat_khau = formData.get('mat_khau') as string;
   const vai_tro = formData.get('vai_tro') as string;
   const anh_dai_dien = formData.get('anh_dai_dien') as string;
   const dang_hoat_dong = formData.get('dang_hoat_dong') === 'true';
 
-  if (!ho_ten || !so_dien_thoai || !mat_khau || !vai_tro) {
+  if (!ho_ten || !tai_khoan || !mat_khau || !vai_tro) {
     return { error: 'Vui lòng nhập đầy đủ thông tin bắt buộc.' };
   }
 
@@ -40,19 +40,19 @@ export async function saveTaiKhoan(prevState: any, formData: FormData) {
     if (id) {
       const { error } = await supabase
         .from('tai_khoan')
-        .update({ ho_ten, so_dien_thoai, mat_khau, vai_tro, anh_dai_dien, dang_hoat_dong })
+        .update({ ho_ten, tai_khoan, mat_khau, vai_tro, anh_dai_dien, dang_hoat_dong })
         .eq('id', id);
       if (error) throw error;
     } else {
       const { error } = await supabase
         .from('tai_khoan')
-        .insert([{ ho_ten, so_dien_thoai, mat_khau, vai_tro, anh_dai_dien, dang_hoat_dong }]);
+        .insert([{ ho_ten, tai_khoan, mat_khau, vai_tro, anh_dai_dien, dang_hoat_dong }]);
       if (error) throw error;
     }
     revalidatePath('/nhan-su');
     return { success: true };
   } catch (error: any) {
-    if (error.code === '23505') return { error: 'Số điện thoại này đã được sử dụng.' };
+    if (error.code === '23505') return { error: 'Tài khoản này đã được sử dụng.' };
     return { error: error.message || 'Lỗi khi lưu tài khoản.' };
   }
 }

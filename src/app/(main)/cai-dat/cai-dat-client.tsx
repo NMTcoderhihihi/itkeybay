@@ -87,10 +87,11 @@ export function CaiDatClient({ userProfile }: { userProfile: any }) {
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">{t('settings.phone')}</label>
+                <label className="text-sm font-medium">{t('settings.account')}</label>
                 <input 
-                  name="so_dien_thoai"
-                  defaultValue={userProfile.so_dien_thoai}
+                  type="text"
+                  name="tai_khoan"
+                  defaultValue={userProfile.tai_khoan}
                   required
                   className="flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm"
                 />

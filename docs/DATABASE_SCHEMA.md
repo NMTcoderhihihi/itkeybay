@@ -16,7 +16,7 @@ erDiagram
     %% ==========================================
     tai_khoan {
         uuid id PK
-        string so_dien_thoai "Dùng để đăng nhập"
+        string tai_khoan "Tên tài khoản để đăng nhập"
         string mat_khau
         string vai_tro "Quan ly / Nhan vien"
         string ho_ten

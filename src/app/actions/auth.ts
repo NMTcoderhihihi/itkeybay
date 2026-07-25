@@ -17,7 +17,7 @@ export async function checkNeedsSetup() {
 }
 
 export async function setupFirstAdmin(prevState: any, formData: FormData) {
-  const phone = (formData.get('phone') as string).trim()
+  const account = (formData.get('account') as string).trim()
   const password = (formData.get('password') as string).trim()
   const name = (formData.get('name') as string).trim()
 
@@ -29,7 +29,7 @@ export async function setupFirstAdmin(prevState: any, formData: FormData) {
     .from('tai_khoan')
     .insert([
       {
-        so_dien_thoai: phone,
+        tai_khoan: account,
         mat_khau: password, // Theo yêu cầu, không băm một chiều
         vai_tro: 'Quan ly',
         ho_ten: name,
@@ -43,7 +43,7 @@ export async function setupFirstAdmin(prevState: any, formData: FormData) {
 
   await createSession({
     id: data.id,
-    phone: data.so_dien_thoai,
+    account: data.tai_khoan,
     role: data.vai_tro,
     name: data.ho_ten,
     avatar: data.anh_dai_dien || null
@@ -53,17 +53,17 @@ export async function setupFirstAdmin(prevState: any, formData: FormData) {
 }
 
 export async function login(prevState: any, formData: FormData) {
-  const phone = (formData.get('phone') as string).trim()
+  const account = (formData.get('account') as string).trim()
   const password = (formData.get('password') as string).trim()
 
   const { data, error } = await supabase
     .from('tai_khoan')
     .select('*')
-    .eq('so_dien_thoai', phone)
+    .eq('tai_khoan', account)
     .single()
 
   if (error || !data) {
-    return { error: 'Sai số điện thoại hoặc tài khoản không tồn tại' }
+    return { error: 'Sai tài khoản hoặc tài khoản không tồn tại' }
   }
 
   if (!data.dang_hoat_dong) {
@@ -76,7 +76,7 @@ export async function login(prevState: any, formData: FormData) {
 
   await createSession({
     id: data.id,
-    phone: data.so_dien_thoai,
+    account: data.tai_khoan,
     role: data.vai_tro,
     name: data.ho_ten,
     avatar: data.anh_dai_dien || null

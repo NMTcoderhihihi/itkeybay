@@ -23,6 +23,7 @@ export async function getDanhSachDanhMuc() {
 
 export async function taoPhieuGiaoDichKho(payload: {
   id_danh_muc: string
+  id_cong_hang?: string
   loai_giao_dich: 'NHAP' | 'XUAT' | 'CHINH_SUA'
   ghi_chu: string
   danh_sach_anh: string[]
@@ -42,6 +43,7 @@ export async function taoPhieuGiaoDichKho(payload: {
       ma_lo,
       id_tai_khoan: session.id,
       id_danh_muc: payload.id_danh_muc,
+      id_cong_hang: payload.id_cong_hang || null,
       ghi_chu: payload.ghi_chu,
       danh_sach_anh: payload.danh_sach_anh
     })

@@ -1,7 +1,7 @@
 {
   "login": {
     "title": "Đăng nhập",
-    "phone": "Số điện thoại",
+    "account": "Tài khoản",
     "password": "Mật khẩu",
     "submit": "Đăng nhập",
     "error": "Sai thông tin đăng nhập"
