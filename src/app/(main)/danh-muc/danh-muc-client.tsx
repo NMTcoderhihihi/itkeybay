@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useActionState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { saveDanhMuc, deleteDanhMuc } from "@/app/actions/danh-muc";
 import { Plus, Trash2, Shield, Settings2, Info, Search, PlusCircle, MinusCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -65,10 +66,7 @@ export function DanhMucClient({ initialData, serverTimeMs }: { initialData: Danh
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="mb-2">
-        <h1 className="text-2xl font-bold tracking-tight">{t('categories.pageTitle')}</h1>
-        <p className="text-muted-foreground">{t('categories.pageDesc')}</p>
-      </div>
+
 
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-3 items-center bg-card p-3 rounded-lg border shadow-sm">
@@ -217,18 +215,20 @@ export function DanhMucClient({ initialData, serverTimeMs }: { initialData: Danh
 
 function DanhMucForm({ initialData, isEditMode, onSuccess }: { initialData: DanhMuc | null, isEditMode: boolean, onSuccess: () => void }) {
   const { t } = useTranslation();
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState(saveDanhMuc, null);
   const { showConfirm } = useConfirm();
 
   useEffect(() => {
     if (state?.success) {
       toast.success(initialData ? t('categories.updateSuccess') : t('categories.addSuccess'));
+      router.refresh();
       onSuccess();
     }
     if (state?.error) {
       toast.error(state.error);
     }
-  }, [state, initialData, onSuccess, t]);
+  }, [state, initialData, onSuccess, t, router]);
 
   const handleDelete = () => {
     if (!initialData) return;
@@ -243,6 +243,7 @@ function DanhMucForm({ initialData, isEditMode, onSuccess }: { initialData: Danh
           toast.error(res.error);
         } else {
           toast.success(t('categories.deleteSuccess'));
+          router.refresh();
           onSuccess();
         }
       }

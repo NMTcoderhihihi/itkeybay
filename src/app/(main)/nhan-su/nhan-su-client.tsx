@@ -65,10 +65,7 @@ export function NhanSuClient({ taiKhoanData, congNhanData, serverTimeMs }: { tai
 
   return (
     <div className="flex flex-col gap-6 pb-20 md:pb-4">
-      <div className="mb-2">
-        <h1 className="text-2xl font-bold tracking-tight">{t('personnel.pageTitle')}</h1>
-        <p className="text-muted-foreground">{t('personnel.pageDesc')}</p>
-      </div>
+
 
       {/* Tabs */}
       <div className="flex overflow-x-auto border-b hide-scrollbar">

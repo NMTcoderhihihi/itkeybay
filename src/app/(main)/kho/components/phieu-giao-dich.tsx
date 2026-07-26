@@ -126,7 +126,8 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
 
   const handleSubmit = async () => {
     if (danhSachAnh.length === 0) {
-      if (!confirm("Bạn chưa tải ảnh minh chứng lên. Bạn có chắc muốn tiếp tục không?")) return
+      toast.error("Bắt buộc phải có ảnh minh chứng để ghi nhận giao dịch!")
+      return
     }
 
     startTransition(async () => {
@@ -380,7 +381,6 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
                 <input
                   type="file"
                   accept="image/*"
-                  capture="environment"
                   multiple
                   id="camera-upload"
                   className="hidden"

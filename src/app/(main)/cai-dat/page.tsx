@@ -21,12 +21,7 @@ export default async function CaiDatPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">{t('settings.title')}</h1>
-        <p className="text-muted-foreground">
-          {t('settings.desc')}
-        </p>
-      </div>
+
       
       <CaiDatClient userProfile={userProfile} />
     </div>

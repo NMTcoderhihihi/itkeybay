@@ -23,21 +23,22 @@ export async function saveCongDoan(payload: { id?: string; ten_cong_doan: string
   if (!session || session.role !== 'Quan ly') return { success: false, error: "Không có quyền" }
 
   if (payload.id) {
-    const { error } = await supabase.from('cong_doan').update({
+    const { data, error } = await supabase.from('cong_doan').update({
       ten_cong_doan: payload.ten_cong_doan,
       ghi_chu: payload.ghi_chu
-    }).eq('id', payload.id)
+    }).eq('id', payload.id).select().single()
     if (error) return { success: false, error: error.message }
+    revalidatePath('/san-xuat')
+    return { success: true, data }
   } else {
-    const { error } = await supabase.from('cong_doan').insert({
+    const { data, error } = await supabase.from('cong_doan').insert({
       ten_cong_doan: payload.ten_cong_doan,
       ghi_chu: payload.ghi_chu
-    })
+    }).select().single()
     if (error) return { success: false, error: error.message }
+    revalidatePath('/san-xuat')
+    return { success: true, data }
   }
-  
-  revalidatePath('/san-xuat')
-  return { success: true }
 }
 
 export async function deleteCongDoan(id: string) {
@@ -119,7 +120,16 @@ export async function getCongHangList() {
     .from('cong_hang')
     .select(`
       *,
-      don_hang (*)
+      don_hang (*),
+      lo_giao_dich (
+        id, 
+        ma_lo, 
+        danh_sach_anh, 
+        id_danh_muc, 
+        ngay_tao, 
+        ghi_chu, 
+        danh_muc_giao_dich (ten_danh_muc, phan_he, loai_giao_dich)
+      )
     `)
     .order('ngay_tao', { ascending: false })
 
@@ -141,6 +151,21 @@ export async function getCongHangDetail(id: string) {
   return data
 }
 
+export async function getLichSuPhatLieu(id_cong_hang: string) {
+  const { data, error } = await supabase
+    .from('lo_giao_dich')
+    .select(`
+      id, ma_lo, ngay_tao, ghi_chu,
+      tai_khoan (ho_ten),
+      danh_muc_giao_dich (ten_danh_muc)
+    `)
+    .eq('id_cong_hang', id_cong_hang)
+    .order('ngay_tao', { ascending: false })
+
+  if (error) return []
+  return data
+}
+
 export async function updateCongDoanProgress(id_cong_hang: string, newDanhSachCongDoan: any[]) {
   const session = await getSession()
   if (!session) return { success: false, error: "Không có quyền" }
@@ -157,10 +182,84 @@ export async function updateCongDoanProgress(id_cong_hang: string, newDanhSachCo
   return { success: true }
 }
 
-export async function completeCongHang(id_cong_hang: string) {
+export async function updateCongHangDetails(id_cong_hang: string, ghi_chu: string, don_hang: ChiTietDonHang[]) {
+  const session = await getSession()
+  if (!session) return { success: false, error: "Không có quyền" }
+
+  // Cập nhật ghi chú
+  const { error: updateError } = await supabase
+    .from('cong_hang')
+    .update({ ghi_chu })
+    .eq('id', id_cong_hang)
+
+  if (updateError) return { success: false, error: updateError.message }
+
+  // Xóa đơn hàng cũ và thêm lại
+  const { error: deleteError } = await supabase
+    .from('don_hang')
+    .delete()
+    .eq('id_cong_hang', id_cong_hang)
+
+  if (deleteError) return { success: false, error: deleteError.message }
+
+  if (don_hang.length > 0) {
+    const donHangInserts = don_hang.map(dh => ({
+      id_cong_hang: id_cong_hang,
+      ma_don_hang: dh.ma_don_hang,
+      ma_hang: dh.ma_hang,
+      so_luong_san_xuat: dh.so_luong_san_xuat
+    }))
+    const { error: insertError } = await supabase.from('don_hang').insert(donHangInserts)
+    if (insertError) return { success: false, error: insertError.message }
+  }
+
+  revalidatePath(`/san-xuat/${id_cong_hang}`)
+  revalidatePath('/san-xuat')
+  return { success: true }
+}
+
+export async function completeCongHang(id_cong_hang: string, danh_sach_anh_hoan_thanh: string[] = []) {
   const session = await getSession()
   if (!session || session.role !== 'Quan ly') return { success: false, error: "Chỉ Quản lý mới được xác nhận Hoàn thành" }
 
+  // 1. Tìm hoặc tạo danh mục hệ thống: Hoàn thành sản xuất (Nhập kho BTP)
+  const { data: danhMuc } = await supabase
+    .from('danh_muc_giao_dich')
+    .select('id')
+    .eq('ten_danh_muc', 'Hoàn thành sản xuất (Nhập kho BTP)')
+    .eq('phan_he', 'BAN_THANH_PHAM')
+    .single()
+
+  let id_danh_muc = danhMuc?.id
+  if (!id_danh_muc) {
+    const { data: newDM } = await supabase
+      .from('danh_muc_giao_dich')
+      .insert({
+        phan_he: 'BAN_THANH_PHAM',
+        loai_giao_dich: 'NHAP',
+        ten_danh_muc: 'Hoàn thành sản xuất (Nhập kho BTP)',
+        la_he_thong: true,
+        ghi_chu: 'Danh mục tự động của hệ thống khi nhập BTP từ công hàng hoàn thành',
+        dang_hoat_dong: true
+      })
+      .select('id')
+      .single()
+    id_danh_muc = newDM?.id
+  }
+
+  // 2. Ghi nhận 1 Lô giao dịch nhập BTP vào hệ thống kèm mảng ảnh hoàn thành
+  if (id_danh_muc) {
+    await supabase.from('lo_giao_dich').insert({
+      ma_lo: `BTP-NHAP-${Date.now().toString().slice(-6)}`,
+      id_tai_khoan: session.id,
+      id_danh_muc: id_danh_muc,
+      id_cong_hang: id_cong_hang,
+      danh_sach_anh: danh_sach_anh_hoan_thanh,
+      ghi_chu: 'Nhập kho bán thành phẩm từ công hàng hoàn thành'
+    })
+  }
+
+  // 3. Cập nhật trạng thái công hàng sang Đã làm & Tồn kho BTP
   const { error } = await supabase
     .from('cong_hang')
     .update({ 
@@ -198,10 +297,28 @@ export async function deleteCongHang(id: string) {
   const session = await getSession()
   if (!session || session.role !== 'Quan ly') return { success: false, error: "Không có quyền" }
 
+  // Kiểm tra ràng buộc trong lo_giao_dich (cấp phát nguyên liệu, nhập/xuất kho BTP)
+  const { count, error: checkError } = await supabase
+    .from('lo_giao_dich')
+    .select('id', { count: 'exact', head: true })
+    .eq('id_cong_hang', id)
+
+  if (checkError) {
+    return { success: false, error: "Lỗi kiểm tra ràng buộc: " + checkError.message }
+  }
+
+  if (count && count > 0) {
+    return { 
+      success: false, 
+      error: "Công hàng này đã phát sinh giao dịch kho (cấp phát nguyên liệu hoặc nhập xuất BTP), không thể xóa để bảo đảm tính toàn vẹn dữ liệu sổ cái!" 
+    }
+  }
+
   // don_hang có ON DELETE CASCADE nên tự xóa
   const { error } = await supabase.from('cong_hang').delete().eq('id', id)
   if (error) return { success: false, error: error.message }
   
   revalidatePath('/san-xuat')
+  revalidatePath('/kho')
   return { success: true }
 }

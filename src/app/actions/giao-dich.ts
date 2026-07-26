@@ -161,3 +161,115 @@ export async function getSoCaiChiTiet(id_nguyen_lieu: string) {
 
   return data || []
 }
+
+export type TrangThaiLocSoCai = {
+  ma_quy_cach?: string;
+  tu_ngay?: string;
+  den_ngay?: string;
+  id_tai_khoan?: string;
+  id_cong_hang?: string;
+  id_danh_muc?: string;
+}
+
+export async function getSoCaiChiTietPaginated(
+  id_nguyen_lieu: string, 
+  page: number = 1, 
+  limit: number = 10,
+  filters?: TrangThaiLocSoCai
+) {
+  let query = supabase
+    .from('so_cai_vat_tu')
+    .select(`
+      *,
+      lo_giao_dich!inner (
+        ma_lo,
+        ghi_chu,
+        danh_sach_anh,
+        ngay_tao,
+        id_tai_khoan,
+        id_cong_hang,
+        id_danh_muc,
+        danh_muc_giao_dich (ten_danh_muc, loai_giao_dich),
+        tai_khoan (ho_ten)
+      )
+    `, { count: 'exact' })
+    .eq('id_nguyen_lieu', id_nguyen_lieu);
+
+  if (filters?.ma_quy_cach && filters.ma_quy_cach !== 'ALL') {
+    query = query.eq('ma_quy_cach', filters.ma_quy_cach);
+  }
+
+  if (filters?.tu_ngay) {
+    query = query.gte('created_at', `${filters.tu_ngay}T00:00:00.000Z`);
+  }
+  
+  if (filters?.den_ngay) {
+    query = query.lte('created_at', `${filters.den_ngay}T23:59:59.999Z`);
+  }
+
+  if (filters?.id_tai_khoan && filters.id_tai_khoan !== 'ALL') {
+    query = query.eq('lo_giao_dich.id_tai_khoan', filters.id_tai_khoan);
+  }
+
+  if (filters?.id_cong_hang && filters.id_cong_hang !== 'ALL') {
+    query = query.eq('lo_giao_dich.id_cong_hang', filters.id_cong_hang);
+  }
+
+  if (filters?.id_danh_muc && filters.id_danh_muc !== 'ALL') {
+    query = query.eq('lo_giao_dich.id_danh_muc', filters.id_danh_muc);
+  }
+
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  const { data, count, error } = await query
+    .order('created_at', { ascending: false })
+    .range(from, to);
+
+  if (error) {
+    console.error("getSoCaiChiTietPaginated error:", error);
+    return { data: [], total: 0 };
+  }
+
+  return { data: data || [], total: count || 0 };
+}
+
+export async function xuatBanThanhPham(payload: {
+  id_cong_hang: string
+  id_danh_muc: string
+  danh_sach_anh: string[]
+  ghi_chu: string
+}) {
+  const session = await getSession()
+  if (!session) return { success: false, error: "Không có quyền" }
+
+  if (!payload.danh_sach_anh || payload.danh_sach_anh.length === 0) {
+    return { success: false, error: "Vui lòng cung cấp ảnh minh chứng giao hàng." }
+  }
+
+  const { error: loError } = await supabase.from('lo_giao_dich').insert({
+    ma_lo: `BTP-XUAT-${Date.now().toString().slice(-6)}`,
+    id_tai_khoan: session.id,
+    id_danh_muc: payload.id_danh_muc,
+    id_cong_hang: payload.id_cong_hang,
+    danh_sach_anh: payload.danh_sach_anh,
+    ghi_chu: payload.ghi_chu || 'Xuất bán thành phẩm (Giao hàng)'
+  })
+
+  if (loError) {
+    return { success: false, error: "Lỗi tạo phiếu xuất BTP: " + loError.message }
+  }
+
+  const { error: chError } = await supabase
+    .from('cong_hang')
+    .update({ trang_thai_kho: 'DA_GIAO' })
+    .eq('id', payload.id_cong_hang)
+
+  if (chError) {
+    return { success: false, error: "Lỗi cập nhật trạng thái kho: " + chError.message }
+  }
+
+  revalidatePath('/san-xuat')
+  revalidatePath('/kho')
+  return { success: true }
+}

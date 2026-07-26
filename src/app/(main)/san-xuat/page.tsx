@@ -1,5 +1,7 @@
 import { SanXuatClient } from "./san-xuat-client"
 import { getCongHangList, getCongDoanList } from "@/app/actions/san-xuat"
+import { getCongNhan } from "@/app/actions/nhan-su"
+import { getDanhSachDanhMuc } from "@/app/actions/giao-dich"
 import { getSession } from "@/lib/session"
 import { redirect } from "next/navigation"
 
@@ -13,15 +15,20 @@ export default async function SanXuatPage() {
     redirect('/login')
   }
 
-  const [congHangList, congDoanList] = await Promise.all([
+  const [congHangList, congDoanList, congNhanList, danhMucList] = await Promise.all([
     getCongHangList(),
-    getCongDoanList()
+    getCongDoanList(),
+    getCongNhan(),
+    getDanhSachDanhMuc()
   ])
 
   return (
     <SanXuatClient 
       congHangList={congHangList || []} 
       congDoanList={congDoanList || []} 
+      congNhanList={congNhanList || []}
+      danhMucList={danhMucList || []}
+      isManager={session.role === 'Quan ly'}
     />
   )
 }

@@ -1,1 +1,11 @@
-export default function Page() { return <div className='p-6 text-xl'>Trang src/app/(main)/dashboard</div> }
+import React from 'react'
+import { getDashboardData } from '@/app/actions/dashboard'
+import { DashboardClient } from './dashboard-client'
+
+export const dynamic = 'force-dynamic'
+
+export default async function DashboardPage() {
+  const data = await getDashboardData()
+
+  return <DashboardClient initialData={data} />
+}

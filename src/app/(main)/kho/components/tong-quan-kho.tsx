@@ -1,13 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { getTongQuanTonKho, getSoCaiChiTiet } from "@/app/actions/giao-dich"
+import { useState, useEffect, useMemo } from "react"
+import { getTongQuanTonKho, getSoCaiChiTietPaginated, getDanhSachDanhMuc, TrangThaiLocSoCai, getSoCaiChiTiet } from "@/app/actions/giao-dich"
+import { getTaiKhoan } from "@/app/actions/nhan-su"
+import { getCongHangList } from "@/app/actions/san-xuat"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PackageSearch, FileText, ChevronDown, TrendingUp, TrendingDown, Loader2, X, Image as ImageIcon } from "lucide-react"
+import { PackageSearch, FileText, ChevronDown, TrendingUp, TrendingDown, Loader2, X, Image as ImageIcon, Search, ArrowLeft, History, Filter } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import { format } from "date-fns"
 import Image from "next/image"
 import { useTranslation } from "@/hooks/use-translation"
@@ -16,23 +19,147 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
   const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [inventory, setInventory] = useState<any[]>(initialData)
+  
+  // Modal state
   const [selectedItem, setSelectedItem] = useState<any | null>(null)
-  const [previewImage, setPreviewImage] = useState<string | null>(null)
-  const [ledgerData, setLedgerData] = useState<any[]>([])
+  const [viewMode, setViewMode] = useState<'quy_cach' | 'lich_su'>('quy_cach')
+  const [searchQuery, setSearchQuery] = useState('')
+  
+  // Ledger Pagination and Filter
+  const [currentLedgerData, setCurrentLedgerData] = useState<any[]>([])
+  const [totalLedgerRows, setTotalLedgerRows] = useState(0)
   const [loadingLedger, setLoadingLedger] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 10
 
-  // Nếu initialData thay đổi (do revalidate từ server), cập nhật state
+  const [showFilters, setShowFilters] = useState(false)
+  const [latestTransactions, setLatestTransactions] = useState<Record<string, any>>({})
+  const [filters, setFilters] = useState<TrangThaiLocSoCai>({
+    ma_quy_cach: 'ALL',
+    tu_ngay: '',
+    den_ngay: '',
+    id_tai_khoan: 'ALL',
+    id_cong_hang: 'ALL',
+    id_danh_muc: 'ALL',
+  })
+  
+  // Filter Options
+  const [danhMucList, setDanhMucList] = useState<any[]>([])
+  const [taiKhoanList, setTaiKhoanList] = useState<any[]>([])
+  const [congHangList, setCongHangList] = useState<any[]>([])
+  
+  // Image preview
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
+
   useEffect(() => {
     setInventory(initialData)
   }, [initialData])
 
-  const openLedger = async (item: any) => {
+  useEffect(() => {
+    Promise.all([
+      getDanhSachDanhMuc(),
+      getTaiKhoan(),
+      getCongHangList()
+    ]).then(([dm, tk, ch]) => {
+      setDanhMucList(dm)
+      setTaiKhoanList(tk)
+      setCongHangList(ch)
+    })
+  }, [])
+
+  const openItemDetails = async (item: any) => {
     setSelectedItem(item)
+    setViewMode('quy_cach')
+    setSearchQuery('')
+
+    const soCaiList = await getSoCaiChiTiet(item.id)
+    const latest: Record<string, any> = {}
+    soCaiList.forEach((sc: any) => {
+      if (!latest[sc.ma_quy_cach] && sc.lo_giao_dich) {
+        latest[sc.ma_quy_cach] = sc.lo_giao_dich
+      }
+    })
+    setLatestTransactions(latest)
+  }
+
+  const fetchLedger = async (id: string, page: number, currentFilters: TrangThaiLocSoCai) => {
     setLoadingLedger(true)
-    const data = await getSoCaiChiTiet(item.id)
-    setLedgerData(data)
+    const { data, total } = await getSoCaiChiTietPaginated(id, page, ITEMS_PER_PAGE, currentFilters)
+    setCurrentLedgerData(data)
+    setTotalLedgerRows(total)
     setLoadingLedger(false)
   }
+
+  const loadMoreLedger = async (id: string, page: number, currentFilters: TrangThaiLocSoCai) => {
+    setLoadingLedger(true)
+    const { data, total } = await getSoCaiChiTietPaginated(id, page, ITEMS_PER_PAGE, currentFilters)
+    setCurrentLedgerData(prev => [...prev, ...data])
+    setTotalLedgerRows(total)
+    setLoadingLedger(false)
+  }
+
+  const handleScrollLedger = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget
+    // Nếu cuộn gần tới cuối (cách 100px) và chưa tải hết, chưa đang tải
+    if (scrollHeight - scrollTop <= clientHeight + 100 && !loadingLedger) {
+      const totalPages = Math.ceil(totalLedgerRows / ITEMS_PER_PAGE)
+      if (currentPage < totalPages) {
+        const nextPage = currentPage + 1
+        setCurrentPage(nextPage)
+        if (selectedItem) {
+          loadMoreLedger(selectedItem.id, nextPage, filters)
+        }
+      }
+    }
+  }
+
+  const handleOpenHistory = (id_nguyen_lieu: string, ma_quy_cach: string | null) => {
+    const initFilters = {
+      ...filters,
+      ma_quy_cach: ma_quy_cach || 'ALL'
+    }
+    setFilters(initFilters)
+    setViewMode('lich_su')
+    setCurrentPage(1)
+    fetchLedger(id_nguyen_lieu, 1, initFilters)
+  }
+
+  const handleApplyFilters = () => {
+    setCurrentPage(1)
+    if (selectedItem) {
+      fetchLedger(selectedItem.id, 1, filters)
+    }
+  }
+
+  const handleResetFilters = () => {
+    const defaultFilters: TrangThaiLocSoCai = {
+      ma_quy_cach: filters.ma_quy_cach || 'ALL', // Keep current quy_cach
+      tu_ngay: '',
+      den_ngay: '',
+      id_tai_khoan: 'ALL',
+      id_cong_hang: 'ALL',
+      id_danh_muc: 'ALL',
+    }
+    setFilters(defaultFilters)
+    setCurrentPage(1)
+    if (selectedItem) {
+      fetchLedger(selectedItem.id, 1, defaultFilters)
+    }
+  }
+
+  const goToPage = (page: number) => {
+    // Không dùng goToPage nữa do đã chuyển sang Infinite scroll
+  }
+
+  // Filtered quy cach
+  const filteredQuyCach = useMemo(() => {
+    if (!selectedItem) return []
+    return selectedItem.danh_sach_quy_cach.filter((qc: any) => 
+      qc.ten.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  }, [selectedItem, searchQuery])
+
+  const totalPages = Math.max(1, Math.ceil(totalLedgerRows / ITEMS_PER_PAGE))
 
   if (loading) {
     return (
@@ -51,7 +178,7 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
           <Card 
             key={item.id} 
             className="cursor-pointer hover:border-primary transition-colors overflow-hidden flex flex-col"
-            onClick={() => openLedger(item)}
+            onClick={() => openItemDetails(item)}
           >
             <div className="h-32 bg-muted relative border-b">
               {item.anh_minh_hoa ? (
@@ -62,26 +189,15 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                 </div>
               )}
             </div>
-            <CardContent className="p-4 flex-1 flex flex-col">
-              <div className="flex justify-between items-start mb-2 gap-1">
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-base leading-tight line-clamp-1" title={item.ten_nguyen_lieu}>{item.ten_nguyen_lieu}</h3>
-                  <p className="text-xs text-muted-foreground line-clamp-1">{t('inventory.unit')}: {item.don_vi}</p>
-                </div>
+            <CardContent className="p-4 flex-1 flex flex-col justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-base leading-tight line-clamp-2" title={item.ten_nguyen_lieu}>{item.ten_nguyen_lieu}</h3>
+                <p className="text-xs text-muted-foreground mt-1">{t('inventory.unit')}: {item.don_vi}</p>
               </div>
-              
-              <div className="mt-auto space-y-2">
-                {item.danh_sach_quy_cach.map((qc: any, i: number) => (
-                  <div key={i} className="flex flex-wrap justify-between items-center gap-1.5 text-xs border-t pt-2 first:border-0 first:pt-0">
-                    <span className="text-muted-foreground line-clamp-1 flex-1 min-w-[60px]" title={qc.ten}>{qc.ten}</span>
-                    <Badge variant={qc.ton_kho > 0 ? "default" : "destructive"} className="text-[10px] px-1.5 py-0 h-5 shrink-0">
-                      {qc.ton_kho} {item.don_vi}
-                    </Badge>
-                  </div>
-                ))}
-                {item.danh_sach_quy_cach.length === 0 && (
-                  <p className="text-xs text-red-500 italic">{t('inventory.noSpecs')}</p>
-                )}
+              <div className="mt-auto border-t pt-2">
+                <p className="text-sm font-medium text-primary">
+                  Số lượng quy cách: {item.danh_sach_quy_cach?.length || 0}
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -94,89 +210,301 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
         )}
       </div>
 
-      {/* Modal hiển thị Sổ cái (Ledger) */}
+      {/* Modal hiển thị chi tiết (Quy cách hoặc Lịch sử) */}
       <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="w-[95vw] sm:max-w-7xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              {t('inventory.ledgerTitle')}: <span className="text-primary">{selectedItem?.ten_nguyen_lieu}</span>
+              {viewMode === 'lich_su' ? (
+                <Button variant="ghost" size="icon" onClick={() => setViewMode('quy_cach')} className="mr-2 h-8 w-8">
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              ) : null}
+              {viewMode === 'quy_cach' ? 'Bảng Quy Cách' : t('inventory.ledgerTitle')}: 
+              <span className="text-primary">{selectedItem?.ten_nguyen_lieu}</span>
             </DialogTitle>
           </DialogHeader>
           
-          <div className="flex-1 overflow-y-auto mt-2">
-            {loadingLedger ? (
-              <div className="flex justify-center py-10">
-                <Loader2 className="h-6 w-6 animate-spin" />
+          <div className="flex-1 overflow-hidden flex flex-col mt-2">
+            {viewMode === 'quy_cach' ? (
+              // VIEW 1: DANH SÁCH QUY CÁCH
+              <div className="flex flex-col h-full overflow-hidden">
+                <div className="flex justify-between items-center mb-4 gap-4">
+                  <div className="relative flex-1 max-w-sm">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="text"
+                      placeholder="Tìm kiếm quy cách..."
+                      className="pl-9"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <Button variant="outline" onClick={() => handleOpenHistory(selectedItem.id, null)} className="gap-2">
+                    <History className="h-4 w-4" />
+                    Xem toàn bộ lịch sử
+                  </Button>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Tên Quy Cách</TableHead>
+                        <TableHead className="text-right">Tồn Kho</TableHead>
+                        <TableHead className="text-right">Giao dịch gần nhất</TableHead>
+                        <TableHead className="text-right">Hành Động</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredQuyCach.map((qc: any, i: number) => {
+                        const lastTx = latestTransactions[qc.ma_quy_cach]
+                        return (
+                        <TableRow key={i}>
+                          <TableCell className="font-medium">{qc.ten}</TableCell>
+                          <TableCell className="text-right">
+                            <Badge variant={qc.ton_kho > 0 ? "default" : "destructive"}>
+                              {qc.ton_kho} {selectedItem.don_vi}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right text-xs text-muted-foreground">
+                            {lastTx ? (
+                              <div className="flex flex-col items-end">
+                                <span className="font-semibold text-primary">{lastTx.ma_lo}</span>
+                                <span>{format(new Date(lastTx.ngay_tao), 'dd/MM/yyyy HH:mm')}</span>
+                              </div>
+                            ) : (
+                              <span className="italic">Chưa có giao dịch</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground hover:text-primary" onClick={() => handleOpenHistory(selectedItem.id, qc.ma_quy_cach)}>
+                              <History className="h-4 w-4" />
+                              Lịch sử
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                        )
+                      })}
+                      {filteredQuyCach.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                            Không tìm thấy quy cách nào.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             ) : (
-              <Table className="min-w-[800px]">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('inventory.date')}</TableHead>
-                    <TableHead>{t('inventory.code')}</TableHead>
-                    <TableHead>{t('inventory.reason')}</TableHead>
-                    <TableHead>{t('inventory.spec')}</TableHead>
-                    <TableHead className="text-right">{t('inventory.change')}</TableHead>
-                    <TableHead className="text-right">{t('inventory.balance')}</TableHead>
-                    <TableHead className="text-center">Minh chứng</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {ledgerData.map((row) => (
-                    <TableRow key={row.id}>
-                      <TableCell className="whitespace-nowrap">
-                        {format(new Date(row.created_at), 'dd/MM/yyyy HH:mm')}
-                      </TableCell>
-                      <TableCell className="font-mono text-xs">
-                        {row.lo_giao_dich?.ma_lo}
-                      </TableCell>
-                      <TableCell>
-                        {row.lo_giao_dich?.danh_muc_giao_dich?.ten_danh_muc || 'Không xác định'}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {selectedItem?.danh_sach_quy_cach?.find((qc: any) => qc.ma_quy_cach === row.ma_quy_cach)?.ten || row.ma_quy_cach}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className={`flex items-center justify-end gap-1 ${row.bien_dong_so_luong > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {row.bien_dong_so_luong > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                          <span className="font-bold">{row.bien_dong_so_luong > 0 ? '+' : ''}{row.bien_dong_so_luong}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right font-bold">
-                        {row.ton_kho_hien_tai}
-                      </TableCell>
-                      <TableCell>
-                        {row.lo_giao_dich?.danh_sach_anh?.length > 0 ? (
-                          <div className="flex items-center justify-center gap-1 flex-wrap w-16">
-                            {row.lo_giao_dich.danh_sach_anh.map((url: string, i: number) => (
-                              <div 
-                                key={i} 
-                                className="relative w-6 h-6 border rounded overflow-hidden cursor-pointer hover:border-primary"
-                                onClick={() => setPreviewImage(url)}
-                              >
-                                <Image src={url} alt="Evidence" fill className="object-cover" />
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center text-muted-foreground opacity-50">
-                            -
-                          </div>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {ledgerData.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                        {t('inventory.noHistory')}
-                      </TableCell>
-                    </TableRow>
+              // VIEW 2: LỊCH SỬ SỔ CÁI
+              <div className="flex flex-col h-full overflow-hidden">
+                
+                {/* Thanh công cụ lọc */}
+                <div className="flex flex-col gap-2 mb-3">
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-semibold text-sm text-muted-foreground">Danh sách biến động</h3>
+                    <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)} className="gap-2">
+                      <Filter className="h-4 w-4" />
+                      {showFilters ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'}
+                    </Button>
+                  </div>
+                  
+                  {showFilters && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 p-3 bg-muted/20 border rounded-md">
+                      {/* Lọc Quy cách */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-muted-foreground">Quy cách</label>
+                        <select
+                          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+                          value={filters.ma_quy_cach}
+                          onChange={(e) => setFilters(f => ({ ...f, ma_quy_cach: e.target.value }))}
+                        >
+                          <option value="ALL">Tất cả quy cách</option>
+                          {selectedItem?.danh_sach_quy_cach?.map((qc: any) => (
+                            <option key={qc.ma_quy_cach} value={qc.ma_quy_cach}>{qc.ten}</option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      {/* Lọc Từ ngày */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-muted-foreground">Từ ngày</label>
+                        <Input 
+                          type="date" 
+                          className="h-9"
+                          value={filters.tu_ngay}
+                          onChange={(e) => setFilters(f => ({ ...f, tu_ngay: e.target.value }))}
+                        />
+                      </div>
+
+                      {/* Lọc Đến ngày */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-muted-foreground">Đến ngày</label>
+                        <Input 
+                          type="date" 
+                          className="h-9"
+                          value={filters.den_ngay}
+                          onChange={(e) => setFilters(f => ({ ...f, den_ngay: e.target.value }))}
+                        />
+                      </div>
+
+                      {/* Lọc Nhân viên */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-muted-foreground">Người thực hiện</label>
+                        <select
+                          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+                          value={filters.id_tai_khoan}
+                          onChange={(e) => setFilters(f => ({ ...f, id_tai_khoan: e.target.value }))}
+                        >
+                          <option value="ALL">Tất cả nhân viên</option>
+                          {taiKhoanList.map(tk => (
+                            <option key={tk.id} value={tk.id}>{tk.ho_ten}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Lọc Công hàng */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-muted-foreground">Công hàng</label>
+                        <select
+                          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+                          value={filters.id_cong_hang}
+                          onChange={(e) => setFilters(f => ({ ...f, id_cong_hang: e.target.value }))}
+                        >
+                          <option value="ALL">Tất cả công hàng</option>
+                          {congHangList.map(ch => (
+                            <option key={ch.id} value={ch.id}>{ch.ma_cong_hang} - {ch.ten_san_pham}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Lọc Danh mục */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-muted-foreground">Loại giao dịch</label>
+                        <select
+                          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+                          value={filters.id_danh_muc}
+                          onChange={(e) => setFilters(f => ({ ...f, id_danh_muc: e.target.value }))}
+                        >
+                          <option value="ALL">Tất cả loại giao dịch</option>
+                          {danhMucList.map(dm => (
+                            <option key={dm.id} value={dm.id}>{dm.ten_danh_muc}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="col-span-full flex justify-end gap-2 mt-2">
+                        <Button variant="ghost" size="sm" onClick={handleResetFilters}>Đặt lại</Button>
+                        <Button size="sm" onClick={handleApplyFilters}>Lọc dữ liệu</Button>
+                      </div>
+                    </div>
                   )}
-                </TableBody>
-              </Table>
+                </div>
+
+                <div className="flex-1 overflow-auto border rounded-md min-h-[300px] relative" onScroll={handleScrollLedger}>
+                  {loadingLedger && currentPage === 1 ? (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50 z-10">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                      <p className="mt-2 text-sm text-muted-foreground">Đang tải sổ cái...</p>
+                    </div>
+                  ) : (
+                    <Table className="min-w-[800px]">
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>{t('inventory.date')}</TableHead>
+                          <TableHead>{t('inventory.code')}</TableHead>
+                          <TableHead>Người thực hiện</TableHead>
+                          <TableHead>{t('inventory.reason')}</TableHead>
+                          <TableHead>{t('inventory.spec')}</TableHead>
+                          <TableHead className="text-right">{t('inventory.change')}</TableHead>
+                          <TableHead className="text-right">{t('inventory.balance')}</TableHead>
+                          <TableHead className="text-center">Minh chứng</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {currentLedgerData.map((row: any) => (
+                          <TableRow key={row.id}>
+                            <TableCell className="whitespace-nowrap">
+                              {format(new Date(row.created_at), 'dd/MM/yyyy HH:mm')}
+                            </TableCell>
+                            <TableCell className="font-mono text-xs">
+                              {row.lo_giao_dich?.ma_lo}
+                            </TableCell>
+                            <TableCell className="whitespace-nowrap font-medium text-xs">
+                              {row.lo_giao_dich?.tai_khoan?.ho_ten || 'Hệ thống'}
+                            </TableCell>
+                            <TableCell>
+                              {row.lo_giao_dich?.danh_muc_giao_dich?.ten_danh_muc || 'Không xác định'}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {selectedItem?.danh_sach_quy_cach?.find((qc: any) => qc.ma_quy_cach === row.ma_quy_cach)?.ten || row.ma_quy_cach}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className={`flex items-center justify-end gap-1 ${row.bien_dong_so_luong > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {row.bien_dong_so_luong > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                                <span className="font-bold">{row.bien_dong_so_luong > 0 ? '+' : ''}{row.bien_dong_so_luong}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right font-bold">
+                              {row.ton_kho_hien_tai}
+                            </TableCell>
+                            <TableCell>
+                              {row.lo_giao_dich?.danh_sach_anh?.length > 0 ? (
+                                <div className="flex items-center justify-center gap-1 flex-wrap w-16">
+                                  {row.lo_giao_dich.danh_sach_anh.map((url: string, i: number) => (
+                                    <div 
+                                      key={i} 
+                                      className="relative w-6 h-6 border rounded overflow-hidden cursor-pointer hover:border-primary"
+                                      onClick={() => setPreviewImage(url)}
+                                    >
+                                      <Image src={url} alt="Evidence" fill className="object-cover" />
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-center text-muted-foreground opacity-50">
+                                  -
+                                </div>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        {currentLedgerData.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                              {t('inventory.noHistory')}
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  )}
+                </div>
+                
+                {/* Hiển thị Loading khi cuộn tải thêm */}
+                {loadingLedger && currentPage > 1 && (
+                  <div className="flex justify-center items-center py-2">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
+                    <span className="text-sm text-muted-foreground">Đang tải thêm...</span>
+                  </div>
+                )}
+                
+                {/* Trạng thái dữ liệu Server-side */}
+                {!loadingLedger && currentLedgerData.length > 0 && currentLedgerData.length === totalLedgerRows && (
+                  <div className="text-center py-3 text-sm text-muted-foreground border-t mt-2">
+                    Đã hiển thị toàn bộ {totalLedgerRows} bản ghi
+                  </div>
+                )}
+                {!loadingLedger && currentLedgerData.length > 0 && currentLedgerData.length < totalLedgerRows && (
+                  <div className="text-center py-3 text-sm text-muted-foreground border-t mt-2">
+                    Hiển thị {currentLedgerData.length} / {totalLedgerRows} bản ghi (Cuộn xuống để xem thêm)
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </DialogContent>

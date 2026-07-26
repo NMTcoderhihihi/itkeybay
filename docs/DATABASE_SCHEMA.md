@@ -20,8 +20,9 @@ erDiagram
         string mat_khau
         string vai_tro "Quan ly / Nhan vien"
         string ho_ten
-        string anh_dai_dien "URL ảnh Cloudinary"
         boolean dang_hoat_dong
+        timestamp created_at
+        string anh_dai_dien "URL ảnh Cloudinary"
     }
 
     %% ==========================================
@@ -31,10 +32,9 @@ erDiagram
         uuid id PK
         string ten_nguyen_lieu "Ví dụ: Gỗ sồi, Gỗ xoan"
         string don_vi "Ví dụ: Khối, Tấm"
-        string anh_minh_hoa "URL ảnh Cloudinary"
-        numeric muc_canh_bao_ton_kho
-        string ghi_chu
         jsonb danh_sach_quy_cach "VD: [{ma_quy_cach: '2x4', ten: '2x4 inch'}]"
+        timestamp created_at
+        string anh_minh_hoa "URL ảnh Cloudinary"
     }
 
     %% ==========================================
@@ -47,6 +47,7 @@ erDiagram
         string so_dien_thoai
         string vai_tro "VD: Thợ mộc, Thợ sơn"
         string ghi_chu
+        timestamp created_at
     }
 
     %% ==========================================
@@ -56,6 +57,7 @@ erDiagram
         uuid id PK
         string ten_cong_doan "Ví dụ: Cưa, Bào, Sơn"
         string ghi_chu
+        timestamp created_at
     }
 
     %% ==========================================
@@ -77,6 +79,7 @@ erDiagram
         string ma_don_hang "VD: 1708331BRO"
         string ma_hang "Mã hàng hóa BTP"
         numeric so_luong_san_xuat
+        timestamp created_at
     }
 
     %% ==========================================
@@ -88,8 +91,9 @@ erDiagram
         enum_loai_giao_dich loai_giao_dich "NHAP, XUAT, CHINH_SUA"
         string ten_danh_muc "Lý do (Nhập đổi, Xuất bù...)"
         boolean la_he_thong "Tự động/Cố định không cho sửa"
-        boolean dang_hoat_dong
         string ghi_chu
+        timestamp created_at
+        boolean dang_hoat_dong
     }
     %% Lô giao dịch (Chứa mảng JSONB ảnh đính kèm)
     lo_giao_dich {
@@ -113,6 +117,7 @@ erDiagram
         string ma_quy_cach "Chuỗi map với JSONB"
         numeric bien_dong_so_luong "Dương (+): Nhập, Âm (-): Xuất"
         numeric ton_kho_hien_tai "Tồn kho SAU KHI biến động"
+        timestamp created_at
     }
 
     %% Mối quan hệ logic

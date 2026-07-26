@@ -16,10 +16,12 @@ export default async function MainLayout({
     redirect('/login');
   }
 
+  const isManager = session.role === 'Quan ly';
+
   return (
     <div className="flex min-h-screen w-full bg-background">
       {/* Desktop Sidebar */}
-      <Sidebar />
+      <Sidebar isManager={isManager} />
       
       {/* Main Content Area */}
       <div className="flex flex-col flex-1 w-full pb-16 md:pb-0 h-screen overflow-y-auto relative">
@@ -40,7 +42,7 @@ export default async function MainLayout({
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <BottomNav />
+      <BottomNav isManager={isManager} />
     </div>
   );
 }
