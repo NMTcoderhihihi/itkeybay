@@ -11,6 +11,10 @@ import { PhieuGiaoDich } from "./phieu-giao-dich"
 import { Package2, History, ClipboardList, PlusCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { useRealtimeSSE } from "@/components/realtime-provider"
+
 export function KhoClient({ 
   session, 
   nguyenLieuList,
@@ -25,11 +29,26 @@ export function KhoClient({
   danhMucList: any[]
 }) {
   const { t } = useTranslation()
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState("tong-quan")
+
+  // Đăng ký nhận sự kiện Realtime SSE khi có thay đổi trong kho (đồng bộ ngầm yên lặng)
+  useRealtimeSSE({
+    tables: ["lo_giao_dich", "so_cai_vat_tu", "nguyen_lieu"],
+    onUpdate: () => {
+      router.refresh();
+    },
+  });
 
   return (
     <div className="w-full flex-1 flex flex-col">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0 mb-4">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Realtime SSE: Đang kết nối</span>
+          </div>
+        </div>
 
         <Button 
           onClick={() => setActiveTab("giao-dich")}

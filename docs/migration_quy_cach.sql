@@ -2,25 +2,31 @@
 -- SCRIPT MIGRATION & BẢO TOÀN DỮ LIỆU: CHUẨN HÓA MÃ QUY CÁCH VẬT TƯ
 -- ====================================================================
 -- Mục đích:
--- 1. Chuyển đổi toàn bộ mã quy cách thủ công cũ trong bảng `nguyen_lieu`
---    thành định dạng mã tự động chuẩn của hệ thống: QC-01, QC-02, QC-03...
--- 2. Cập nhật đồng bộ cột `ma_quy_cach` trong bảng `so_cai_vat_tu` từ Mã cũ
---    sang Mã mới để bảo toàn tuyệt đối lịch sử giao dịch và số dư tồn kho.
+-- 1. Đọc toàn bộ các mã quy cách trước đó (`old_code`) trong bảng `nguyen_lieu`.
+-- 2. Tự động quét cấu trúc CSDL (`information_schema.columns`) để tìm kiếm
+--    trong Sổ cái (`so_cai_vat_tu`) và tất cả các bảng/nơi khác có sử dụng
+--    hoặc tham chiếu đến cột `ma_quy_cach`.
+-- 3. Cập nhật đồng bộ tham chiếu từ Mã cũ sang Mã mới chuẩn hóa (`QC-01`, `QC-02`...)
+--    để tránh làm hỏng hoặc sai lệch số liệu lịch sử đã có.
+-- 4. Chuẩn hóa mảng JSONB `danh_sach_quy_cach` trong `nguyen_lieu`.
 -- ====================================================================
 
 DO $$
 DECLARE
     nl RECORD;
     qc JSONB;
+    tbl RECORD;
     idx INT;
     old_code TEXT;
     new_code TEXT;
     new_danh_sach JSONB;
     total_materials INT := 0;
-    total_ledger_updated INT := 0;
+    total_refs_updated INT := 0;
     rows_affected INT := 0;
+    has_nguyen_lieu_col BOOLEAN;
+    sql_query TEXT;
 BEGIN
-    RAISE NOTICE '=== BẮT ĐẦU CHUẨN HÓA MÃ QUY CÁCH VẬT TƯ ===';
+    RAISE NOTICE '=== BẮT ĐẦU CHUẨN HÓA MÃ QUY CÁCH VẬT TƯ & CẬP NHẬT THAM CHIẾU TOÀN DIỆN ===';
 
     -- Lặp qua từng vật tư (nguyen_lieu) có danh sách quy cách
     FOR nl IN 
@@ -38,20 +44,47 @@ BEGIN
             -- Tạo mã mới chuẩn hóa: QC-01, QC-02, ...
             new_code := 'QC-' || LPAD(idx::text, 2, '0');
 
-            -- 1. Cập nhật bảng so_cai_vat_tu (lịch sử giao dịch & tồn kho)
-            --    nếu mã cũ khác mã mới để bảo toàn dữ liệu liên kết
+            -- 1. Tìm kiếm và thay đổi tham chiếu trong SỔ CÁI và TẤT CẢ CÁC BẢNG KHÁC
+            --    có sử dụng cột ma_quy_cach trong schema public (trừ bảng nguyen_lieu)
             IF old_code IS NOT NULL AND old_code <> '' AND old_code <> new_code THEN
-                UPDATE public.so_cai_vat_tu 
-                SET ma_quy_cach = new_code 
-                WHERE id_nguyen_lieu = nl.id AND ma_quy_cach = old_code;
+                FOR tbl IN 
+                    SELECT table_name 
+                    FROM information_schema.columns 
+                    WHERE table_schema = 'public' 
+                      AND column_name = 'ma_quy_cach'
+                      AND table_name <> 'nguyen_lieu'
+                LOOP
+                    -- Kiểm tra xem bảng có cột id_nguyen_lieu để lọc chính xác không
+                    SELECT EXISTS (
+                        SELECT 1 
+                        FROM information_schema.columns 
+                        WHERE table_schema = 'public' 
+                          AND table_name = tbl.table_name 
+                          AND column_name = 'id_nguyen_lieu'
+                    ) INTO has_nguyen_lieu_col;
 
-                GET DIAGNOSTICS rows_affected = ROW_COUNT;
-                total_ledger_updated := total_ledger_updated + rows_affected;
+                    IF has_nguyen_lieu_col THEN
+                        sql_query := format(
+                            'UPDATE public.%I SET ma_quy_cach = $1 WHERE ma_quy_cach = $2 AND id_nguyen_lieu = $3',
+                            tbl.table_name
+                        );
+                        EXECUTE sql_query USING new_code, old_code, nl.id;
+                    ELSE
+                        sql_query := format(
+                            'UPDATE public.%I SET ma_quy_cach = $1 WHERE ma_quy_cach = $2',
+                            tbl.table_name
+                        );
+                        EXECUTE sql_query USING new_code, old_code;
+                    END IF;
 
-                IF rows_affected > 0 THEN
-                    RAISE NOTICE 'Vật tư [%]: Đã cập nhật % dòng trong Sổ cái từ [%] -> [%]',
-                        nl.ten_nguyen_lieu, rows_affected, old_code, new_code;
-                END IF;
+                    GET DIAGNOSTICS rows_affected = ROW_COUNT;
+                    total_refs_updated := total_refs_updated + rows_affected;
+
+                    IF rows_affected > 0 THEN
+                        RAISE NOTICE 'Bảng [%] - Vật tư [%]: Đã cập nhật % bản ghi từ [%] -> [%]',
+                            tbl.table_name, nl.ten_nguyen_lieu, rows_affected, old_code, new_code;
+                    END IF;
+                END LOOP;
             END IF;
 
             -- 2. Thêm quy cách vào danh sách chuẩn hóa với mã QC-XX mới
@@ -73,5 +106,5 @@ BEGIN
 
     RAISE NOTICE '=== HOÀN TẤT CHUẨN HÓA ===';
     RAISE NOTICE 'Tổng số vật tư đã chuyển đổi mã quy cách: %', total_materials;
-    RAISE NOTICE 'Tổng số bản ghi Sổ cái vật tư đã bảo toàn & đồng bộ mã: %', total_ledger_updated;
+    RAISE NOTICE 'Tổng số bản ghi tham chiếu ở các bảng đã được bảo toàn & đồng bộ mã: %', total_refs_updated;
 END $$;

@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useEffect, useState, useTransition } from "react";
+import React, { useState, useTransition } from "react";
 import { useTranslation } from "@/hooks/use-translation";
+import { useRealtimeSSE } from "@/components/realtime-provider";
 import {
   DashboardData,
-  DashboardCongHangItem,
-  DashboardTransactionItem,
   getDashboardData,
 } from "@/app/actions/dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,9 +24,16 @@ import {
   Layers,
   Activity,
   ArrowUpRight,
+  ExternalLink,
   Clock,
   User,
-  ExternalLink,
+  CheckCircle2,
+  AlertTriangle,
+  ArrowRight,
+  TrendingUp,
+  TrendingDown,
+  Boxes,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -49,43 +55,30 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [isPending, startTransition] = useTransition();
   const [highlightSection, setHighlightSection] = useState<string | null>(null);
 
-  // Kết nối SSE Realtime từ máy chủ
-  useEffect(() => {
-    const eventSource = new EventSource("/api/dashboard/sse");
+  // Kết nối SSE Realtime toàn cục từ máy chủ
+  useRealtimeSSE({
+    tables: ["lo_giao_dich", "cong_hang", "nguyen_lieu"],
+    onUpdate: (payload) => {
+      startTransition(async () => {
+        const newData = await getDashboardData();
+        setData(newData);
 
-    eventSource.onmessage = (event) => {
-      try {
-        const payload = JSON.parse(event.data);
-        if (payload.type === "UPDATE") {
-          // Kích hoạt làm mới số liệu ngầm không reload trang
-          startTransition(async () => {
-            const newData = await getDashboardData();
-            setData(newData);
-
-            // Tối ưu UX: Hiệu ứng Highlight khu vực có cập nhật mới
-            if (payload.table === "cong_hang") {
-              setHighlightSection("cong_hang");
-            } else if (payload.table === "lo_giao_dich") {
-              setHighlightSection("lo_giao_dich");
-            } else {
-              setHighlightSection("all");
-            }
-
-            // Tự động tắt hiệu ứng highlight sau 4 giây
-            setTimeout(() => {
-              setHighlightSection(null);
-            }, 4000);
-          });
+        // Tối ưu UX: Hiệu ứng Highlight khu vực có cập nhật mới
+        if (payload.table === "cong_hang") {
+          setHighlightSection("cong_hang");
+        } else if (payload.table === "lo_giao_dich") {
+          setHighlightSection("lo_giao_dich");
+        } else {
+          setHighlightSection("all");
         }
-      } catch (err) {
-        console.error("SSE parse error:", err);
-      }
-    };
 
-    return () => {
-      eventSource.close();
-    };
-  }, []);
+        // Tự động tắt hiệu ứng highlight sau 4 giây
+        setTimeout(() => {
+          setHighlightSection(null);
+        }, 4000);
+      });
+    },
+  });
 
   const { kpi, activeCongHangList, statusDistribution, recentTransactions } = data;
 

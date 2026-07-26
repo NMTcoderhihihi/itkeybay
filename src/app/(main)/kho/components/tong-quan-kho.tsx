@@ -15,6 +15,17 @@ import { format } from "date-fns"
 import Image from "next/image"
 import { useTranslation } from "@/hooks/use-translation"
 
+function formatSafeDate(dateVal: any, fmt: string = "dd/MM/yyyy HH:mm"): string {
+  if (!dateVal) return "---";
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return "---";
+  try {
+    return format(d, fmt);
+  } catch (e) {
+    return "---";
+  }
+}
+
 export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
   const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
@@ -75,8 +86,8 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
     const soCaiList = await getSoCaiChiTiet(item.id)
     const latest: Record<string, any> = {}
     soCaiList.forEach((sc: any) => {
-      if (!latest[sc.ma_quy_cach] && sc.lo_giao_dich) {
-        latest[sc.ma_quy_cach] = sc.lo_giao_dich
+      if (!latest[sc.ma_quy_cach]) {
+        latest[sc.ma_quy_cach] = sc
       }
     })
     setLatestTransactions(latest)
@@ -212,7 +223,10 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
 
       {/* Modal hiển thị chi tiết (Quy cách hoặc Lịch sử) */}
       <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
-        <DialogContent className="w-[95vw] sm:max-w-7xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent 
+          className="w-[95vw] sm:max-w-7xl max-h-[90vh] overflow-hidden flex flex-col"
+          initialFocus={false}
+        >
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {viewMode === 'lich_su' ? (
@@ -267,14 +281,37 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                               {qc.ton_kho} {selectedItem.don_vi}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-right text-xs text-muted-foreground">
+                          <TableCell className="text-right text-xs">
                             {lastTx ? (
-                              <div className="flex flex-col items-end">
-                                <span className="font-semibold text-primary">{lastTx.ma_lo}</span>
-                                <span>{format(new Date(lastTx.ngay_tao), 'dd/MM/yyyy HH:mm')}</span>
+                              <div className="flex flex-col items-end gap-1">
+                                <div className="flex items-center gap-1.5 font-semibold">
+                                  <span
+                                    className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px] font-bold ${
+                                      Number(lastTx.bien_dong_so_luong) > 0
+                                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                        : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                                    }`}
+                                  >
+                                    {Number(lastTx.bien_dong_so_luong) > 0 ? "+" : ""}
+                                    {lastTx.bien_dong_so_luong} {selectedItem.don_vi}
+                                  </span>
+                                  <span
+                                    className="text-foreground font-medium truncate max-w-[130px]"
+                                    title={lastTx.lo_giao_dich?.tai_khoan?.ho_ten || "Hệ thống"}
+                                  >
+                                    {lastTx.lo_giao_dich?.tai_khoan?.ho_ten || "Hệ thống"}
+                                  </span>
+                                </div>
+                                <span className="text-[11px] text-muted-foreground font-mono">
+                                  {formatSafeDate(
+                                    lastTx.lo_giao_dich?.ngay_tao || lastTx.created_at || lastTx.ngay_tao
+                                  )}
+                                </span>
                               </div>
                             ) : (
-                              <span className="italic">Chưa có giao dịch</span>
+                              <span className="italic text-muted-foreground">
+                                Chưa có giao dịch
+                              </span>
                             )}
                           </TableCell>
                           <TableCell className="text-right">
@@ -427,7 +464,7 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                         {currentLedgerData.map((row: any) => (
                           <TableRow key={row.id}>
                             <TableCell className="whitespace-nowrap">
-                              {format(new Date(row.created_at), 'dd/MM/yyyy HH:mm')}
+                              {formatSafeDate(row.created_at)}
                             </TableCell>
                             <TableCell className="font-mono text-xs">
                               {row.lo_giao_dich?.ma_lo}

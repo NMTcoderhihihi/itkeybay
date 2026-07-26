@@ -32,7 +32,7 @@ erDiagram
         uuid id PK
         string ten_nguyen_lieu "Ví dụ: Gỗ sồi, Gỗ xoan"
         string don_vi "Ví dụ: Khối, Tấm"
-        jsonb danh_sach_quy_cach "VD: [{ma_quy_cach: '2x4', ten: '2x4 inch'}]"
+        jsonb danh_sach_quy_cach "VD: [{ma_quy_cach: 'QC-01', ten: '2x4 inch'}]"
         timestamp created_at
         string anh_minh_hoa "URL ảnh Cloudinary"
     }
@@ -61,41 +61,42 @@ erDiagram
     }
 
     %% ==========================================
-    %% 5. SẢN XUẤT & BÁN THÀNH PHẨM (Gộp Công đoạn bằng JSONB)
+    %% 5. QUẢN LÝ CÔNG HÀNG SẢN XUẤT (Kèm Đơn hàng con)
     %% ==========================================
     cong_hang {
         uuid id PK
-        string ma_cong_hang "VD: 26V009-..."
-        enum_trang_thai_sx trang_thai_sx "CHUA_LAM, DANG_LAM, DA_LAM"
-        enum_trang_thai_kho trang_thai_kho "CHUA_NHAP, TON_KHO, DA_GIAO"
-        jsonb danh_sach_cong_doan "Mảng lưu: id_cong_doan, da_xong, id_cong_nhan, Ngày cập nhật"
+        string ma_cong_hang "VD: CH-2024-001"
+        string trang_thai_sx "CHUA_LAM / DANG_LAM / DA_LAM"
+        string trang_thai_kho "CHUA_NHAP / TON_KHO / DA_GIAO"
+        jsonb danh_sach_cong_doan "Mảng công đoạn kèm trạng thái xong"
         string ghi_chu
         timestamp ngay_tao
         timestamp ngay_hoan_thanh
     }
+
     don_hang {
         uuid id PK
         uuid id_cong_hang FK
-        string ma_don_hang "VD: 1708331BRO"
-        string ma_hang "Mã hàng hóa BTP"
+        string ma_don_hang "VD: DH001"
+        string ma_hang "VD: MH001"
         numeric so_luong_san_xuat
         timestamp created_at
     }
 
     %% ==========================================
-    %% 6. GIAO DỊCH CHUNG & ẢNH MINH CHỨNG (Gộp JSONB)
+    %% 6. DANH MỤC GIAO DỊCH & LÔ GIAO DỊCH KHO
     %% ==========================================
     danh_muc_giao_dich {
         uuid id PK
-        enum_phan_he phan_he "NGUYEN_LIEU, BAN_THANH_PHAM"
-        enum_loai_giao_dich loai_giao_dich "NHAP, XUAT, CHINH_SUA"
-        string ten_danh_muc "Lý do (Nhập đổi, Xuất bù...)"
-        boolean la_he_thong "Tự động/Cố định không cho sửa"
+        string phan_he "KHO / SAN_XUAT /..."
+        string loai_giao_dich "NHAP / XUAT"
+        string ten_danh_muc "Ví dụ: Nhập kho mới, Xuất Bán thành phẩm"
+        boolean la_he_thong "Mặc định không thể xóa"
         string ghi_chu
         timestamp created_at
         boolean dang_hoat_dong
     }
-    %% Lô giao dịch (Chứa mảng JSONB ảnh đính kèm)
+
     lo_giao_dich {
         uuid id PK
         string ma_lo "Mã chứng từ"
@@ -114,7 +115,7 @@ erDiagram
         uuid id PK
         uuid id_lo_giao_dich FK
         uuid id_nguyen_lieu FK
-        string ma_quy_cach "Chuỗi map với JSONB"
+        string ma_quy_cach "Mã định danh tự động QC-xx map với JSONB"
         numeric bien_dong_so_luong "Dương (+): Nhập, Âm (-): Xuất"
         numeric ton_kho_hien_tai "Tồn kho SAU KHI biến động"
         timestamp created_at
@@ -139,5 +140,13 @@ Kiến trúc Database này tập trung giải quyết:
 - **Gộp giao dịch (Batch):** Một phiếu giao dịch (`lo_giao_dich`) đính kèm ảnh bằng JSONB, nhập/xuất n-quy cách nguyên liệu.
 - **Tối giản Hóa Sản xuất:** Mảng `danh_sach_cong_doan` (JSONB) trong bảng Công hàng sẽ lưu trữ trực tiếp các liên kết (ID) tới bảng `cong_nhan` và `cong_doan` để theo dõi tiến độ một cách linh hoạt mà không cần tạo bảng trung gian khổng lồ.
 - **Truy vết Kế toán:** Bảng `so_cai_vat_tu` ghi nhận sự tăng/giảm (+/-) và số dư tồn kho tại chính thời điểm đó.
+
+## 4. Tiêu chuẩn Chuẩn hóa & Nâng cấp (v1 - Ngày 26/07/2026)
+
+Hệ thống cơ sở dữ liệu đã được chuẩn hóa giữa các môi trường với các nguyên tắc cốt lõi sau:
+1. **Định danh Tài khoản (`tai_khoan.tai_khoan`)**: Chuyển đổi cột định danh đăng nhập từ `so_dien_thoai` thành `tai_khoan character varying NOT NULL UNIQUE` nhằm mở rộng khả năng đặt tên tài khoản cho quản lý và nhân viên.
+2. **Quy cách Vật tư Tự động (`nguyen_lieu.danh_sach_quy_cach`)**: Các quy cách không còn sử dụng mã thủ công tự do mà do hệ thống tự sinh mã theo số thứ tự chuẩn `QC-01`, `QC-02`, `QC-03`..., đảm bảo tính duy nhất và nhất quán cho từng loại nguyên liệu.
+3. **Bảo toàn Liên kết Kế toán (`so_cai_vat_tu.ma_quy_cach`)**: Toàn bộ liên kết quy cách trong sổ cái được ánh xạ đồng bộ theo định danh `QC-xx` mới, bảo toàn tuyệt đối lịch sử giao dịch và số dư tồn kho.
+4. **Đồng bộ Realtime SSE Toàn cục (`/api/sse`)**: CSDL tích hợp Supabase Realtime (`postgres_changes`) đẩy sự kiện trực tiếp tới Global SSE Gateway, tự động đồng bộ ngầm dữ liệu tồn kho và tiến độ xưởng.
 
 **(Tất cả câu hỏi thảo luận đã được giải quyết!)**

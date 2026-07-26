@@ -22,6 +22,10 @@
 ### 1.6. Giao diện (UI/UX): Tailwind CSS & Shadcn UI
 - Phát triển siêu tốc, mobile-first.
 
+### 1.7. Realtime Synchronization: Global Centralized SSE Gateway (v1 - 26/07/2026)
+- **Cổng SSE Trung tâm (`/api/sse`)**: Trình duyệt chỉ duy trì **01 kết nối EventSource duy nhất** thông qua `<RealtimeProvider>` (`src/components/realtime-provider.tsx`), lắng nghe biến động từ Supabase Realtime Channel (`postgres_changes`) trên toàn bộ các bảng nghiệp vụ (`lo_giao_dich`, `so_cai_vat_tu`, `nguyen_lieu`, `cong_hang`, `don_hang`...).
+- **Đồng bộ Ngầm Yên lặng (Silent Background Refresh UX)**: Khi có sự kiện thay đổi dữ liệu từ các bộ phận trong nhà xưởng, hook `useRealtimeSSE` thực hiện tải lại dữ liệu ngầm (`router.refresh()`) mà **không bật thông báo Toast** làm phiền, giữ nguyên 100% trạng thái cuộn trang và nội dung đang gõ của người làm việc.
+
 ---
 
 ## 2. Kiến trúc Dự án (Modern Next.js Architecture)
@@ -31,10 +35,16 @@
 ```text
 📦 project-root
  ┣ 📂 app                  # Giao diện các trang
- ┣ 📂 components           # UI Components (Shadcn, Custom)
+ ┃ ┣ 📂 (main)             # Layout chính (được bao bọc bởi <RealtimeProvider>)
+ ┃ ┃ ┣ 📂 kho              # Quản lý kho nguyên liệu (Realtime SSE)
+ ┃ ┃ ┣ 📂 san-xuat         # Quản lý tiến độ sản xuất & BTP (Realtime SSE)
+ ┃ ┃ ┗ 📂 dashboard        # Dashboard KPI tổng quan (Realtime SSE Highlight UX)
+ ┃ ┗ 📂 api
+ ┃   ┗ 📂 sse              # Global Realtime SSE Gateway (/api/sse)
+ ┣ 📂 components           # UI Components (Shadcn, Custom, realtime-provider.tsx)
  ┣ 📂 lib                  # Logic DB, Utils
  ┣ 📂 actions              # Next.js Server Actions (Thao tác DB an toàn)
- ┣ 📂 i18n                 # (MỚI) Chứa các file từ điển JSON cho đa ngôn ngữ
+ ┣ 📂 i18n                 # Chứa các file từ điển JSON cho đa ngôn ngữ
  ┃ ┣ 📜 vi.json            # Từ điển Tiếng Việt
  ┃ ┣ 📜 en.json            # Từ điển Tiếng Anh
  ┃ ┗ 📜 zh.json            # Từ điển Tiếng Trung giản thể

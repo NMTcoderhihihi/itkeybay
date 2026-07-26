@@ -33,6 +33,8 @@ import {
 import { xuatBanThanhPham } from "@/app/actions/giao-dich"
 import { toast } from "sonner"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
+import { useRealtimeSSE } from "@/components/realtime-provider"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 
@@ -67,7 +69,16 @@ export function SanXuatClient({
   danhMucList?: any[]
   isManager: boolean
 }) {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState("cong-hang")
+
+  // Đăng ký nhận sự kiện Realtime SSE khi có thay đổi trong sản xuất và kho BTP (đồng bộ ngầm yên lặng)
+  useRealtimeSSE({
+    tables: ["cong_hang", "don_hang", "lo_giao_dich"],
+    onUpdate: () => {
+      router.refresh();
+    },
+  });
   
   // Filters
   const [searchQuery, setSearchQuery] = useState("")
@@ -304,7 +315,13 @@ export function SanXuatClient({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end items-center gap-4 mb-2">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Realtime SSE: Đang kết nối</span>
+          </div>
+        </div>
         {activeTab === "cong-hang" && (
           <CongHangForm congDoanList={congDoanList} />
         )}
