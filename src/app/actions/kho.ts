@@ -33,6 +33,29 @@ export async function getNguyenLieuList() {
   return (data || []) as NguyenLieu[]
 }
 
+// Hàm hỗ trợ tự động gán mã quy cách QC-01, QC-02... tuần tự nếu thiếu
+function autoAssignQuyCachCodes(list: QuyCach[]): QuyCach[] {
+  let maxIndex = 0;
+  list.forEach((qc) => {
+    const match = qc.ma_quy_cach?.match(/^QC-(\d+)$/);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (num > maxIndex) maxIndex = num;
+    }
+  });
+
+  return list.map((qc) => {
+    if (qc.ma_quy_cach && qc.ma_quy_cach.trim() !== "") {
+      return qc;
+    }
+    maxIndex += 1;
+    return {
+      ma_quy_cach: `QC-${String(maxIndex).padStart(2, "0")}`,
+      ten: qc.ten || `Quy cách ${maxIndex}`,
+    };
+  });
+}
+
 // 2. THÊM VẬT TƯ MỚI
 export async function createNguyenLieu(payload: {
   ten_nguyen_lieu: string
@@ -49,7 +72,7 @@ export async function createNguyenLieu(payload: {
         ten_nguyen_lieu: payload.ten_nguyen_lieu,
         don_vi: payload.don_vi,
         anh_minh_hoa: payload.anh_minh_hoa,
-        danh_sach_quy_cach: payload.danh_sach_quy_cach
+        danh_sach_quy_cach: autoAssignQuyCachCodes(payload.danh_sach_quy_cach)
       }
     ])
 
@@ -76,7 +99,7 @@ export async function updateNguyenLieu(id: string, payload: {
       ten_nguyen_lieu: payload.ten_nguyen_lieu,
       don_vi: payload.don_vi,
       anh_minh_hoa: payload.anh_minh_hoa,
-      danh_sach_quy_cach: payload.danh_sach_quy_cach
+      danh_sach_quy_cach: autoAssignQuyCachCodes(payload.danh_sach_quy_cach)
     })
     .eq('id', id)
 

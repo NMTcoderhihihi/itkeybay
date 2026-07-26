@@ -53,7 +53,16 @@ export function DanhMucVatTu({ initialData }: { initialData: NguyenLieu[] }) {
   }
 
   const addQuyCach = () => {
-    setQuyCachList([...quyCachList, { ma_quy_cach: "", ten: "" }])
+    let maxIndex = 0;
+    quyCachList.forEach((qc) => {
+      const match = qc.ma_quy_cach?.match(/^QC-(\d+)$/);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxIndex) maxIndex = num;
+      }
+    });
+    const nextCode = `QC-${String(maxIndex + 1).padStart(2, "0")}`;
+    setQuyCachList([...quyCachList, { ma_quy_cach: nextCode, ten: "" }]);
   }
 
   const updateQuyCach = (index: number, field: 'ma_quy_cach' | 'ten', value: string) => {
@@ -77,8 +86,8 @@ export function DanhMucVatTu({ initialData }: { initialData: NguyenLieu[] }) {
     
     // Validate quy cách
     for (const qc of quyCachList) {
-      if (!qc.ma_quy_cach || !qc.ten) {
-        toast.error("Mã và Tên quy cách không được để trống")
+      if (!qc.ten.trim()) {
+        toast.error("Tên quy cách không được để trống")
         return
       }
     }
@@ -272,17 +281,17 @@ export function DanhMucVatTu({ initialData }: { initialData: NguyenLieu[] }) {
                   <div className="space-y-2">
                     {quyCachList.map((qc, index) => (
                       <div key={index} className="flex items-center gap-2">
+                        <div
+                          className="flex items-center justify-center px-2.5 py-2 bg-secondary border rounded-md font-mono text-xs font-bold text-secondary-foreground shrink-0 min-w-[65px]"
+                          title="Mã quy cách do hệ thống tự gán"
+                        >
+                          {qc.ma_quy_cach || `QC-${String(index + 1).padStart(2, "0")}`}
+                        </div>
                         <Input 
-                          placeholder="Mã QC (VD: 2x4)" 
-                          value={qc.ma_quy_cach} 
-                          onChange={(e) => updateQuyCach(index, 'ma_quy_cach', e.target.value)} 
-                          className="flex-1"
-                        />
-                        <Input 
-                          placeholder="Tên hiển thị (VD: 2x4 inch)" 
+                          placeholder="Tên quy cách (VD: Tấm 2x4 inch, Hộp 10kg...)" 
                           value={qc.ten} 
                           onChange={(e) => updateQuyCach(index, 'ten', e.target.value)} 
-                          className="flex-[2]"
+                          className="flex-1"
                         />
                         <Button type="button" variant="ghost" size="icon" onClick={() => removeQuyCach(index)} className="text-destructive shrink-0">
                           <X className="h-4 w-4" />
