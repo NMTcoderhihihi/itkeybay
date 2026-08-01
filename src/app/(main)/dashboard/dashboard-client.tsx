@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
+import Image from "next/image";
 import { useTranslation } from "@/hooks/use-translation";
 import { useRealtimeSSE } from "@/components/realtime-provider";
 import {
@@ -16,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import {
@@ -55,6 +57,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [isPending, startTransition] = useTransition();
   const [highlightSection, setHighlightSection] = useState<string | null>(null);
   const [isChartReady, setIsChartReady] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   React.useEffect(() => {
     const timer = setTimeout(() => setIsChartReady(true), 60);
@@ -401,6 +404,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                   <TableHead className="py-2.5 px-3 text-xs font-bold min-w-[140px]">
                     {t("dashboard.note")}
                   </TableHead>
+                  <TableHead className="py-2.5 px-3 text-xs font-bold text-center whitespace-nowrap">
+                    Minh chứng
+                  </TableHead>
                   <TableHead className="py-2.5 px-3 text-xs font-bold text-right whitespace-nowrap">
                     {t("dashboard.batchOrderCode")}
                   </TableHead>
@@ -409,7 +415,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               <TableBody>
                 {recentTransactions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-28 text-center text-muted-foreground text-xs">
+                    <TableCell colSpan={9} className="h-28 text-center text-muted-foreground text-xs">
                       {t("dashboard.noTransactions")}
                     </TableCell>
                   </TableRow>
@@ -493,6 +499,29 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                           {tx.ghi_chu || t("dashboard.noNote")}
                         </div>
                       </TableCell>
+                      <TableCell className="py-2.5 px-3 text-xs text-center">
+                        {tx.danh_sach_anh && tx.danh_sach_anh.length > 0 ? (
+                          <div className="flex items-center justify-center gap-1 flex-wrap max-w-[90px]">
+                            {tx.danh_sach_anh.map((url: string, i: number) => (
+                              <div
+                                key={i}
+                                className="relative w-7 h-7 border rounded overflow-hidden cursor-pointer hover:scale-110 hover:border-primary transition-all shadow-sm"
+                                onClick={() => setPreviewImage(url)}
+                                title="Nhấp để xem ảnh minh chứng"
+                              >
+                                <Image
+                                  src={url}
+                                  alt="Minh chứng"
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground opacity-40">-</span>
+                        )}
+                      </TableCell>
                       <TableCell className="py-2.5 px-3 text-xs font-bold text-right whitespace-nowrap">
                         <span className="font-mono text-primary">{tx.ma_lo}</span>
                       </TableCell>
@@ -504,6 +533,26 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* MODAL XEM ẢNH MINH CHỨNG */}
+      <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
+        <DialogContent className="max-w-3xl p-2 bg-black/95 border-none flex flex-col items-center justify-center">
+          <DialogTitle className="text-white text-sm font-semibold mb-2 text-center">
+            Ảnh minh chứng giao dịch
+          </DialogTitle>
+          {previewImage && (
+            <div className="relative w-full h-[70vh] flex items-center justify-center">
+              <Image
+                src={previewImage}
+                alt="Minh chứng giao dịch"
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 80vw"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

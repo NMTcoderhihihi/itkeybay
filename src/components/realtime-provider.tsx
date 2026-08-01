@@ -33,30 +33,50 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const [lastSyncedAt, setLastSyncedAt] = useState<Date>(() => new Date());
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
+  const isSyncingRef = useRef<boolean>(false);
+
   // Hàm truy vấn ngầm số liệu mới từ máy chủ (Silent Fetch & DOM Partial Update)
   const triggerSync = useCallback(async () => {
-    try {
-      setIsSyncing(true);
-      
-      // router.refresh() tự động re-fetch Server Components/Actions của trang hiện tại mà không reload lại trang
-      router.refresh();
+    // Nếu đang trong quá trình sync hoặc mất mạng/ẩn tab -> bỏ qua để tránh fetch collision / abort
+    if (isSyncingRef.current) return;
+    if (typeof window !== "undefined" && !window.navigator.onLine) {
+      setStatus("DISCONNECTED");
+      return;
+    }
+    if (typeof document !== "undefined" && document.hidden) {
+      return;
+    }
 
-      // Thông báo cho các client subscriber (popup/modal/table) để cập nhật state cục bộ
+    try {
+      isSyncingRef.current = true;
+      setIsSyncing(true);
+
+      // Thông báo cho các client subscriber (popup/modal/table) để họ tự làm mới số liệu cục bộ
       const event: RealtimeEvent = {
         type: "POLL_UPDATE",
         table: "*",
         timestamp: new Date().toISOString(),
       };
       subscribersRef.current.forEach((sub) => {
-        sub.callback(event);
+        try {
+          sub.callback(event);
+        } catch (err) {
+          console.warn("Lỗi trong callback subscriber Realtime:", err);
+        }
+      });
+
+      // router.refresh() tự động re-fetch RSC một lần duy nhất mà không reload lại trang
+      React.startTransition(() => {
+        router.refresh();
       });
 
       setLastSyncedAt(new Date());
       setStatus("CONNECTED");
     } catch (err) {
-      console.error("Lỗi đồng bộ ngầm Polling:", err);
+      console.warn("Lỗi đồng bộ ngầm Polling (đã tạm qua để thử lại):", err);
       setStatus("DISCONNECTED");
     } finally {
+      isSyncingRef.current = false;
       setIsSyncing(false);
     }
   }, [router]);
@@ -64,15 +84,24 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Kiến trúc Polling ngầm mỗi 30 giây (Tương thích 100% trên Vercel Serverless)
     const interval = setInterval(() => {
-      // Tối ưu hóa: Nếu tab trình duyệt đang bị ẩn/thu nhỏ -> không thực hiện truy vấn để tránh lãng phí tài nguyên Vercel
-      if (typeof document !== "undefined" && document.hidden) {
-        return;
-      }
       triggerSync();
     }, 30000);
 
+    // Kích hoạt đồng bộ ngay khi người dùng chuyển lại tab
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        triggerSync();
+      }
+    };
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", handleVisibilityChange);
+    }
+
     return () => {
       clearInterval(interval);
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", handleVisibilityChange);
+      }
     };
   }, [triggerSync]);
 
@@ -130,6 +159,11 @@ export function useRealtimeSSE({
     }
 
     const unsubscribe = context.subscribe(tables, (event) => {
+      // Nếu là sự kiện POLL_UPDATE ngầm định kỳ -> bỏ qua gọi onUpdate cục bộ để tránh gọi chồng chéo router.refresh()
+      if (event.type === "POLL_UPDATE") {
+        return;
+      }
+
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }

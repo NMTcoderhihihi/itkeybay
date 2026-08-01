@@ -31,6 +31,7 @@ export type DashboardTransactionItem = {
   loai_doi_tuong: "NGUYEN_LIEU" | "BAN_THANH_PHAM";
   so_luong_tong: number;
   quy_cach_ghi_chu?: string;
+  danh_sach_anh?: string[];
 };
 
 export type DashboardData = {
@@ -156,6 +157,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       ma_lo,
       ngay_tao,
       ghi_chu,
+      danh_sach_anh,
       id_cong_hang,
       tai_khoan ( ho_ten ),
       danh_muc_giao_dich ( ten_danh_muc, phan_he, loai_giao_dich ),
@@ -229,6 +231,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       loai_doi_tuong,
       so_luong_tong,
       quy_cach_ghi_chu,
+      danh_sach_anh: Array.isArray(t.danh_sach_anh) ? t.danh_sach_anh : [],
     };
   });
 
