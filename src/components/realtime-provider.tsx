@@ -1,7 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 export interface RealtimeEvent {
   type: string;
@@ -17,60 +17,64 @@ type SubscriberCallback = (event: RealtimeEvent) => void;
 interface RealtimeContextValue {
   subscribe: (tables: string[], callback: SubscriberCallback) => () => void;
   status: RealtimeStatus;
+  lastSyncedAt: Date;
+  isSyncing: boolean;
+  triggerSync: () => Promise<void>;
 }
 
 const RealtimeContext = createContext<RealtimeContextValue | null>(null);
 
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
   const subscribersRef = useRef<Map<number, { tables: string[]; callback: SubscriberCallback }>>(new Map());
   const nextIdRef = useRef<number>(1);
-  const [status, setStatus] = useState<RealtimeStatus>("CONNECTING");
+  
+  const [status, setStatus] = useState<RealtimeStatus>("CONNECTED");
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date>(() => new Date());
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
-  useEffect(() => {
-    let isMounted = true;
-    const channelName = `global-client-realtime-${Date.now()}`;
+  // Hàm truy vấn ngầm số liệu mới từ máy chủ (Silent Fetch & DOM Partial Update)
+  const triggerSync = useCallback(async () => {
+    try {
+      setIsSyncing(true);
+      
+      // router.refresh() tự động re-fetch Server Components/Actions của trang hiện tại mà không reload lại trang
+      router.refresh();
 
-    // Kết nối WebSocket trực tiếp từ Trình duyệt Client tới Supabase Realtime
-    // Bỏ qua hoàn toàn giới hạn thời gian chạy và đệm (buffering) của Vercel Serverless Function
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public" },
-        (payload) => {
-          if (!isMounted) return;
-          const tableName = payload.table;
-          if (tableName) {
-            const event: RealtimeEvent = {
-              type: "UPDATE",
-              table: tableName,
-              eventType: payload.eventType,
-              timestamp: new Date().toISOString(),
-            };
-            subscribersRef.current.forEach((sub) => {
-              if (sub.tables.includes(tableName)) {
-                sub.callback(event);
-              }
-            });
-          }
-        }
-      )
-      .subscribe((statusEnum) => {
-        if (!isMounted) return;
-        if (statusEnum === "SUBSCRIBED") {
-          setStatus("CONNECTED");
-        } else if (statusEnum === "CHANNEL_ERROR" || statusEnum === "TIMED_OUT" || statusEnum === "CLOSED") {
-          setStatus("DISCONNECTED");
-        } else {
-          setStatus("CONNECTING");
-        }
+      // Thông báo cho các client subscriber (popup/modal/table) để cập nhật state cục bộ
+      const event: RealtimeEvent = {
+        type: "POLL_UPDATE",
+        table: "*",
+        timestamp: new Date().toISOString(),
+      };
+      subscribersRef.current.forEach((sub) => {
+        sub.callback(event);
       });
 
+      setLastSyncedAt(new Date());
+      setStatus("CONNECTED");
+    } catch (err) {
+      console.error("Lỗi đồng bộ ngầm Polling:", err);
+      setStatus("DISCONNECTED");
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    // Kiến trúc Polling ngầm mỗi 30 giây (Tương thích 100% trên Vercel Serverless)
+    const interval = setInterval(() => {
+      // Tối ưu hóa: Nếu tab trình duyệt đang bị ẩn/thu nhỏ -> không thực hiện truy vấn để tránh lãng phí tài nguyên Vercel
+      if (typeof document !== "undefined" && document.hidden) {
+        return;
+      }
+      triggerSync();
+    }, 30000);
+
     return () => {
-      isMounted = false;
-      supabase.removeChannel(channel);
+      clearInterval(interval);
     };
-  }, []);
+  }, [triggerSync]);
 
   const subscribe = (tables: string[], callback: SubscriberCallback) => {
     const id = nextIdRef.current++;
@@ -81,7 +85,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <RealtimeContext.Provider value={{ subscribe, status }}>
+    <RealtimeContext.Provider value={{ subscribe, status, lastSyncedAt, isSyncing, triggerSync }}>
       {children}
     </RealtimeContext.Provider>
   );
@@ -90,6 +94,16 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 export function useRealtimeStatus(): RealtimeStatus {
   const context = useContext(RealtimeContext);
   return context?.status || "CONNECTED";
+}
+
+export function useRealtimeSync() {
+  const context = useContext(RealtimeContext);
+  return {
+    lastSyncedAt: context?.lastSyncedAt || new Date(),
+    isSyncing: context?.isSyncing || false,
+    triggerSync: context?.triggerSync || (async () => {}),
+    status: context?.status || "CONNECTED",
+  };
 }
 
 export function useRealtimeSSE({
@@ -116,7 +130,6 @@ export function useRealtimeSSE({
     }
 
     const unsubscribe = context.subscribe(tables, (event) => {
-      // Debounce để tránh kích hoạt tải lại liên tục khi có nhiều thay đổi CSDL xảy ra cùng lúc
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }

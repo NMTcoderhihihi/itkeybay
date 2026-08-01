@@ -27,6 +27,10 @@ export type DashboardTransactionItem = {
   phan_he: string;
   loai_giao_dich: string;
   ma_cong_hang?: string;
+  doi_tuong_ten: string;
+  loai_doi_tuong: "NGUYEN_LIEU" | "BAN_THANH_PHAM";
+  so_luong_tong: number;
+  quy_cach_ghi_chu?: string;
 };
 
 export type DashboardData = {
@@ -144,7 +148,7 @@ export async function getDashboardData(): Promise<DashboardData> {
   // Số nguyên liệu dưới mức an toàn (mặc định giả định 0 hoặc kiểm tra định mức nếu có)
   const lowStockCount = 0;
 
-  // 4. Lấy 10 hành động giao dịch mới nhất từ lo_giao_dich
+  // 4. Lấy 10 hành động giao dịch mới nhất từ lo_giao_dich (kèm thông tin nguyên liệu, BTP và công hàng)
   const { data: transRaw, error: transError } = await supabase
     .from("lo_giao_dich")
     .select(`
@@ -155,7 +159,12 @@ export async function getDashboardData(): Promise<DashboardData> {
       id_cong_hang,
       tai_khoan ( ho_ten ),
       danh_muc_giao_dich ( ten_danh_muc, phan_he, loai_giao_dich ),
-      cong_hang ( ma_cong_hang )
+      cong_hang ( ma_cong_hang, don_hang ( ma_hang, so_luong_san_xuat ) ),
+      so_cai_vat_tu (
+        ma_quy_cach,
+        bien_dong_so_luong,
+        nguyen_lieu ( ten_nguyen_lieu, danh_sach_quy_cach )
+      )
     `)
     .order("ngay_tao", { ascending: false })
     .limit(10);
@@ -164,17 +173,64 @@ export async function getDashboardData(): Promise<DashboardData> {
     console.error("Lỗi lấy danh sách giao dịch ở dashboard:", transError);
   }
 
-  const recentTransactions: DashboardTransactionItem[] = (transRaw || []).map((t: any) => ({
-    id: t.id,
-    ma_lo: t.ma_lo || "LO-???",
-    created_at: t.ngay_tao || t.created_at || "",
-    ghi_chu: t.ghi_chu || "",
-    ho_ten_nhan_vien: t.tai_khoan?.ho_ten || "Hệ thống",
-    ten_danh_muc: t.danh_muc_giao_dich?.ten_danh_muc || "Giao dịch",
-    phan_he: t.danh_muc_giao_dich?.phan_he || "KHO",
-    loai_giao_dich: t.danh_muc_giao_dich?.loai_giao_dich || "NHAP",
-    ma_cong_hang: t.cong_hang?.ma_cong_hang || undefined,
-  }));
+  const recentTransactions: DashboardTransactionItem[] = (transRaw || []).map((t: any) => {
+    const scList: any[] = Array.isArray(t.so_cai_vat_tu) ? t.so_cai_vat_tu : [];
+    const isBtp = t.danh_muc_giao_dich?.phan_he === "BAN_THANH_PHAM" || (scList.length === 0 && t.cong_hang);
+    const loai_doi_tuong = isBtp ? "BAN_THANH_PHAM" : "NGUYEN_LIEU";
+
+    let doi_tuong_ten = "Vật tư xưởng";
+    let so_luong_tong = 0;
+    let quy_cach_ghi_chu: string | undefined = undefined;
+
+    if (isBtp) {
+      const dhList: any[] = Array.isArray(t.cong_hang?.don_hang) ? t.cong_hang.don_hang : [];
+      if (dhList.length > 0) {
+        doi_tuong_ten = dhList.map(d => d.ma_hang || "Bán thành phẩm").join(", ");
+        so_luong_tong = dhList.reduce((sum, d) => sum + (Number(d.so_luong_san_xuat) || 0), 0);
+      } else {
+        doi_tuong_ten = "Bán thành phẩm xưởng";
+      }
+      quy_cach_ghi_chu = "(BTP)";
+    } else {
+      const uniqueNames = Array.from(new Set(scList.map(sc => sc.nguyen_lieu?.ten_nguyen_lieu).filter(Boolean)));
+      doi_tuong_ten = uniqueNames.length > 0 ? uniqueNames.join(", ") : "Nguyên liệu xưởng";
+      so_luong_tong = scList.reduce((sum, sc) => sum + Math.abs(Number(sc.bien_dong_so_luong) || 0), 0);
+
+      // Trích xuất trực tiếp tên quy cách thực tế (không hiển thị mã QC-xx)
+      const qcNames = Array.from(
+        new Set(
+          scList
+            .map((sc: any) => {
+              const qcArray: any[] = Array.isArray(sc.nguyen_lieu?.danh_sach_quy_cach)
+                ? sc.nguyen_lieu.danh_sach_quy_cach
+                : [];
+              const qcObj = qcArray.find((q: any) => q.ma_quy_cach === sc.ma_quy_cach);
+              return qcObj?.ten;
+            })
+            .filter((name: any): name is string => typeof name === "string" && name.trim().length > 0)
+        )
+      );
+      if (qcNames.length > 0) {
+        quy_cach_ghi_chu = `(${qcNames.join(", ")})`;
+      }
+    }
+
+    return {
+      id: t.id,
+      ma_lo: t.ma_lo || "LO-???",
+      created_at: t.ngay_tao || t.created_at || "",
+      ghi_chu: t.ghi_chu || "",
+      ho_ten_nhan_vien: t.tai_khoan?.ho_ten || "Hệ thống",
+      ten_danh_muc: t.danh_muc_giao_dich?.ten_danh_muc || "Giao dịch",
+      phan_he: t.danh_muc_giao_dich?.phan_he || "KHO",
+      loai_giao_dich: t.danh_muc_giao_dich?.loai_giao_dich || "NHAP",
+      ma_cong_hang: t.cong_hang?.ma_cong_hang || undefined,
+      doi_tuong_ten,
+      loai_doi_tuong,
+      so_luong_tong,
+      quy_cach_ghi_chu,
+    };
+  });
 
   // 5. Thống kê hoạt động trong 24h qua
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();

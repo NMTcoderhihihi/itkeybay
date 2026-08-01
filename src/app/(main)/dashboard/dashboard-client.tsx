@@ -408,18 +408,27 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                   <TableHead className="py-2.5 px-3 text-xs font-bold whitespace-nowrap">
                     {t("dashboard.txAction")}
                   </TableHead>
-                  <TableHead className="py-2.5 px-3 text-xs font-bold whitespace-nowrap">
-                    {t("dashboard.batchOrderCode")}
+                  <TableHead className="py-2.5 px-3 text-xs font-bold min-w-[150px]">
+                    Đối tượng
                   </TableHead>
-                  <TableHead className="py-2.5 px-3 text-xs font-bold min-w-[160px]">
+                  <TableHead className="py-2.5 px-3 text-xs font-bold whitespace-nowrap">
+                    Số lượng
+                  </TableHead>
+                  <TableHead className="py-2.5 px-3 text-xs font-bold whitespace-nowrap">
+                    Công hàng
+                  </TableHead>
+                  <TableHead className="py-2.5 px-3 text-xs font-bold min-w-[140px]">
                     {t("dashboard.note")}
+                  </TableHead>
+                  <TableHead className="py-2.5 px-3 text-xs font-bold text-right whitespace-nowrap">
+                    {t("dashboard.batchOrderCode")}
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {recentTransactions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-28 text-center text-muted-foreground text-xs">
+                    <TableCell colSpan={8} className="h-28 text-center text-muted-foreground text-xs">
                       {t("dashboard.noTransactions")}
                     </TableCell>
                   </TableRow>
@@ -455,18 +464,56 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                           {tx.ten_danh_muc}
                         </span>
                       </TableCell>
-                      <TableCell className="py-2.5 px-3 text-xs font-bold whitespace-nowrap">
-                        <span className="text-foreground">{tx.ma_lo}</span>
-                        {tx.ma_cong_hang && (
-                          <span className="ml-1 text-[11px] text-primary">
-                            ({tx.ma_cong_hang})
+                      <TableCell className="py-2.5 px-3 text-xs">
+                        <div className="flex flex-col gap-0.5">
+                          <span
+                            className={`inline-flex w-fit items-center px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase ${
+                              tx.loai_doi_tuong === "BAN_THANH_PHAM"
+                                ? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20"
+                                : "bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20"
+                            }`}
+                          >
+                            {tx.loai_doi_tuong === "BAN_THANH_PHAM" ? "Bán thành phẩm" : "Nguyên liệu"}
                           </span>
+                          <span
+                            className="font-medium text-foreground truncate max-w-[150px] sm:max-w-[200px]"
+                            title={tx.doi_tuong_ten}
+                          >
+                            {tx.doi_tuong_ten}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-2.5 px-3 text-xs whitespace-nowrap">
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-bold text-foreground">
+                            {tx.so_luong_tong > 0 ? `+${tx.so_luong_tong}` : (tx.so_luong_tong || 0)} SL
+                          </span>
+                          {tx.quy_cach_ghi_chu && (
+                            <span
+                              className="text-[10px] text-muted-foreground font-medium truncate max-w-[150px]"
+                              title={tx.quy_cach_ghi_chu}
+                            >
+                              {tx.quy_cach_ghi_chu}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-2.5 px-3 text-xs whitespace-nowrap">
+                        {tx.ma_cong_hang ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-primary/10 text-primary border border-primary/20">
+                            {tx.ma_cong_hang}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
                         )}
                       </TableCell>
                       <TableCell className="py-2.5 px-3 text-xs text-muted-foreground">
-                        <div className="truncate max-w-[200px] sm:max-w-[320px]" title={tx.ghi_chu}>
+                        <div className="truncate max-w-[140px] sm:max-w-[200px]" title={tx.ghi_chu}>
                           {tx.ghi_chu || t("dashboard.noNote")}
                         </div>
+                      </TableCell>
+                      <TableCell className="py-2.5 px-3 text-xs font-bold text-right whitespace-nowrap">
+                        <span className="font-mono text-primary">{tx.ma_lo}</span>
                       </TableCell>
                     </TableRow>
                   ))

@@ -1,73 +1,81 @@
 "use client";
 
-import React, { useState } from "react";
-import { Activity } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { RefreshCw, Loader2 } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
-import { useRealtimeStatus } from "@/components/realtime-provider";
+import { useRealtimeSync } from "@/components/realtime-provider";
 
 export function SSEStatusIcon() {
   const { t } = useTranslation();
-  const status = useRealtimeStatus();
+  const { lastSyncedAt, isSyncing, triggerSync, status } = useRealtimeSync();
   const [showTooltip, setShowTooltip] = useState(false);
+  const [secondsAgo, setSecondsAgo] = useState(0);
+
+  useEffect(() => {
+    const updateSeconds = () => {
+      const diffMs = Date.now() - new Date(lastSyncedAt).getTime();
+      const secs = Math.max(0, Math.floor(diffMs / 1000));
+      setSecondsAgo(secs);
+    };
+
+    updateSeconds();
+    const timer = setInterval(updateSeconds, 1000);
+    return () => clearInterval(timer);
+  }, [lastSyncedAt]);
 
   const isConnected = status === "CONNECTED";
-  const isConnecting = status === "CONNECTING";
-  const isDisconnected = status === "DISCONNECTED";
 
-  const colorBorderClass = isConnected
-    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20"
-    : isConnecting
-    ? "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20"
-    : "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20";
+  const statusTitle = isSyncing
+    ? "Đang truy vấn ngầm số liệu mới..."
+    : isConnected
+    ? `Đồng bộ ngầm: 30s/lần (${secondsAgo === 0 ? "vừa xong" : `${secondsAgo}s trước`})`
+    : "Mất kết nối (Đang thử lại)";
 
-  const dotColorClass = isConnected
-    ? "bg-emerald-500"
-    : isConnecting
-    ? "bg-amber-500"
-    : "bg-red-500";
-
-  const pingColorClass = isConnected
-    ? "bg-emerald-400"
-    : isConnecting
-    ? "bg-amber-400"
-    : "bg-red-400";
-
-  const statusTitle = isConnected
-    ? (t("sse.status_title") || "Realtime: Đang kết nối")
-    : isConnecting
-    ? "Realtime: Đang kết nối..."
-    : "Realtime: Mất kết nối (Đang thử lại)";
-
-  const statusDesc = isConnected
-    ? (t("sse.status_desc") || "Hệ thống đang tự động lắng nghe thay đổi và cập nhật dữ liệu tức thì qua kết nối WebSocket trực tiếp.")
-    : isConnecting
-    ? "Đang khởi tạo luồng dữ liệu thời gian thực tới máy chủ Supabase..."
-    : "Kết nối thời gian thực bị ngắt. Hệ thống sẽ tiếp tục thử kết nối lại tự động.";
+  const statusDesc = "Hệ thống tự động kiểm tra thay đổi trong CSDL mỗi 30 giây (tạm dừng khi ẩn trang để tiết kiệm Vercel). Bấm để tải lại số liệu mới ngay lập tức mà không làm chớp/reload trang.";
 
   return (
     <div 
       className="relative flex items-center"
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
-      onClick={() => setShowTooltip(!showTooltip)}
     >
-      <div 
-        className={`flex items-center justify-center h-9 w-9 rounded-full border cursor-pointer transition-all shadow-sm ${colorBorderClass}`}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          triggerSync();
+        }}
+        disabled={isSyncing}
+        className="flex items-center gap-1.5 h-8 px-2.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 cursor-pointer hover:bg-emerald-500/20 active:scale-95 transition-all shadow-sm text-xs font-semibold"
         title={statusTitle}
       >
         <div className="relative flex items-center justify-center">
-          <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-            <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${pingColorClass}`}></span>
-            <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${dotColorClass}`}></span>
-          </span>
-          <Activity className="h-4 w-4" />
+          {isSyncing ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-600 dark:text-emerald-400" />
+          ) : (
+            <>
+              <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <RefreshCw className="h-3.5 w-3.5" />
+            </>
+          )}
         </div>
-      </div>
+
+        <span className="min-w-[48px] text-left">
+          {isSyncing
+            ? "Đang tải..."
+            : secondsAgo === 0
+            ? "Vừa xong"
+            : `${secondsAgo}s trước`}
+        </span>
+      </button>
 
       {showTooltip && (
-        <div className="absolute right-0 top-11 z-50 w-64 rounded-lg border bg-popover p-2.5 text-xs text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95">
-          <div className="flex items-center gap-2 font-semibold mb-1">
-            <span className={`w-2 h-2 rounded-full animate-pulse shrink-0 ${dotColorClass}`} />
+        <div className="absolute right-0 top-10 z-50 w-64 rounded-lg border bg-popover p-2.5 text-xs text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95">
+          <div className="flex items-center gap-2 font-semibold mb-1 text-emerald-600 dark:text-emerald-400">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             <span>{statusTitle}</span>
           </div>
           <p className="text-[11px] text-muted-foreground">
