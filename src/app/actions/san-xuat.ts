@@ -157,7 +157,12 @@ export async function getLichSuPhatLieu(id_cong_hang: string) {
     .select(`
       id, ma_lo, ngay_tao, ghi_chu,
       tai_khoan (ho_ten),
-      danh_muc_giao_dich (ten_danh_muc)
+      danh_muc_giao_dich (ten_danh_muc),
+      so_cai_vat_tu (
+        ma_quy_cach,
+        bien_dong_so_luong,
+        nguyen_lieu ( ten_nguyen_lieu, danh_sach_quy_cach )
+      )
     `)
     .eq('id_cong_hang', id_cong_hang)
     .order('ngay_tao', { ascending: false })

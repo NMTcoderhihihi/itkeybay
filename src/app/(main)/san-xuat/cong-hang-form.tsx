@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useTranslation } from "@/hooks/use-translation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -15,6 +16,7 @@ type CongDoan = {
 }
 
 export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   
@@ -85,30 +87,30 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button />}>
-        <Plus className="h-4 w-4 mr-1.5" /> Tạo Công Hàng Mới
+        <Plus className="h-4 w-4 mr-1.5" /> {t("production.formTitle")}
       </DialogTrigger>
         <DialogContent className="max-w-4xl lg:max-w-5xl xl:max-w-6xl w-[95vw] sm:w-[90vw] md:w-[85vw] max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Tạo Công Hàng Mới</DialogTitle>
+            <DialogTitle>{t("production.formTitle")}</DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-6 mt-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2 col-span-2 md:col-span-1">
-                <label className="text-sm font-medium">Mã Công Hàng <span className="text-destructive">*</span></label>
+                <label className="text-sm font-medium">{t("production.formCodeLabel")} <span className="text-destructive">*</span></label>
                 <Input 
                   value={maCongHang} 
                   onChange={e => setMaCongHang(e.target.value)} 
-                  placeholder="VD: 26V009-T83525..."
+                  placeholder={t("production.formCodePlaceholder")}
                   required
                 />
               </div>
               <div className="space-y-2 col-span-2 md:col-span-1">
-                <label className="text-sm font-medium">Ghi chú</label>
+                <label className="text-sm font-medium">{t("production.formNoteLabel")}</label>
                 <Input 
                   value={ghiChu} 
                   onChange={e => setGhiChu(e.target.value)} 
-                  placeholder="Thông tin thêm..."
+                  placeholder={t("production.formNotePlaceholder")}
                 />
               </div>
             </div>
@@ -116,17 +118,18 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
             {/* Đơn hàng con */}
             <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <label className="text-sm font-medium">Danh Sách Đơn Hàng / Sản Phẩm <span className="text-destructive">*</span></label>
+                <label className="text-sm font-medium">{t("production.formOrdersLabel")} <span className="text-destructive">*</span></label>
                 <Button type="button" variant="outline" size="sm" onClick={addDonHang} className="h-7 text-xs">
-                  <Plus className="h-3 w-3 mr-1" /> Thêm đơn hàng
+                  <Plus className="h-3 w-3 mr-1" /> {t("production.addOrder")}
                 </Button>
+
               </div>
 
               <div className="space-y-2">
                 {donHangList.map((dh, idx) => (
                   <div key={idx} className="flex flex-wrap md:flex-nowrap gap-2 items-end border p-3 rounded-lg bg-card">
                     <div className="flex-1 min-w-[150px] space-y-1">
-                      <label className="text-xs text-muted-foreground">Mã Đơn Hàng</label>
+                      <label className="text-xs text-muted-foreground">{t("production.formOrderCodeLabel")}</label>
                       <Input 
                         value={dh.ma_don_hang} 
                         onChange={e => updateDonHang(idx, 'ma_don_hang', e.target.value)}
@@ -136,7 +139,7 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
                       />
                     </div>
                     <div className="flex-1 min-w-[180px] space-y-1">
-                      <label className="text-xs text-muted-foreground">Mã Hàng / Tên Sản Phẩm</label>
+                      <label className="text-xs text-muted-foreground">{t("production.formOrderNameLabel")}</label>
                       <Input 
                         value={dh.ma_hang} 
                         onChange={e => updateDonHang(idx, 'ma_hang', e.target.value)}
@@ -146,7 +149,7 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
                       />
                     </div>
                     <div className="w-28 space-y-1">
-                      <label className="text-xs text-muted-foreground">Số Lượng</label>
+                      <label className="text-xs text-muted-foreground">{t("production.formQtyLabel")}</label>
                       <Input 
                         type="number" 
                         min={1} 
@@ -175,7 +178,7 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
             {/* Quy trình sản xuất & chọn công đoạn (Item 23 & Item 25) */}
             <div className="space-y-3">
               <div className="flex flex-wrap justify-between items-center gap-2">
-                <label className="text-sm font-medium">Quy Trình & Công Đoạn Sản Xuất <span className="text-destructive">*</span></label>
+                <label className="text-sm font-medium">{t("production.formStagesLabel")} <span className="text-destructive">*</span></label>
                 <div className="flex items-center gap-2">
                   <Button 
                     type="button" 
@@ -184,7 +187,7 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
                     className="h-6 text-xs p-0"
                     onClick={() => setSelectedCongDoan(congDoanList.map(c => c.id))}
                   >
-                    Chọn tất cả
+                    {t("production.formSelectAll")}
                   </Button>
                   <Button 
                     type="button" 
@@ -193,7 +196,7 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
                     className="h-6 text-xs p-0 text-muted-foreground"
                     onClick={() => { setSelectedCongDoan([]); }}
                   >
-                    Bỏ chọn
+                    {t("production.formDeselectAll")}
                   </Button>
                 </div>
               </div>
@@ -221,10 +224,10 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
             </div>
 
             <div className="flex justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Hủy</Button>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>{t("production.formCancel")}</Button>
               <Button type="submit" disabled={loading}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Tạo Công Hàng
+                {t("production.formSubmit")}
               </Button>
             </div>
           </form>

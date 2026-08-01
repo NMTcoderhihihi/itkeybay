@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useMemo, useEffect } from "react"
+import { useTranslation } from "@/hooks/use-translation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CongDoanManager } from "./cong-doan-manager"
 import { CongHangForm } from "./cong-hang-form"
@@ -74,6 +75,7 @@ export function SanXuatClient({
   isManager: boolean
 }) {
   const router = useRouter()
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState("cong-hang")
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card')
   const [editingCongHangModal, setEditingCongHangModal] = useState<any | null>(null)
@@ -349,8 +351,8 @@ export function SanXuatClient({
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
-          <TabsTrigger value="cong-hang">Tiến độ Công hàng</TabsTrigger>
-          <TabsTrigger value="cong-doan">Danh mục Công đoạn</TabsTrigger>
+          <TabsTrigger value="cong-hang">{t("production.tabOrders")}</TabsTrigger>
+          <TabsTrigger value="cong-doan">{t("production.tabStages")}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="cong-hang" className="mt-6">
@@ -374,7 +376,7 @@ export function SanXuatClient({
                   render={
                     <Button variant="outline" className="h-10 w-full sm:w-auto min-w-[200px] justify-between font-normal bg-background">
                       <span className="truncate">
-                        {filterStatus.length === 0 ? "Lọc theo trạng thái" : `Đã chọn ${filterStatus.length} trạng thái`}
+                        {filterStatus.length === 0 ? t("production.statusAll") : `${t("production.statusAll")} (${filterStatus.length})`}
                       </span>
                       <ChevronDown className="h-4 w-4 opacity-50" />
                     </Button>
@@ -385,19 +387,19 @@ export function SanXuatClient({
                     checked={filterStatus.includes('CHUA_LAM')}
                     onCheckedChange={() => toggleStatusFilter('CHUA_LAM')}
                   >
-                    Chưa sản xuất
+                    {t("production.statusChuaLam")}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={filterStatus.includes('DANG_LAM')}
                     onCheckedChange={() => toggleStatusFilter('DANG_LAM')}
                   >
-                    Đang sản xuất
+                    {t("production.statusDangLam")}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={filterStatus.includes('DA_LAM')}
                     onCheckedChange={() => toggleStatusFilter('DA_LAM')}
                   >
-                    Đã hoàn thành
+                    {t("production.statusDaLam")}
                   </DropdownMenuCheckboxItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -407,7 +409,7 @@ export function SanXuatClient({
                   render={
                     <Button variant="outline" className="h-10 w-full sm:w-auto min-w-[180px] justify-between font-normal bg-background">
                       <span className="truncate">
-                        {filterKhoStatus.length === 0 ? "Lọc theo kho" : `Kho (${filterKhoStatus.length})`}
+                        {filterKhoStatus.length === 0 ? t("production.filterWarehouse") : `${t("production.filterWarehouse")} (${filterKhoStatus.length})`}
                       </span>
                       <ChevronDown className="h-4 w-4 opacity-50" />
                     </Button>
@@ -418,19 +420,19 @@ export function SanXuatClient({
                     checked={filterKhoStatus.includes('CHUA_NHAP')}
                     onCheckedChange={() => toggleKhoStatusFilter('CHUA_NHAP')}
                   >
-                    Chưa nhập kho
+                    {t("production.notImported")}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={filterKhoStatus.includes('TON_KHO')}
                     onCheckedChange={() => toggleKhoStatusFilter('TON_KHO')}
                   >
-                    Tồn kho BTP
+                    {t("production.inStock")}
                   </DropdownMenuCheckboxItem>
                   <DropdownMenuCheckboxItem
                     checked={filterKhoStatus.includes('DA_GIAO')}
                     onCheckedChange={() => toggleKhoStatusFilter('DA_GIAO')}
                   >
-                    Đã giao hàng
+                    {t("production.delivered")}
                   </DropdownMenuCheckboxItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -440,7 +442,7 @@ export function SanXuatClient({
                   render={
                     <Button variant="outline" className="h-10 w-full sm:w-auto min-w-[200px] justify-between font-normal bg-background">
                       <span className="truncate">
-                        {filterWorker.length === 0 ? "Tất cả công nhân" : `Đã chọn ${filterWorker.length} công nhân`}
+                        {filterWorker.length === 0 ? t("production.allWorkers") : `${t("production.selectedWorkers")} ${filterWorker.length} ${t("production.workers")}`}
                       </span>
                       <ChevronDown className="h-4 w-4 opacity-50" />
                     </Button>
@@ -453,11 +455,11 @@ export function SanXuatClient({
                       checked={filterWorker.includes(cn.id)}
                       onCheckedChange={() => toggleWorkerFilter(cn.id)}
                     >
-                      {cn.ho_ten}
+                      {cn.ho_ten} - {cn.vai_tro || "Công nhân"} ({cn.ma_cong_nhan})
                     </DropdownMenuCheckboxItem>
                   ))}
                   {congNhanList.length === 0 && (
-                    <div className="p-2 text-sm text-muted-foreground text-center">Chưa có dữ liệu</div>
+                    <div className="p-2 text-sm text-muted-foreground text-center">{t("production.noData")}</div>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -465,12 +467,12 @@ export function SanXuatClient({
               {/* Bộ lọc nhanh Trạng thái công hàng (Item 20) & Nút gạt chế độ Thẻ/Bảng (Item 26) */}
               <div className="flex flex-wrap items-center justify-between gap-3 w-full pt-2 border-t mt-1">
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-xs font-semibold text-muted-foreground mr-1">Trạng thái:</span>
+                  <span className="text-xs font-semibold text-muted-foreground mr-1">{t("production.status")}:</span>
                   {[
-                    { label: 'Tất cả', value: 'ALL' },
-                    { label: 'Chưa làm', value: 'CHUA_LAM' },
-                    { label: 'Đang làm', value: 'DANG_LAM' },
-                    { label: 'Đã hoàn thành', value: 'DA_LAM' }
+                    { label: t('production.statusAll'), value: 'ALL' },
+                    { label: t('production.statusChuaLam'), value: 'CHUA_LAM' },
+                    { label: t('production.statusDangLam'), value: 'DANG_LAM' },
+                    { label: t('production.statusDaLam'), value: 'DA_LAM' }
                   ].map(st => {
                     const isSelected = st.value === 'ALL' ? filterStatus.length === 3 : filterStatus.includes(st.value) && filterStatus.length === 1;
                     return (
@@ -502,7 +504,7 @@ export function SanXuatClient({
                       onClick={() => setViewMode('card')}
                     >
                       <LayoutGrid className="w-3.5 h-3.5" />
-                      Thẻ
+                      {t("production.viewCard")}
                     </Button>
                     <Button
                       variant={viewMode === 'table' ? 'default' : 'ghost'}
@@ -511,7 +513,7 @@ export function SanXuatClient({
                       onClick={() => setViewMode('table')}
                     >
                       <TableIcon className="w-3.5 h-3.5" />
-                      Bảng
+                      {t("production.viewTable")}
                     </Button>
                   </div>
 
@@ -672,7 +674,7 @@ export function SanXuatClient({
                 })}
                 {paginatedList.length === 0 && (
                   <div className="col-span-full text-center py-12 text-muted-foreground border rounded-xl bg-muted/10">
-                    Không tìm thấy công hàng nào phù hợp với bộ lọc.
+                    {t("production.noOrders")}
                   </div>
                 )}
               </div>
@@ -804,7 +806,7 @@ export function SanXuatClient({
                       {paginatedList.length === 0 && (
                         <TableRow>
                           <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
-                            Không tìm thấy công hàng nào phù hợp với bộ lọc.
+                            {t("production.noOrders")}
                           </TableCell>
                         </TableRow>
                       )}
@@ -996,16 +998,18 @@ export function SanXuatClient({
                                 {cd.da_xong && <Badge variant="outline" className="text-green-700 dark:text-green-300 border-green-600/50 dark:border-green-400/50 bg-green-500/20 text-[10px] uppercase font-semibold">Đã xong</Badge>}
                               </div>
                               
-                              <div className="w-full sm:w-64">
+                              <div className="w-full sm:w-80">
                                 <select
                                   className="w-full text-xs sm:text-sm rounded-md border border-input bg-background px-2.5 py-1 sm:px-3 sm:py-1.5 disabled:opacity-50"
                                   value={cd.id_cong_nhan || ""}
                                   onChange={e => handleUpdateProgress(index, { id_cong_nhan: e.target.value })}
                                   disabled={selectedCongHang?.trang_thai_sx === 'DA_LAM' || !isEditingMode}
                                 >
-                                  <option value="">-- Phân công công nhân --</option>
+                                  <option value="">{t("production.assignWorker")}</option>
                                   {congNhanList.map(cn => (
-                                    <option key={cn.id} value={cn.id}>{cn.ho_ten} ({cn.ma_cong_nhan})</option>
+                                    <option key={cn.id} value={cn.id}>
+                                      {cn.ho_ten} - {cn.vai_tro || "Công nhân"} ({cn.ma_cong_nhan})
+                                    </option>
                                   ))}
                                 </select>
                               </div>
@@ -1240,7 +1244,7 @@ export function SanXuatClient({
                     {loadingLichSu ? (
                       <div className="flex justify-center py-4 sm:py-6"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
                     ) : lichSuPhatLieu.length === 0 ? (
-                      <div className="text-muted-foreground text-sm text-center py-4 sm:py-6">Chưa có phiếu xuất/nhập vật tư nào cho mã công này.</div>
+                      <div className="text-muted-foreground text-sm text-center py-4 sm:py-6">{t("production.noMaterialHistory")}</div>
                     ) : (
                       <div className="divide-y">
                         {lichSuPhatLieu.map((phieu: any) => (
@@ -1249,11 +1253,45 @@ export function SanXuatClient({
                               <Link href={`/kho?lo_id=${phieu.id}`} className="font-semibold text-sm text-primary hover:underline">
                                 {phieu.ma_lo}
                               </Link>
-                              <span className="text-xs text-muted-foreground">{format(new Date(phieu.ngay_tao), 'dd/MM/yy')}</span>
+                              <span className="text-xs text-muted-foreground font-mono">
+                                {format(new Date(phieu.ngay_tao), 'dd/MM/yyyy HH:mm')}
+                              </span>
                             </div>
-                            <div className="flex justify-between items-center text-xs">
-                              <Badge variant="outline" className="font-normal text-[10px]">{phieu.danh_muc_giao_dich?.ten_danh_muc}</Badge>
+                            <div className="flex justify-between items-center text-xs mb-1.5">
+                              <Badge variant="outline" className="font-normal text-[10px]">{phieu.danh_muc_giao_dich?.ten_danh_muc || "Giao dịch"}</Badge>
                               <span className="text-muted-foreground">{phieu.tai_khoan?.ho_ten}</span>
+                            </div>
+                            {/* Chi tiết vật liệu, quy cách, số lượng */}
+                            <div className="space-y-1 bg-background/70 dark:bg-muted/20 rounded-md p-2 border border-border/50">
+                              {phieu.so_cai_vat_tu && phieu.so_cai_vat_tu.length > 0 ? (
+                                phieu.so_cai_vat_tu.map((sc: any, idx: number) => {
+                                  const qcArray = Array.isArray(sc.nguyen_lieu?.danh_sach_quy_cach) ? sc.nguyen_lieu.danh_sach_quy_cach : [];
+                                  const qcObj = qcArray.find((q: any) => q.ma_quy_cach === sc.ma_quy_cach);
+                                  const qcTen = qcObj?.ten || sc.ma_quy_cach || "";
+                                  const sl = Math.abs(Number(sc.bien_dong_so_luong) || 0);
+                                  return (
+                                    <div key={idx} className="flex items-center justify-between gap-2 text-xs py-0.5 border-b border-border/30 last:border-0 last:pb-0">
+                                      <div className="flex items-center gap-1.5 min-w-0">
+                                        <span className="font-medium text-foreground truncate" title={sc.nguyen_lieu?.ten_nguyen_lieu}>
+                                          {sc.nguyen_lieu?.ten_nguyen_lieu || "Vật tư"}
+                                        </span>
+                                        {qcTen && (
+                                          <span className="text-[11px] text-muted-foreground font-mono bg-muted px-1.5 py-0.5 rounded shrink-0">
+                                            {qcTen}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <span className="font-bold text-foreground shrink-0">
+                                        {sl} SL
+                                      </span>
+                                    </div>
+                                  );
+                                })
+                              ) : (
+                                <div className="text-[11px] text-muted-foreground italic">
+                                  {t("production.noMaterialDetail")}
+                                </div>
+                              )}
                             </div>
                             {phieu.ghi_chu && <div className="text-xs text-muted-foreground mt-1.5 italic border-l-2 pl-2 border-primary/20">{phieu.ghi_chu}</div>}
                           </div>

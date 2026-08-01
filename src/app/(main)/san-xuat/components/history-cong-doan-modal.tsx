@@ -7,6 +7,7 @@ import { History, CheckCircle2, Clock, User, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import Image from "next/image";
+import { useTranslation } from "@/hooks/use-translation";
 
 export function HistoryCongDoanModal({
   congHang,
@@ -23,6 +24,7 @@ export function HistoryCongDoanModal({
   onOpenChange: (open: boolean) => void;
   onPreviewImage?: (url: string) => void;
 }) {
+  const { t } = useTranslation();
   const completedStages = Array.isArray(congHang?.danh_sach_cong_doan)
     ? congHang.danh_sach_cong_doan.filter((cd: any) => cd.da_xong)
     : [];
@@ -44,14 +46,14 @@ export function HistoryCongDoanModal({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <History className="w-5 h-5 text-primary" />
-            Lịch sử Tiến độ Công đoạn: {congHang?.ma_cong_hang}
+            {t("production.historyModalTitle")}: {congHang?.ma_cong_hang}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 mt-2">
           {completedStages.length === 0 ? (
             <div className="text-center py-8 text-sm text-muted-foreground border rounded-xl bg-muted/20">
-              Chưa có công đoạn nào được nghiệm thu hoàn thành.
+              {t("production.historyNoData")}
             </div>
           ) : (
             <div className="relative border-l-2 border-primary/30 ml-3 space-y-6 pl-5 py-2">
@@ -68,19 +70,19 @@ export function HistoryCongDoanModal({
                         {getStageName(cd.id_cong_doan)}
                       </span>
                       <Badge variant="outline" className="text-green-600 border-green-500/40 bg-green-500/10 text-xs">
-                        Hoàn thành
+                        {t("production.completed")}
                       </Badge>
                     </div>
 
                     <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1.5">
                         <User className="w-3.5 h-3.5 text-primary" />
-                        <span>Người làm: <strong className="text-foreground">{getWorkerName(cd.id_cong_nhan)}</strong></span>
+                        <span>{t("production.historyWorkerLabel")} <strong className="text-foreground">{getWorkerName(cd.id_cong_nhan)}</strong></span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5 text-primary" />
                         <span>
-                          Thời gian:{" "}
+                          {t("production.timeLabel")}:{" "}
                           <strong className="text-foreground">
                             {cd.ngay_cap_nhat
                               ? format(new Date(cd.ngay_cap_nhat), "dd/MM/yyyy HH:mm", { locale: vi })
