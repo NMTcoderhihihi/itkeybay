@@ -1054,7 +1054,7 @@ export function SanXuatClient({
                                     showStageUploadForIndex === index ? (
                                       <div className="flex flex-col items-center gap-1 border rounded-lg p-2 bg-muted/20 w-full">
                                         <ImageUpload 
-                                          className="w-16 h-16 rounded-lg border-dashed !bg-background"
+                                          className="w-full min-h-[96px] rounded-lg border-dashed !bg-background"
                                           value={cd.anh_minh_chung}
                                           onChange={(url) => {
                                             if (url) {
@@ -1295,7 +1295,7 @@ export function SanXuatClient({
                   </button>
                 </div>
               ))}
-              <div className="w-full aspect-square">
+              <div className="col-span-3 w-full min-h-[96px]">
                 <ImageUpload 
                   value={null}
                   onChange={(url) => {
@@ -1357,7 +1357,7 @@ export function SanXuatClient({
                     </button>
                   </div>
                 ))}
-                <div className="w-full aspect-square">
+                <div className="col-span-3 w-full min-h-[96px]">
                   <ImageUpload 
                     value={null}
                     onChange={(url) => {

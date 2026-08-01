@@ -92,8 +92,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
-      {/* TẦNG 1: 4 THẺ KPI CHIẾN LƯỢC (2x2 TRÊN MOBILE, 4 CỘT TRÊN DESKTOP) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+      {/* TẦNG 1: 3 THẺ KPI CHIẾN LƯỢC (3 CỘT TRÊN DESKTOP) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4">
         {/* Thẻ 1: Tiến độ Xưởng */}
         <Card
           className={`transition-all duration-500 ${
@@ -142,29 +142,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           </CardContent>
         </Card>
 
-        {/* Thẻ 3: Kho Nguyên Liệu */}
-        <Card
-          className={`transition-all duration-500 ${
-            highlightSection === "lo_giao_dich" || highlightSection === "all"
-              ? "ring-2 ring-blue-500 bg-blue-500/5 shadow-md"
-              : "hover:border-blue-500/40"
-          }`}
-        >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-semibold text-muted-foreground">
-              {t("dashboard.materialCodes")}
-            </CardTitle>
-            <Layers className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent className="p-3 sm:p-4 pt-0">
-            <div className="text-lg sm:text-2xl font-bold">{kpi.nguyenLieuCount}</div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-              {t("dashboard.managedInStock")}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Thẻ 4: Hoạt động 24h qua */}
+        {/* Thẻ 3: Hoạt động 24h qua */}
         <Card
           className={`transition-all duration-500 ${
             highlightSection === "lo_giao_dich" || highlightSection === "all"
@@ -252,11 +230,14 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                             <span className="text-primary">{ch.ma_cong_hang}</span>
                           </TableCell>
                           <TableCell className="py-2.5 px-3 text-xs">
-                            <div className="font-medium truncate max-w-[150px] sm:max-w-[200px]" title={ch.ten_san_pham}>
+                            <div
+                              className="font-medium text-foreground whitespace-normal break-words max-h-20 overflow-y-auto pr-1 text-xs leading-relaxed"
+                              title={ch.ten_san_pham}
+                            >
                               {ch.ten_san_pham}
                             </div>
                             {ch.ghi_chu && (
-                              <div className="text-[10px] text-muted-foreground truncate max-w-[150px] sm:max-w-[200px]">
+                              <div className="text-[10px] text-muted-foreground truncate max-w-[150px] sm:max-w-[200px] mt-0.5">
                                 {ch.ghi_chu}
                               </div>
                             )}

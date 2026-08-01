@@ -111,29 +111,29 @@ export function ImageUpload({ value, onChange, className }: ImageUploadProps) {
           </button>
         </div>
       ) : isMobile ? (
-        <div className="w-full h-full flex flex-row items-center justify-center gap-2 p-2">
+        <div className="w-full h-full flex flex-row items-center justify-center gap-3 p-3 min-h-[86px]">
           {isUploading ? (
             <div className="flex flex-col items-center justify-center gap-1.5 w-full py-2">
               <Loader2 className="w-6 h-6 animate-spin text-primary" />
-              <span className="text-[11px] font-medium text-muted-foreground">Đang tải lên...</span>
+              <span className="text-xs font-medium text-muted-foreground">Đang tải lên...</span>
             </div>
           ) : (
             <>
               <button
                 type="button"
-                className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg border bg-background hover:bg-accent hover:border-primary/50 text-xs font-semibold text-primary transition-all shadow-sm"
+                className="flex-1 min-w-[110px] flex flex-col items-center justify-center gap-1 py-2.5 px-3 rounded-lg border bg-background hover:bg-accent hover:border-primary/50 text-xs font-bold text-primary transition-all shadow-sm"
                 onClick={(e) => { e.stopPropagation(); cameraInputRef.current?.click(); }}
               >
-                <Camera className="w-4 h-4 text-primary" />
-                <span className="text-[10px]">Chụp ảnh</span>
+                <Camera className="w-5 h-5 text-primary" />
+                <span>Chụp ảnh</span>
               </button>
               <button
                 type="button"
-                className="flex-1 flex flex-col items-center justify-center gap-1 p-2 rounded-lg border bg-background hover:bg-accent hover:border-muted-foreground/50 text-xs font-semibold text-muted-foreground transition-all shadow-sm"
+                className="flex-1 min-w-[110px] flex flex-col items-center justify-center gap-1 py-2.5 px-3 rounded-lg border bg-background hover:bg-accent hover:border-muted-foreground/50 text-xs font-bold text-muted-foreground transition-all shadow-sm"
                 onClick={(e) => { e.stopPropagation(); inputRef.current?.click(); }}
               >
-                <ImageIcon className="w-4 h-4 text-muted-foreground" />
-                <span className="text-[10px]">Thư viện</span>
+                <ImageIcon className="w-5 h-5 text-muted-foreground" />
+                <span>Thư viện</span>
               </button>
             </>
           )}
