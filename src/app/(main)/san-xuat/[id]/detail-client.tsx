@@ -17,6 +17,7 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { vi } from "date-fns/locale"
+import { useTranslation } from "@/hooks/use-translation"
 
 export function DetailClient({ 
   congHang, 
@@ -32,6 +33,7 @@ export function DetailClient({
   isManager: boolean
 }) {
   const router = useRouter()
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [danhSachCongDoan, setDanhSachCongDoan] = useState<any[]>(congHang.danh_sach_cong_doan || [])
 
@@ -54,28 +56,28 @@ export function DetailClient({
   const handleStart = async () => {
     setLoading(true)
     const res = await startCongHang(congHang.id)
-    if (res.success) toast.success("Đã chuyển sang trạng thái Đang làm")
+    if (res.success) toast.success(t("production.detailStartSuccess"))
     else toast.error(res.error)
     setLoading(false)
   }
 
   const handleComplete = async () => {
-    if (completedSteps < totalSteps && !confirm("Chưa hoàn thành tất cả công đoạn. Bạn có chắc muốn chốt hoàn thành?")) return
+    if (completedSteps < totalSteps && !confirm(t("production.detailCompleteConfirm"))) return
     setLoading(true)
     const res = await completeCongHang(congHang.id)
     if (res.success) {
-      toast.success("Đã hoàn thành Công hàng! Hàng đã được chuyển sang Kho Bán thành phẩm.")
+      toast.success(t("production.detailCompleteSuccess"))
     }
     else toast.error(res.error)
     setLoading(false)
   }
 
   const handleDelete = async () => {
-    if (!confirm("Xóa toàn bộ Công hàng này và các đơn hàng con?")) return
+    if (!confirm(t("production.detailDeleteConfirm"))) return
     setLoading(true)
     const res = await deleteCongHang(congHang.id)
     if (res.success) {
-      toast.success("Xóa thành công")
+      toast.success(t("production.detailDeleteSuccess"))
       router.push('/san-xuat')
     } else {
       toast.error(res.error)
@@ -91,34 +93,34 @@ export function DetailClient({
             <ArrowLeft className="h-4 w-4" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Công Hàng: {congHang.ma_cong_hang}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{t("production.detailTitle")}: {congHang.ma_cong_hang}</h1>
             <p className="text-muted-foreground text-sm">
-              Ngày tạo: {format(new Date(congHang.ngay_tao), 'dd/MM/yyyy HH:mm')}
+              {t("production.detailCreatedAt")}: {format(new Date(congHang.ngay_tao), 'dd/MM/yyyy HH:mm')}
             </p>
           </div>
         </div>
         
         <div className="flex items-center gap-3">
           {congHang.trang_thai_sx === 'CHUA_LAM' && (
-            <Button onClick={handleStart} disabled={loading}><Play className="mr-2 h-4 w-4" /> Bắt đầu Sản xuất</Button>
+            <Button onClick={handleStart} disabled={loading}><Play className="mr-2 h-4 w-4" /> {t("production.detailStartBtn")}</Button>
           )}
           {congHang.trang_thai_sx === 'DANG_LAM' && (
             <>
               <Link href={`/kho`} className={`${buttonVariants({ variant: "outline" })} border-primary text-primary`}>
-                <Truck className="mr-2 h-4 w-4" /> Phát Liệu
+                <Truck className="mr-2 h-4 w-4" /> {t("production.detailIssueBtn")}
               </Link>
               {isManager && (
                 <Button onClick={handleComplete} disabled={loading} className="bg-green-600 hover:bg-green-700">
-                  <CheckCircle2 className="mr-2 h-4 w-4" /> Hoàn Thành
+                  <CheckCircle2 className="mr-2 h-4 w-4" /> {t("production.detailCompleteBtn")}
                 </Button>
               )}
             </>
           )}
           {congHang.trang_thai_sx === 'DA_LAM' && (
-            <Badge className="bg-green-600 text-base py-1.5 px-4"><CheckCircle2 className="mr-2 h-4 w-4" /> Đã hoàn thành</Badge>
+            <Badge className="bg-green-600 text-base py-1.5 px-4"><CheckCircle2 className="mr-2 h-4 w-4" /> {t("production.detailDoneStatus")}</Badge>
           )}
           {isManager && congHang.trang_thai_sx === 'CHUA_LAM' && (
-            <Button variant="destructive" onClick={handleDelete} disabled={loading}>Xóa</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={loading}>{t("production.detailDeleteBtn")}</Button>
           )}
         </div>
       </div>
@@ -129,12 +131,12 @@ export function DetailClient({
         <div className="space-y-6">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Tiến độ Sản xuất</CardTitle>
+              <CardTitle className="text-lg">{t("production.detailProductionProgress")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span>Hoàn thành {completedSteps}/{totalSteps} công đoạn</span>
+                  <span>{t("production.detailCompletedSteps")} {completedSteps}/{totalSteps} {t("production.steps")}</span>
                   <span className="font-bold text-primary">{progress}%</span>
                 </div>
                 <Progress value={progress} className="h-3" />
@@ -146,7 +148,7 @@ export function DetailClient({
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center">
                 <Package className="mr-2 h-5 w-5 text-muted-foreground" />
-                Đơn Hàng Con ({congHang.don_hang.length})
+                {t("production.detailSubOrders")} ({congHang.don_hang.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -155,7 +157,7 @@ export function DetailClient({
                   <div key={dh.id} className="flex justify-between items-center border-b pb-2 last:border-0 last:pb-0">
                     <div>
                       <div className="font-medium">{dh.ma_don_hang}</div>
-                      <div className="text-xs text-muted-foreground">Mã hàng: {dh.ma_hang}</div>
+                      <div className="text-xs text-muted-foreground">{t("production.detailProductCode")}: {dh.ma_hang}</div>
                     </div>
                     <div className="font-semibold text-lg text-primary">x{dh.so_luong_san_xuat}</div>
                   </div>
@@ -170,7 +172,7 @@ export function DetailClient({
           <CardHeader className="pb-3 border-b">
             <CardTitle className="text-lg flex items-center">
               <User className="mr-2 h-5 w-5 text-muted-foreground" />
-              Giao Việc & Công Đoạn
+              {t("production.detailTaskAssign")}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -191,26 +193,26 @@ export function DetailClient({
                       </div>
                       <div>
                         <div className={`font-medium ${cd.da_xong ? 'text-green-700 line-through opacity-70' : ''}`}>
-                          {congDoanInfo?.ten_cong_doan || "Công đoạn không xác định"}
+                          {congDoanInfo?.ten_cong_doan || t("production.historyNoData")}
                         </div>
                         {cd.ngay_cap_nhat && (
                           <div className="text-xs text-muted-foreground">
-                            Đánh dấu xong: {format(new Date(cd.ngay_cap_nhat), 'dd/MM HH:mm', { locale: vi })}
+                            {t("production.detailMarkedDone")}: {format(new Date(cd.ngay_cap_nhat), 'dd/MM HH:mm', { locale: vi })}
                           </div>
                         )}
                       </div>
                     </div>
                     
-                    <div className="w-full sm:w-64 shrink-0">
+                    <div className="w-full sm:w-72 shrink-0">
                       <select
                         className="w-full text-sm rounded-md border border-input bg-background px-3 py-2 disabled:opacity-50"
                         value={cd.id_cong_nhan || ""}
                         onChange={e => handleUpdateProgress(index, 'id_cong_nhan', e.target.value)}
                         disabled={congHang.trang_thai_sx === 'DA_LAM'}
                       >
-                        <option value="">-- Phân công thợ --</option>
+                        <option value="">{t("production.detailAssignWorker")}</option>
                         {congNhanList.map(cn => (
-                          <option key={cn.id} value={cn.id}>{cn.ho_ten} ({cn.ma_cong_nhan})</option>
+                          <option key={cn.id} value={cn.id}>{cn.ho_ten} - {cn.vai_tro || t("production.worker")} ({cn.ma_cong_nhan})</option>
                         ))}
                       </select>
                     </div>
@@ -218,7 +220,7 @@ export function DetailClient({
                 )
               })}
               {danhSachCongDoan.length === 0 && (
-                <div className="p-8 text-center text-muted-foreground">Không có công đoạn nào</div>
+                <div className="p-8 text-center text-muted-foreground">{t("production.detailNoStages")}</div>
               )}
             </div>
           </CardContent>
@@ -229,21 +231,21 @@ export function DetailClient({
       {/* Lịch sử phát liệu */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Lịch sử Phát Liệu (Nhận vật tư)</CardTitle>
+          <CardTitle className="text-lg">{t("production.detailMaterialHistory")}</CardTitle>
         </CardHeader>
         <CardContent>
           {lichSuPhatLieu.length === 0 ? (
-            <p className="text-muted-foreground text-sm">Chưa có phiếu phát liệu nào.</p>
+            <p className="text-muted-foreground text-sm">{t("production.detailNoMaterial")}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[800px] text-sm text-left">
                 <thead className="text-xs text-muted-foreground uppercase bg-muted/50 border-b">
                   <tr>
-                    <th className="px-4 py-3">Mã Lô (Phiếu)</th>
-                    <th className="px-4 py-3">Ngày tạo</th>
-                    <th className="px-4 py-3">Người tạo</th>
-                    <th className="px-4 py-3">Danh mục / Lý do</th>
-                    <th className="px-4 py-3">Ghi chú</th>
+                    <th className="px-4 py-3">{t("production.detailBatchCode")}</th>
+                    <th className="px-4 py-3">{t("production.timeLabel")}</th>
+                    <th className="px-4 py-3">{t("production.detailCreator")}</th>
+                    <th className="px-4 py-3">{t("production.detailCategory")}</th>
+                    <th className="px-4 py-3">{t("production.note")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">

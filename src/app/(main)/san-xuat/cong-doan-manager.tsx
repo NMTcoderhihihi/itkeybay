@@ -42,7 +42,7 @@ export function CongDoanManager({ initialData }: { initialData: CongDoan[] }) {
     })
     
     if (res.success) {
-      toast.success(editingId ? "Cập nhật danh mục công đoạn thành công!" : "Thêm mới danh mục công đoạn thành công!")
+      toast.success(editingId ? t("production.stageUpdateSuccess") : t("production.stageAddSuccess"))
       if (editingId) {
         setData(prev => prev.map(item => item.id === editingId ? (res.data || { ...item, ...formData }) : item))
       } else if (res.data) {
@@ -59,11 +59,11 @@ export function CongDoanManager({ initialData }: { initialData: CongDoan[] }) {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Bạn có chắc muốn xóa công đoạn này?")) return
+    if (!confirm(t("production.stageDeleteConfirm"))) return
     setLoading(true)
     const res = await deleteCongDoan(id)
     if (res.success) {
-      toast.success("Xóa công đoạn thành công!")
+      toast.success(t("production.stageDeleteSuccess"))
       setData(prev => prev.filter(item => item.id !== id))
       router.refresh()
     } else {
@@ -77,8 +77,8 @@ export function CongDoanManager({ initialData }: { initialData: CongDoan[] }) {
       {/* Header & Nút Thêm Công Đoạn */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between bg-card p-4 rounded-xl border gap-4">
         <div>
-          <h2 className="text-base sm:text-lg font-bold tracking-tight">Danh sách Danh mục Công đoạn</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">Quản lý các công đoạn mẫu dùng trong sản xuất</p>
+          <h2 className="text-base sm:text-lg font-bold tracking-tight">{t("production.stageManagerTitle")}</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">{t("production.stageManagerDesc")}</p>
         </div>
         <Button
           onClick={() => {
@@ -88,7 +88,7 @@ export function CongDoanManager({ initialData }: { initialData: CongDoan[] }) {
           }}
           className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-md h-9 px-4 text-xs sm:text-sm self-start sm:self-auto"
         >
-          <Plus className="mr-1.5 h-4 w-4" /> Thêm công đoạn
+          <Plus className="mr-1.5 h-4 w-4" /> {t("production.addStage")}
         </Button>
       </div>
 
@@ -97,23 +97,23 @@ export function CongDoanManager({ initialData }: { initialData: CongDoan[] }) {
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
-              <TableHead className="font-bold">Tên công đoạn</TableHead>
-              <TableHead className="font-bold">Ghi chú</TableHead>
-              <TableHead className="w-[100px] text-right font-bold">Thao tác</TableHead>
+              <TableHead className="font-bold">{t("production.stageName")}</TableHead>
+              <TableHead className="font-bold">{t("production.stageNote")}</TableHead>
+              <TableHead className="w-[100px] text-right font-bold">{t("production.action")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.length === 0 && (
               <TableRow>
                 <TableCell colSpan={3} className="text-center text-muted-foreground h-24 text-sm">
-                  Chưa có dữ liệu công đoạn
+                  {t("production.stageNoData")}
                 </TableCell>
               </TableRow>
             )}
             {data.map((item) => (
               <TableRow key={item.id} className="hover:bg-muted/30 transition-colors">
                 <TableCell className="font-semibold text-sm">{item.ten_cong_doan}</TableCell>
-                <TableCell className="text-sm text-muted-foreground">{item.ghi_chu || <span className="italic opacity-70">Không có ghi chú</span>}</TableCell>
+                <TableCell className="text-sm text-muted-foreground">{item.ghi_chu || <span className="italic opacity-70">{t("production.stageNoNote")}</span>}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1 sm:gap-2">
                     <Button 
@@ -125,7 +125,7 @@ export function CongDoanManager({ initialData }: { initialData: CongDoan[] }) {
                         setFormData({ ten_cong_doan: item.ten_cong_doan, ghi_chu: item.ghi_chu || '' })
                         setIsModalOpen(true)
                       }}
-                      title="Sửa công đoạn"
+                      title={t("production.editOrder")}
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>
@@ -134,7 +134,7 @@ export function CongDoanManager({ initialData }: { initialData: CongDoan[] }) {
                       size="icon" 
                       className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => handleDelete(item.id)}
-                      title="Xóa công đoạn"
+                      title={t("production.deleteOrder")}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -157,30 +157,30 @@ export function CongDoanManager({ initialData }: { initialData: CongDoan[] }) {
         <DialogContent className="w-[95vw] sm:max-w-md p-4 sm:p-6 bg-slate-50/50">
           <DialogHeader className="border-b pb-3 -mx-4 -mt-4 px-4 pt-4 sm:-mx-6 sm:-mt-6 sm:px-6 sm:pt-6 bg-background">
             <DialogTitle className="text-base sm:text-lg font-bold">
-              {editingId ? "Sửa Danh Mục Công Đoạn" : "Thêm Danh Mục Công Đoạn Mới"}
+              {editingId ? t("production.stageEditTitle") : t("production.stageAddTitle")}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
             <div>
               <label className="text-xs sm:text-sm font-semibold mb-1.5 block text-foreground">
-                Tên công đoạn <span className="text-destructive">*</span>
+                {t("production.stageName")} <span className="text-destructive">*</span>
               </label>
               <Input 
                 required
                 value={formData.ten_cong_doan}
                 onChange={e => setFormData({...formData, ten_cong_doan: e.target.value})}
-                placeholder="VD: Cưa, Bào, Sơn..."
+                placeholder={t("production.stageNamePlaceholder")}
                 className="h-9 sm:h-10 text-xs sm:text-sm font-medium"
               />
             </div>
             <div>
               <label className="text-xs sm:text-sm font-semibold mb-1.5 block text-foreground">
-                Ghi chú
+                {t("production.stageNote")}
               </label>
               <Textarea 
                 value={formData.ghi_chu}
                 onChange={e => setFormData({...formData, ghi_chu: e.target.value})}
-                placeholder="Mô tả ngắn gọn về công đoạn..."
+                placeholder={t("production.stageNotePlaceholder")}
                 className="min-h-[80px] text-xs sm:text-sm"
               />
             </div>
@@ -195,7 +195,7 @@ export function CongDoanManager({ initialData }: { initialData: CongDoan[] }) {
                 }} 
                 className="h-8 sm:h-9 px-3 sm:px-4 text-xs sm:text-sm font-semibold"
               >
-                Hủy
+                {t("production.formCancel")}
               </Button>
               <Button 
                 type="submit" 
@@ -203,7 +203,7 @@ export function CongDoanManager({ initialData }: { initialData: CongDoan[] }) {
                 className="h-8 sm:h-9 px-4 sm:px-5 text-xs sm:text-sm font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
               >
                 {loading && <Loader2 className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" />}
-                {editingId ? "Lưu cập nhật" : "Thêm mới"}
+                {editingId ? t("production.stageSaveLabel") : t("production.stageAddLabel")}
               </Button>
             </div>
           </form>
