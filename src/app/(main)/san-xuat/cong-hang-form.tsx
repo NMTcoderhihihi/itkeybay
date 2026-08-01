@@ -5,11 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { createCongHang, ChiTietDonHang } from "@/app/actions/san-xuat"
-import { Loader2, Plus, Trash2, Sparkles, CheckCircle2 } from "lucide-react"
+import { Loader2, Plus, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { QuyTrinhManagerModal, useQuyTrinhList, QuyTrinh } from "./components/quy-trinh-manager-modal"
-import { Badge } from "@/components/ui/badge"
 
 type CongDoan = {
   id: string
@@ -31,9 +29,6 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
   const [ghiChu, setGhiChu] = useState('')
   const [donHangList, setDonHangList] = useState<ChiTietDonHang[]>([{ ma_don_hang: '', ma_hang: '', so_luong_san_xuat: 1 }])
   const [selectedCongDoan, setSelectedCongDoan] = useState<string[]>(congDoanList.map(c => c.id))
-  const [selectedQuyTrinhId, setSelectedQuyTrinhId] = useState<string>('')
-
-  const { quyTrinhList } = useQuyTrinhList(congDoanList.map(c => c.id))
 
   const addDonHang = () => {
     setDonHangList([...donHangList, { ma_don_hang: '', ma_hang: '', so_luong_san_xuat: 1 }])
@@ -63,14 +58,7 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
     toast.success(`Đã chọn đơn hàng ${mau.ma_don_hang} - Tự động điền SL: ${mau.so_luong_san_xuat}`)
   }
 
-  const applyQuyTrinh = (qt: QuyTrinh) => {
-    setSelectedQuyTrinhId(qt.id)
-    setSelectedCongDoan(qt.cong_doan_ids)
-    toast.success(`Đã chọn quy trình: ${qt.ten_quy_trinh} (${qt.ma_quy_trinh}) - Tự động tick đúng ${qt.cong_doan_ids.length} công đoạn`)
-  }
-
   const handleToggleCongDoan = (id: string) => {
-    setSelectedQuyTrinhId('')
     if (selectedCongDoan.includes(id)) {
       setSelectedCongDoan(selectedCongDoan.filter(cd => cd !== id))
     } else {
@@ -105,7 +93,6 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
       setGhiChu('')
       setDonHangList([{ ma_don_hang: '', ma_hang: '', so_luong_san_xuat: 1 }])
       setSelectedCongDoan(congDoanList.map(c => c.id))
-      setSelectedQuyTrinhId('')
       window.location.reload()
     } else {
       toast.error(res.error)
@@ -114,15 +101,10 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <QuyTrinhManagerModal 
-        congDoanList={congDoanList} 
-        onSelectQuyTrinh={applyQuyTrinh} 
-      />
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger render={<Button />}>
-          <Plus className="h-4 w-4 mr-1.5" /> Tạo Công Hàng Mới
-        </DialogTrigger>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger render={<Button />}>
+        <Plus className="h-4 w-4 mr-1.5" /> Tạo Công Hàng Mới
+      </DialogTrigger>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Tạo Công Hàng Mới</DialogTitle>
@@ -244,37 +226,12 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
                     variant="link" 
                     size="sm" 
                     className="h-6 text-xs p-0 text-muted-foreground"
-                    onClick={() => { setSelectedCongDoan([]); setSelectedQuyTrinhId(''); }}
+                    onClick={() => { setSelectedCongDoan([]); }}
                   >
                     Bỏ chọn
                   </Button>
                 </div>
               </div>
-
-              {/* Lọc theo quy trình sẵn có */}
-              {quyTrinhList.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 p-2.5 rounded-lg bg-primary/5 border border-primary/20">
-                  <span className="text-xs font-semibold text-primary flex items-center gap-1 mr-1">
-                    <Sparkles className="w-3.5 h-3.5" /> Áp dụng Quy trình:
-                  </span>
-                  {quyTrinhList.map(qt => {
-                    const isSelected = selectedQuyTrinhId === qt.id;
-                    return (
-                      <Button
-                        key={qt.id}
-                        type="button"
-                        variant={isSelected ? "default" : "outline"}
-                        size="sm"
-                        className="h-7 text-xs px-2.5 rounded-full"
-                        onClick={() => applyQuyTrinh(qt)}
-                      >
-                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5 mr-1" />}
-                        {qt.ten_quy_trinh} ({qt.ma_quy_trinh})
-                      </Button>
-                    );
-                  })}
-                </div>
-              )}
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 border rounded-lg p-3 max-h-56 overflow-y-auto bg-muted/10">
                 {congDoanList.map(cd => {
@@ -308,6 +265,5 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
   )
 }

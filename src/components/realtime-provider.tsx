@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useRef } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
 export interface RealtimeEvent {
   type: string;
@@ -9,10 +10,13 @@ export interface RealtimeEvent {
   timestamp?: string;
 }
 
+export type RealtimeStatus = "CONNECTED" | "CONNECTING" | "DISCONNECTED";
+
 type SubscriberCallback = (event: RealtimeEvent) => void;
 
 interface RealtimeContextValue {
   subscribe: (tables: string[], callback: SubscriberCallback) => () => void;
+  status: RealtimeStatus;
 }
 
 const RealtimeContext = createContext<RealtimeContextValue | null>(null);
@@ -20,48 +24,51 @@ const RealtimeContext = createContext<RealtimeContextValue | null>(null);
 export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const subscribersRef = useRef<Map<number, { tables: string[]; callback: SubscriberCallback }>>(new Map());
   const nextIdRef = useRef<number>(1);
+  const [status, setStatus] = useState<RealtimeStatus>("CONNECTING");
 
   useEffect(() => {
-    let eventSource: EventSource | null = null;
     let isMounted = true;
-    let reconnectTimeout: NodeJS.Timeout | null = null;
+    const channelName = `global-client-realtime-${Date.now()}`;
 
-    const connect = () => {
-      if (!isMounted) return;
-      eventSource = new EventSource("/api/sse");
-
-      eventSource.onmessage = (event) => {
-        try {
-          const data: RealtimeEvent = JSON.parse(event.data);
-          if (data.type === "UPDATE" && data.table) {
+    // Kết nối WebSocket trực tiếp từ Trình duyệt Client tới Supabase Realtime
+    // Bỏ qua hoàn toàn giới hạn thời gian chạy và đệm (buffering) của Vercel Serverless Function
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public" },
+        (payload) => {
+          if (!isMounted) return;
+          const tableName = payload.table;
+          if (tableName) {
+            const event: RealtimeEvent = {
+              type: "UPDATE",
+              table: tableName,
+              eventType: payload.eventType,
+              timestamp: new Date().toISOString(),
+            };
             subscribersRef.current.forEach((sub) => {
-              if (sub.tables.includes(data.table!)) {
-                sub.callback(data);
+              if (sub.tables.includes(tableName)) {
+                sub.callback(event);
               }
             });
           }
-        } catch (err) {
-          console.error("Lỗi phân tích sự kiện SSE:", err);
         }
-      };
-
-      eventSource.onerror = () => {
-        eventSource?.close();
-        // Tự động kết nối lại sau 5 giây nếu rớt mạng
-        if (isMounted) {
-          reconnectTimeout = setTimeout(connect, 5000);
+      )
+      .subscribe((statusEnum) => {
+        if (!isMounted) return;
+        if (statusEnum === "SUBSCRIBED") {
+          setStatus("CONNECTED");
+        } else if (statusEnum === "CHANNEL_ERROR" || statusEnum === "TIMED_OUT" || statusEnum === "CLOSED") {
+          setStatus("DISCONNECTED");
+        } else {
+          setStatus("CONNECTING");
         }
-      };
-    };
-
-    connect();
+      });
 
     return () => {
       isMounted = false;
-      if (reconnectTimeout) clearTimeout(reconnectTimeout);
-      if (eventSource) {
-        eventSource.close();
-      }
+      supabase.removeChannel(channel);
     };
   }, []);
 
@@ -74,10 +81,15 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <RealtimeContext.Provider value={{ subscribe }}>
+    <RealtimeContext.Provider value={{ subscribe, status }}>
       {children}
     </RealtimeContext.Provider>
   );
+}
+
+export function useRealtimeStatus(): RealtimeStatus {
+  const context = useContext(RealtimeContext);
+  return context?.status || "CONNECTED";
 }
 
 export function useRealtimeSSE({
