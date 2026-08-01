@@ -233,14 +233,31 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                             <span className="text-primary">{ch.ma_cong_hang}</span>
                           </TableCell>
                           <TableCell className="py-2.5 px-3 text-xs">
-                            <div
-                              className="font-medium text-foreground whitespace-normal break-words max-h-20 overflow-y-auto pr-1 text-xs leading-relaxed"
-                              title={ch.ten_san_pham}
-                            >
-                              {ch.ten_san_pham}
+                            <div className="space-y-1 max-h-24 overflow-y-auto pr-1">
+                              {ch.danh_sach_don_hang && ch.danh_sach_don_hang.length > 0 ? (
+                                ch.danh_sach_don_hang.map((dh, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="flex items-center justify-between gap-2 text-xs border-b border-border/40 last:border-0 pb-1 last:pb-0"
+                                  >
+                                    <span className="font-semibold text-foreground truncate" title={dh.ma_hang}>
+                                      {dh.ma_hang}
+                                    </span>
+                                    {dh.so_luong_san_xuat !== undefined && (
+                                      <span className="shrink-0 text-[11px] font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                        x{dh.so_luong_san_xuat}
+                                      </span>
+                                    )}
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="font-medium text-foreground whitespace-normal break-words text-xs leading-relaxed">
+                                  {ch.ten_san_pham}
+                                </div>
+                              )}
                             </div>
                             {ch.ghi_chu && (
-                              <div className="text-[10px] text-muted-foreground truncate max-w-[150px] sm:max-w-[200px] mt-0.5">
+                              <div className="text-[10px] text-muted-foreground truncate max-w-[150px] sm:max-w-[200px] mt-1">
                                 {ch.ghi_chu}
                               </div>
                             )}

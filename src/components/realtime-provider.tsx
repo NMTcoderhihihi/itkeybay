@@ -34,11 +34,13 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
   const isSyncingRef = useRef<boolean>(false);
+  const lastSyncTimeRef = useRef<number>(0);
 
   // Hàm truy vấn ngầm số liệu mới từ máy chủ (Silent Fetch & DOM Partial Update)
   const triggerSync = useCallback(async () => {
-    // Nếu đang trong quá trình sync hoặc mất mạng/ẩn tab -> bỏ qua để tránh fetch collision / abort
-    if (isSyncingRef.current) return;
+    const now = Date.now();
+    // Khóa chống spam/chồng chéo: nếu đang sync, mất mạng, ẩn tab, hoặc khoảng cách giữa 2 lần sync < 10 giây -> bỏ qua
+    if (isSyncingRef.current || now - lastSyncTimeRef.current < 10000) return;
     if (typeof window !== "undefined" && !window.navigator.onLine) {
       setStatus("DISCONNECTED");
       return;
@@ -49,6 +51,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
     try {
       isSyncingRef.current = true;
+      lastSyncTimeRef.current = now;
       setIsSyncing(true);
 
       // Thông báo cho các client subscriber (popup/modal/table) để họ tự làm mới số liệu cục bộ
