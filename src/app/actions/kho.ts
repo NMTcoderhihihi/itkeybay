@@ -30,7 +30,30 @@ export async function getNguyenLieuList() {
     return []
   }
 
-  return (data || []) as NguyenLieu[]
+  const { data: scData } = await supabase.from('so_cai_vat_tu').select('id_nguyen_lieu, ma_quy_cach, bien_dong_so_luong')
+  const stockSumMap: Record<string, number> = {}
+  if (scData) {
+    scData.forEach((row) => {
+      const key = `${row.id_nguyen_lieu}_${row.ma_quy_cach}`
+      stockSumMap[key] = (stockSumMap[key] || 0) + Number(row.bien_dong_so_luong || 0)
+    })
+  }
+
+  const result = (data || []).map((nl: any) => {
+    const quyCachTon = (nl.danh_sach_quy_cach || []).map((qc: any) => {
+      const key = `${nl.id}_${qc.ma_quy_cach}`
+      return {
+        ...qc,
+        ton_kho: stockSumMap[key] ?? 0
+      }
+    })
+    return {
+      ...nl,
+      danh_sach_quy_cach: quyCachTon
+    }
+  })
+
+  return result as NguyenLieu[]
 }
 
 // Hàm hỗ trợ tự động gán mã quy cách QC-01, QC-02... tuần tự nếu thiếu

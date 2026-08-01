@@ -42,14 +42,7 @@ export function KhoClient({
 
   return (
     <div className="w-full flex-1 flex flex-col">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0 mb-4">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Realtime SSE: Đang kết nối</span>
-          </div>
-        </div>
-
+      <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center space-y-2 sm:space-y-0 mb-4">
         <Button 
           onClick={() => setActiveTab("giao-dich")}
           className={`gap-2 shrink-0 ${activeTab === 'giao-dich' ? 'bg-primary' : 'bg-green-600 hover:bg-green-700 text-white'}`}
@@ -88,7 +81,7 @@ export function KhoClient({
 
 
           <TabsContent value="giao-dich" className="m-0 h-full">
-            <PhieuGiaoDich nguyenLieuList={nguyenLieuList} congHangList={congHangList} initialDanhMucList={danhMucList} />
+            <PhieuGiaoDich nguyenLieuList={tongQuanTonKho || nguyenLieuList} congHangList={congHangList} initialDanhMucList={danhMucList} />
           </TabsContent>
 
           {session.role === 'Quan ly' && (

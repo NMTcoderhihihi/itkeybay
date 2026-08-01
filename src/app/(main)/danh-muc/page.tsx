@@ -9,7 +9,7 @@ export default async function DanhMucPage() {
 
   const session = await getSession();
   if (!session || session.role !== 'Quan ly') {
-    redirect('/');
+    redirect('/kho');
   }
 
   console.time('[Supabase] Tổng thời gian query Danh mục');

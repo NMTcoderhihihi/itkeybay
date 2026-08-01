@@ -272,7 +272,6 @@ export function DanhMucVatTu({ initialData }: { initialData: NguyenLieu[] }) {
                   <div className="flex flex-col gap-2">
                     {quyCachList.map((qc, index) => (
                       <div key={index} className="flex items-center gap-3 p-2 border rounded-md bg-muted/30">
-                        <span className="font-mono text-xs px-2 py-1 bg-secondary rounded-sm">{qc.ma_quy_cach}</span>
                         <span className="font-medium">{qc.ten}</span>
                       </div>
                     ))}
@@ -281,12 +280,7 @@ export function DanhMucVatTu({ initialData }: { initialData: NguyenLieu[] }) {
                   <div className="space-y-2">
                     {quyCachList.map((qc, index) => (
                       <div key={index} className="flex items-center gap-2">
-                        <div
-                          className="flex items-center justify-center px-2.5 py-2 bg-secondary border rounded-md font-mono text-xs font-bold text-secondary-foreground shrink-0 min-w-[65px]"
-                          title="Mã quy cách do hệ thống tự gán"
-                        >
-                          {qc.ma_quy_cach || `QC-${String(index + 1).padStart(2, "0")}`}
-                        </div>
+                        <span className="text-xs font-semibold text-muted-foreground w-6 text-center">{index + 1}.</span>
                         <Input 
                           placeholder="Tên quy cách (VD: Tấm 2x4 inch, Hộp 10kg...)" 
                           value={qc.ten} 

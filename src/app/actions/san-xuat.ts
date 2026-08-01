@@ -170,16 +170,23 @@ export async function updateCongDoanProgress(id_cong_hang: string, newDanhSachCo
   const session = await getSession()
   if (!session) return { success: false, error: "Không có quyền" }
 
+  const allCompleted = newDanhSachCongDoan.length > 0 && newDanhSachCongDoan.every((cd: any) => cd.da_xong);
+  const updatePayload: any = { danh_sach_cong_doan: newDanhSachCongDoan };
+  if (allCompleted) {
+    updatePayload.trang_thai_sx = 'DA_LAM';
+    updatePayload.trang_thai_kho = 'TON_KHO';
+  }
+
   const { error } = await supabase
     .from('cong_hang')
-    .update({ danh_sach_cong_doan: newDanhSachCongDoan })
+    .update(updatePayload)
     .eq('id', id_cong_hang)
 
   if (error) return { success: false, error: error.message }
   
   revalidatePath(`/san-xuat/${id_cong_hang}`)
   revalidatePath('/san-xuat')
-  return { success: true }
+  return { success: true, allCompleted }
 }
 
 export async function updateCongHangDetails(id_cong_hang: string, ghi_chu: string, don_hang: ChiTietDonHang[]) {

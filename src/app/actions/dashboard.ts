@@ -56,47 +56,45 @@ export async function getDashboardData(): Promise<DashboardData> {
   });
 
   // 2. Lấy toàn bộ công hàng cùng đơn hàng
-  const { data: congHangRaw } = await supabase
+  const { data: congHangRaw, error: congHangError } = await supabase
     .from("cong_hang")
     .select(`
-      id,
-      ma_cong_hang,
-      ghi_chu,
-      trang_thai_sx,
-      trang_thai_kho,
-      created_at,
-      danh_sach_cong_doan,
-      don_hang (
-        id,
-        ma_hang,
-        so_luong_san_xuat
-      )
+      *,
+      don_hang (*)
     `)
-    .order("created_at", { ascending: false });
+    .order("ngay_tao", { ascending: false });
+
+  if (congHangError) {
+    console.error("Lỗi lấy danh sách công hàng ở dashboard:", congHangError);
+  }
 
   const congHangList = congHangRaw || [];
 
-  let activeCongHangCount = 0;
   let tonKhoBtpCount = 0;
   let daGiaoCount = 0;
   let chuaLamCount = 0;
+  let dangLamCountOnly = 0;
 
   const activeCongHangList: DashboardCongHangItem[] = [];
 
   for (const ch of congHangList) {
-    // Thống kê theo trạng thái sản xuất & kho
-    if (ch.trang_thai_sx === "DANG_LAM") {
-      activeCongHangCount++;
-    } else if (ch.trang_thai_kho === "TON_KHO" || ch.trang_thai_sx === "DA_LAM") {
-      tonKhoBtpCount++;
-    } else if (ch.trang_thai_kho === "DA_GIAO") {
+    const isDaGiao = ch.trang_thai_kho === "DA_GIAO";
+    const isTonKho = (ch.trang_thai_kho === "TON_KHO" || ch.trang_thai_kho === "DA_NHAP" || ch.trang_thai_sx === "DA_LAM") && !isDaGiao;
+    const isChuaLam = ch.trang_thai_sx === "CHUA_LAM" && !isDaGiao && !isTonKho;
+    const isDangLam = ch.trang_thai_sx === "DANG_LAM" && !isDaGiao && !isTonKho;
+
+    if (isDaGiao) {
       daGiaoCount++;
-    } else if (ch.trang_thai_sx === "CHUA_LAM") {
+    } else if (isTonKho) {
+      tonKhoBtpCount++;
+    } else if (isDangLam) {
+      dangLamCountOnly++;
+    } else if (isChuaLam) {
       chuaLamCount++;
     }
 
-    // Nếu công hàng đang làm -> thêm vào activeCongHangList
-    if (ch.trang_thai_sx === "DANG_LAM") {
+    // Nếu công hàng đang sản xuất trong xưởng (chưa hoàn tất DA_LAM và chưa giao DA_GIAO) -> thêm vào activeCongHangList
+    if (ch.trang_thai_sx !== "DA_LAM" && ch.trang_thai_kho !== "DA_GIAO" && ch.trang_thai_kho !== "TON_KHO") {
       const stages: Array<{ id_cong_doan: string; da_xong: boolean }> = Array.isArray(
         ch.danh_sach_cong_doan
       )
@@ -106,25 +104,26 @@ export async function getDashboardData(): Promise<DashboardData> {
       const completedStages = stages.filter((s) => s.da_xong).length;
       const progress = totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0;
 
-      // Tìm công đoạn đầu tiên chưa hoàn thành làm công đoạn hiện tại
       const currentStageObj = stages.find((s) => !s.da_xong);
       const currentStageName = currentStageObj
         ? congDoanMap.get(currentStageObj.id_cong_doan) || "Đang xử lý"
         : "Đang kiểm tra";
 
-      // Lấy tên sản phẩm từ đơn hàng đầu tiên hoặc hiển thị số lượng mã
       let ten_san_pham = "Đơn hàng sản xuất";
       if (Array.isArray(ch.don_hang) && ch.don_hang.length > 0) {
-        ten_san_pham = ch.don_hang.map((d: { ma_hang: string }) => d.ma_hang).join(", ");
+        ten_san_pham = ch.don_hang.map((d: { ma_hang: string; so_luong_san_xuat?: number }) => {
+          const qty = d.so_luong_san_xuat ? ` (x${d.so_luong_san_xuat})` : "";
+          return `${d.ma_hang || "Sản phẩm"}${qty}`;
+        }).join(", ");
       }
 
       activeCongHangList.push({
         id: ch.id,
         ma_cong_hang: ch.ma_cong_hang || "CH-???",
         ghi_chu: ch.ghi_chu || "",
-        trang_thai_sx: ch.trang_thai_sx,
+        trang_thai_sx: ch.trang_thai_sx || "CHUA_LAM",
         trang_thai_kho: ch.trang_thai_kho || "CHUA_NHAP",
-        ngay_tao: ch.created_at || "",
+        ngay_tao: ch.ngay_tao || ch.created_at || "",
         progress,
         completedStages,
         totalStages,
@@ -133,6 +132,9 @@ export async function getDashboardData(): Promise<DashboardData> {
       });
     }
   }
+
+  // KPI Công hàng đang sản xuất là tổng số công hàng đang thực thi trong xưởng (khớp 100% với danh sách bên dưới)
+  const activeCongHangCount = activeCongHangList.length;
 
   // 3. Thống kê Nguyên liệu
   const { data: nguyenLieuRaw } = await supabase
@@ -143,25 +145,29 @@ export async function getDashboardData(): Promise<DashboardData> {
   const lowStockCount = 0;
 
   // 4. Lấy 10 hành động giao dịch mới nhất từ lo_giao_dich
-  const { data: transRaw } = await supabase
+  const { data: transRaw, error: transError } = await supabase
     .from("lo_giao_dich")
     .select(`
       id,
       ma_lo,
-      created_at,
+      ngay_tao,
       ghi_chu,
       id_cong_hang,
       tai_khoan ( ho_ten ),
       danh_muc_giao_dich ( ten_danh_muc, phan_he, loai_giao_dich ),
       cong_hang ( ma_cong_hang )
     `)
-    .order("created_at", { ascending: false })
+    .order("ngay_tao", { ascending: false })
     .limit(10);
+
+  if (transError) {
+    console.error("Lỗi lấy danh sách giao dịch ở dashboard:", transError);
+  }
 
   const recentTransactions: DashboardTransactionItem[] = (transRaw || []).map((t: any) => ({
     id: t.id,
     ma_lo: t.ma_lo || "LO-???",
-    created_at: t.created_at || "",
+    created_at: t.ngay_tao || t.created_at || "",
     ghi_chu: t.ghi_chu || "",
     ho_ten_nhan_vien: t.tai_khoan?.ho_ten || "Hệ thống",
     ten_danh_muc: t.danh_muc_giao_dich?.ten_danh_muc || "Giao dịch",
@@ -175,10 +181,10 @@ export async function getDashboardData(): Promise<DashboardData> {
   const { count: todayActivityCount } = await supabase
     .from("lo_giao_dich")
     .select("id", { count: "exact", head: true })
-    .gte("created_at", oneDayAgo);
+    .gte("ngay_tao", oneDayAgo);
 
   const statusDistribution = [
-    { name: "Đang làm", value: activeCongHangCount, color: "#3b82f6", code: "DANG_LAM" },
+    { name: "Đang sản xuất", value: dangLamCountOnly, color: "#3b82f6", code: "DANG_LAM" },
     { name: "Tồn kho BTP", value: tonKhoBtpCount, color: "#f59e0b", code: "TON_KHO" },
     { name: "Đã giao", value: daGiaoCount, color: "#10b981", code: "DA_GIAO" },
     { name: "Chưa làm", value: chuaLamCount, color: "#64748b", code: "CHUA_LAM" },

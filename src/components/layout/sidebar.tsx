@@ -28,7 +28,7 @@ export function Sidebar({ isManager }: { isManager: boolean }) {
   return (
     <aside className="hidden md:flex w-64 flex-col border-r bg-muted/40 h-screen sticky top-0">
       <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-        <Link href="/" className="flex items-center gap-2 font-semibold">
+        <Link href={isManager ? "/dashboard" : "/kho"} className="flex items-center gap-2 font-semibold">
           <Factory className="h-6 w-6 text-primary" />
           <span>ITKeyBay</span>
         </Link>

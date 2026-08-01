@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useTranslation } from "@/hooks/use-translation";
+import { useRealtimeSSE } from "@/components/realtime-provider";
 
 type DanhMuc = {
   id: string;
@@ -24,9 +25,17 @@ type DanhMuc = {
 
 export function DanhMucClient({ initialData, serverTimeMs }: { initialData: DanhMuc[], serverTimeMs: number }) {
   const { t } = useTranslation();
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<DanhMuc | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+
+  useRealtimeSSE({
+    tables: ["danh_muc_giao_dich"],
+    onUpdate: () => {
+      router.refresh();
+    },
+  });
 
   // Filters
   const [searchQuery, setSearchQuery] = useState("");

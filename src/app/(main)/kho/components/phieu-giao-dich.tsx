@@ -120,8 +120,32 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
       if (!item.id_nguyen_lieu) return toast.error("Vui lòng chọn Vật tư")
       if (!item.ma_quy_cach) return toast.error("Vui lòng chọn Quy cách")
       if (!item.so_luong || item.so_luong <= 0) return toast.error("Số lượng phải lớn hơn 0")
+
+      if (loaiGiaoDich === 'XUAT') {
+        const selectedNL = nguyenLieuList.find(nl => nl.id === item.id_nguyen_lieu)
+        const qc = selectedNL?.danh_sach_quy_cach?.find((q: any) => q.ma_quy_cach === item.ma_quy_cach)
+        const currentStock = qc?.ton_kho ?? 0
+        if (item.so_luong > currentStock) {
+          toast.error(`Vật tư "${selectedNL?.ten_nguyen_lieu}" - quy cách "${qc?.ten}" chỉ còn tồn kho ${currentStock}, không đủ để xuất ${item.so_luong}!`)
+          return
+        }
+      }
     }
     setStep(3)
+  }
+
+  const handleRemoveImage = async (index: number) => {
+    const urlToRemove = danhSachAnh[index];
+    setDanhSachAnh(prev => prev.filter((_, i) => i !== index));
+    try {
+      await fetch('/api/cloudinary/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: urlToRemove })
+      });
+    } catch (e) {
+      console.error('Failed to cleanup cloudinary image:', e);
+    }
   }
 
   const handleSubmit = async () => {
@@ -154,18 +178,6 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
         toast.error(result.error || "Có lỗi xảy ra khi lưu phiếu")
       }
     })
-  }
-
-  if (!isMobile) {
-    return (
-      <div className="flex flex-col items-center justify-center p-8 md:py-24 bg-card rounded-xl border shadow-sm text-center">
-        <Smartphone className="w-16 h-16 text-muted-foreground mb-4" />
-        <h2 className="text-2xl font-bold mb-3 text-destructive">{t('inventory.mobileRequired')}</h2>
-        <p className="text-muted-foreground max-w-lg mx-auto">
-          {t('inventory.mobileRequiredDesc')}
-        </p>
-      </div>
-    )
   }
 
   return (
@@ -313,12 +325,40 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
                         <Select value={item.id_nguyen_lieu} onValueChange={(val) => updateChiTiet(index, 'id_nguyen_lieu', val || "")}>
                           <SelectTrigger>
                             <SelectValue placeholder="Chọn...">
-                              {item.id_nguyen_lieu ? nguyenLieuList.find(nl => nl.id === item.id_nguyen_lieu)?.ten_nguyen_lieu : "Chọn..."}
+                              {item.id_nguyen_lieu ? (() => {
+                                const nl = nguyenLieuList.find(n => n.id === item.id_nguyen_lieu);
+                                if (!nl) return "Chọn...";
+                                return (
+                                  <div className="flex items-center gap-2">
+                                    {nl.anh_minh_hoa ? (
+                                      /* eslint-disable-next-line @next/next/no-img-element */
+                                      <img src={nl.anh_minh_hoa} alt={nl.ten_nguyen_lieu} className="w-5 h-5 rounded-full object-cover shrink-0 border" />
+                                    ) : (
+                                      <div className="w-5 h-5 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold text-[10px] shrink-0">
+                                        {nl.ten_nguyen_lieu.charAt(0).toUpperCase()}
+                                      </div>
+                                    )}
+                                    <span className="truncate">{nl.ten_nguyen_lieu}</span>
+                                  </div>
+                                );
+                              })() : "Chọn..."}
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
                             {nguyenLieuList.map(nl => (
-                              <SelectItem key={nl.id} value={nl.id}>{nl.ten_nguyen_lieu}</SelectItem>
+                              <SelectItem key={nl.id} value={nl.id}>
+                                <div className="flex items-center gap-2">
+                                  {nl.anh_minh_hoa ? (
+                                    /* eslint-disable-next-line @next/next/no-img-element */
+                                    <img src={nl.anh_minh_hoa} alt={nl.ten_nguyen_lieu} className="w-6 h-6 rounded-full object-cover shrink-0 border shadow-xs" />
+                                  ) : (
+                                    <div className="w-6 h-6 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold text-[10px] shrink-0">
+                                      {nl.ten_nguyen_lieu.charAt(0).toUpperCase()}
+                                    </div>
+                                  )}
+                                  <span className="font-medium">{nl.ten_nguyen_lieu}</span>
+                                </div>
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -338,7 +378,12 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
                           </SelectTrigger>
                           <SelectContent>
                             {quyCachOptions.map((qc: any) => (
-                              <SelectItem key={qc.ma_quy_cach} value={qc.ma_quy_cach}>{qc.ten}</SelectItem>
+                              <SelectItem key={qc.ma_quy_cach} value={qc.ma_quy_cach}>
+                                <span>{qc.ten}</span>
+                                <span className="text-xs font-semibold text-muted-foreground ml-2">
+                                  (Tồn: {qc.ton_kho ?? 0})
+                                </span>
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -377,28 +422,77 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
             </div>
             
             <div className="space-y-4">
-              <div className="relative">
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  id="camera-upload"
-                  className="hidden"
-                  onChange={handleCameraCapture}
-                  disabled={isUploadingImage}
-                />
-                <label htmlFor="camera-upload">
-                  <div className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center transition-colors ${isUploadingImage ? 'bg-muted cursor-not-allowed opacity-70' : 'cursor-pointer hover:bg-accent'}`}>
-                    {isUploadingImage ? (
-                      <Loader2 className="w-8 h-8 text-muted-foreground mb-2 animate-spin" />
-                    ) : (
-                      <Camera className="w-8 h-8 text-muted-foreground mb-2" />
-                    )}
-                    <span className="text-sm font-medium">
-                      {isUploadingImage ? t('inventory.uploading') : t('inventory.openCamera')}
-                    </span>
+              <div className="space-y-3">
+                {isMobile ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        id="camera-capture-direct"
+                        className="hidden"
+                        onChange={handleCameraCapture}
+                        disabled={isUploadingImage}
+                      />
+                      <label htmlFor="camera-capture-direct">
+                        <div className={`h-28 border-2 border-dashed rounded-lg flex flex-col items-center justify-center transition-colors ${isUploadingImage ? 'bg-muted cursor-not-allowed opacity-70' : 'cursor-pointer hover:bg-accent border-primary/40 bg-primary/5'}`}>
+                          {isUploadingImage ? (
+                            <Loader2 className="w-6 h-6 text-muted-foreground mb-1.5 animate-spin" />
+                          ) : (
+                            <Camera className="w-6 h-6 text-primary mb-1.5" />
+                          )}
+                          <span className="text-xs font-semibold text-center px-1">Chụp ảnh trực tiếp</span>
+                        </div>
+                      </label>
+                    </div>
+
+                    <div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        id="library-upload-mobile"
+                        className="hidden"
+                        onChange={handleCameraCapture}
+                        disabled={isUploadingImage}
+                      />
+                      <label htmlFor="library-upload-mobile">
+                        <div className={`h-28 border-2 border-dashed rounded-lg flex flex-col items-center justify-center transition-colors ${isUploadingImage ? 'bg-muted cursor-not-allowed opacity-70' : 'cursor-pointer hover:bg-accent border-muted-foreground/30'}`}>
+                          {isUploadingImage ? (
+                            <Loader2 className="w-6 h-6 text-muted-foreground mb-1.5 animate-spin" />
+                          ) : (
+                            <ImageIcon className="w-6 h-6 text-muted-foreground mb-1.5" />
+                          )}
+                          <span className="text-xs font-semibold text-center px-1">Chọn từ thư viện</span>
+                        </div>
+                      </label>
+                    </div>
                   </div>
-                </label>
+                ) : (
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      id="pc-file-upload"
+                      className="hidden"
+                      onChange={handleCameraCapture}
+                      disabled={isUploadingImage}
+                    />
+                    <label htmlFor="pc-file-upload">
+                      <div className={`w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center transition-colors ${isUploadingImage ? 'bg-muted cursor-not-allowed opacity-70' : 'cursor-pointer hover:bg-accent border-primary/40 bg-primary/5'}`}>
+                        {isUploadingImage ? (
+                          <Loader2 className="w-8 h-8 text-muted-foreground mb-2 animate-spin" />
+                        ) : (
+                          <ImageIcon className="w-8 h-8 text-primary mb-2" />
+                        )}
+                        <span className="text-sm font-semibold">Chọn ảnh từ máy tính (PC)</span>
+                        <span className="text-xs text-muted-foreground mt-1">Hỗ trợ chọn nhiều file JPG, PNG...</span>
+                      </div>
+                    </label>
+                  </div>
+                )}
               </div>
 
               {danhSachAnh.length > 0 && (
@@ -408,10 +502,11 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
                       <Image src={url} alt="Minh chứng" fill className="object-contain bg-muted/50 p-1" />
                       <button 
                         type="button"
-                        className="absolute top-1 right-1 bg-destructive/80 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => setDanhSachAnh(prev => prev.filter((_, idx) => idx !== i))}
+                        className="absolute top-1 right-1 bg-destructive/90 text-white p-1 rounded-full shadow-md hover:scale-105 transition-all"
+                        onClick={() => handleRemoveImage(i)}
+                        title="Xóa ảnh này"
                       >
-                        <X className="w-3 h-3" />
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ))}

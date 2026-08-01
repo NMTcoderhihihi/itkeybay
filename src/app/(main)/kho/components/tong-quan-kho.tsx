@@ -447,36 +447,34 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                       <p className="mt-2 text-sm text-muted-foreground">Đang tải sổ cái...</p>
                     </div>
                   ) : (
-                    <Table className="min-w-[800px]">
+                    <Table className="min-w-[850px]">
                       <TableHeader>
                         <TableRow>
                           <TableHead>{t('inventory.date')}</TableHead>
-                          <TableHead>{t('inventory.code')}</TableHead>
                           <TableHead>Người thực hiện</TableHead>
                           <TableHead>{t('inventory.reason')}</TableHead>
                           <TableHead>{t('inventory.spec')}</TableHead>
                           <TableHead className="text-right">{t('inventory.change')}</TableHead>
                           <TableHead className="text-right">{t('inventory.balance')}</TableHead>
+                          <TableHead>Ghi chú</TableHead>
                           <TableHead className="text-center">Minh chứng</TableHead>
+                          <TableHead className="text-right">{t('inventory.code')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {currentLedgerData.map((row: any) => (
                           <TableRow key={row.id}>
-                            <TableCell className="whitespace-nowrap">
+                            <TableCell className="whitespace-nowrap text-xs">
                               {formatSafeDate(row.created_at)}
-                            </TableCell>
-                            <TableCell className="font-mono text-xs">
-                              {row.lo_giao_dich?.ma_lo}
                             </TableCell>
                             <TableCell className="whitespace-nowrap font-medium text-xs">
                               {row.lo_giao_dich?.tai_khoan?.ho_ten || 'Hệ thống'}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="text-xs">
                               {row.lo_giao_dich?.danh_muc_giao_dich?.ten_danh_muc || 'Không xác định'}
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline">
+                              <Badge variant="outline" className="text-xs">
                                 {selectedItem?.danh_sach_quy_cach?.find((qc: any) => qc.ma_quy_cach === row.ma_quy_cach)?.ten || row.ma_quy_cach}
                               </Badge>
                             </TableCell>
@@ -488,6 +486,9 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                             </TableCell>
                             <TableCell className="text-right font-bold">
                               {row.ton_kho_hien_tai}
+                            </TableCell>
+                            <TableCell className="max-w-[160px] truncate text-xs text-muted-foreground" title={row.lo_giao_dich?.ghi_chu || ''}>
+                              {row.lo_giao_dich?.ghi_chu || '-'}
                             </TableCell>
                             <TableCell>
                               {row.lo_giao_dich?.danh_sach_anh?.length > 0 ? (
@@ -508,11 +509,14 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                                 </div>
                               )}
                             </TableCell>
+                            <TableCell className="font-mono text-xs text-right text-muted-foreground">
+                              {row.lo_giao_dich?.ma_lo || '-'}
+                            </TableCell>
                           </TableRow>
                         ))}
                         {currentLedgerData.length === 0 && (
                           <TableRow>
-                            <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                            <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                               {t('inventory.noHistory')}
                             </TableCell>
                           </TableRow>

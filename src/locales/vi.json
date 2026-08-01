@@ -175,5 +175,30 @@
     "statusTonKho": "Tồn kho BTP",
     "statusDaGiao": "Đã giao",
     "statusChuaLam": "Chưa làm"
+  },
+  "production": {
+    "pageTitle": "Quản lý Sản Xuất",
+    "pageDesc": "Theo dõi tiến độ gia công và quản lý các công đoạn sản xuất tại xưởng.",
+    "tabOrders": "Danh sách Công hàng",
+    "tabStages": "Danh mục Công đoạn",
+    "createOrder": "Tạo Công Hàng Mới",
+    "manageWorkflow": "Quản lý Quy trình",
+    "statusAll": "Tất cả",
+    "statusChuaLam": "Chưa làm",
+    "statusDangLam": "Đang làm",
+    "statusDaLam": "Đã hoàn thành",
+    "viewCard": "Thẻ",
+    "viewTable": "Bảng",
+    "editOrder": "Sửa thông tin",
+    "historyProgress": "Lịch sử tiến độ",
+    "deleteOrder": "Xóa công hàng",
+    "orderCode": "Mã Công Hàng",
+    "product": "Đơn hàng / Sản phẩm",
+    "stageProgress": "Tiến độ công đoạn",
+    "steps": "bước",
+    "inStock": "Tồn kho BTP",
+    "delivered": "Đã giao",
+    "notImported": "Chưa nhập",
+    "noOrders": "Không tìm thấy công hàng nào phù hợp."
   }
 }

@@ -9,15 +9,43 @@ import { getSession } from "@/lib/session";
 // ==========================================
 
 export async function getTaiKhoan() {
-  const { data, error } = await supabase
+  const session = await getSession();
+  const { data: accounts, error } = await supabase
     .from('tai_khoan')
     .select('*')
     .order('created_at', { ascending: false });
-  if (error) {
+  if (error || !accounts) {
     console.error('Error fetching tai_khoan:', error);
     return [];
   }
-  return data;
+
+  const enriched = await Promise.all(
+    accounts.map(async (acc) => {
+      const { data: loData } = await supabase
+        .from('lo_giao_dich')
+        .select('created_at, loai_giao_dich, ghi_chu, danh_muc_giao_dich(ten_danh_muc)')
+        .eq('id_tai_khoan', acc.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      const lastTx = loData && loData.length > 0 ? loData[0] : null;
+      const now = Date.now();
+      const lastTxTime = lastTx ? new Date(lastTx.created_at).getTime() : 0;
+      const isOnline = acc.dang_hoat_dong && (session?.id === acc.id || (now - lastTxTime < 30 * 60 * 1000));
+
+      return {
+        ...acc,
+        giao_dich_cuoi: lastTx ? {
+          created_at: lastTx.created_at,
+          loai_giao_dich: lastTx.loai_giao_dich,
+          ten_danh_muc: (lastTx as any).danh_muc_giao_dich?.ten_danh_muc || 'Giao dịch kho'
+        } : null,
+        is_online: isOnline
+      };
+    })
+  );
+
+  return enriched;
 }
 
 export async function saveTaiKhoan(prevState: any, formData: FormData) {

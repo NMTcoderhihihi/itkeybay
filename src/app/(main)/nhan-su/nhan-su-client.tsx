@@ -12,15 +12,24 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useRealtimeSSE } from "@/components/realtime-provider";
 
 type NhanSuTab = 'TAI_KHOAN' | 'CONG_NHAN';
 
 export function NhanSuClient({ taiKhoanData, congNhanData, serverTimeMs }: { taiKhoanData: any[], congNhanData: any[], serverTimeMs: number }) {
   const { t } = useTranslation();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab') === 'CONG_NHAN' ? 'CONG_NHAN' : 'TAI_KHOAN';
   const [activeTab, setActiveTab] = useState<NhanSuTab>(initialTab);
+
+  useRealtimeSSE({
+    tables: ["tai_khoan", "cong_nhan", "lo_giao_dich"],
+    onUpdate: () => {
+      router.refresh();
+    },
+  });
   
   const [isTaiKhoanModalOpen, setIsTaiKhoanModalOpen] = useState(false);
   const [editingTaiKhoan, setEditingTaiKhoan] = useState<any>(null);
@@ -116,10 +125,11 @@ export function NhanSuClient({ taiKhoanData, congNhanData, serverTimeMs }: { tai
         <div className="flex flex-col min-w-[600px]">
           {activeTab === 'TAI_KHOAN' ? (
             <>
-              <div className="grid grid-cols-[250px_200px_1fr] md:grid-cols-[300px_250px_1fr] gap-4 p-3 md:p-4 bg-muted/80 border-b text-sm font-semibold text-foreground">
+              <div className="grid grid-cols-[200px_110px_130px_1fr] md:grid-cols-[250px_130px_150px_1fr] gap-3 p-3 md:p-4 bg-muted/80 border-b text-sm font-semibold text-foreground">
                 <div>Thông tin nhân viên</div>
-                <div>Tài khoản</div>
                 <div>Vai trò</div>
+                <div>Trạng thái phiên</div>
+                <div>Giao dịch cuối cùng</div>
               </div>
               <div className="flex flex-col divide-y">
                 {filteredTaiKhoan.length === 0 ? (
@@ -152,29 +162,72 @@ export function NhanSuClient({ taiKhoanData, congNhanData, serverTimeMs }: { tai
         </div>
       </div>
 
-      {/* Modals */}
+      {/* TAI KHOAN MODAL */}
       {isTaiKhoanModalOpen && (
-        <ModalWrapper 
-          title={editingTaiKhoan ? 'Chi tiết Tài khoản' : 'Thêm mới Tài khoản'} 
-          isEditMode={isEditMode}
-          setIsEditMode={setIsEditMode}
-          showToggle={!!editingTaiKhoan}
-          onClose={() => setIsTaiKhoanModalOpen(false)}
-        >
-          <TaiKhoanForm initialData={editingTaiKhoan} isEditMode={isEditMode} onSuccess={() => setIsTaiKhoanModalOpen(false)} />
-        </ModalWrapper>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in-0">
+          <div className="bg-card w-full max-w-lg rounded-xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between border-b px-6 py-4 bg-muted/40">
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <Shield className="w-5 h-5 text-primary" />
+                {editingTaiKhoan ? "Chi tiết / Sửa Tài Khoản" : "Thêm Tài Khoản Mới"}
+              </h3>
+              <div className="flex items-center gap-2">
+                {editingTaiKhoan && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setIsEditMode(!isEditMode)} 
+                    className="h-8 px-3 text-xs"
+                  >
+                    {isEditMode ? "Hủy Sửa" : "Chỉnh Sửa"}
+                  </Button>
+                )}
+                <Button variant="ghost" size="sm" onClick={() => setIsTaiKhoanModalOpen(false)} className="h-8 w-8 p-0">✕</Button>
+              </div>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              <TaiKhoanForm 
+                initialData={editingTaiKhoan} 
+                isEditMode={!editingTaiKhoan || isEditMode}
+                onSuccess={() => setIsTaiKhoanModalOpen(false)} 
+              />
+            </div>
+          </div>
+        </div>
       )}
 
+      {/* CONG NHAN MODAL */}
       {isCongNhanModalOpen && (
-        <ModalWrapper 
-          title={editingCongNhan ? 'Chi tiết Công nhân' : 'Thêm mới Công nhân'} 
-          isEditMode={isEditMode}
-          setIsEditMode={setIsEditMode}
-          showToggle={!!editingCongNhan}
-          onClose={() => setIsCongNhanModalOpen(false)}
-        >
-          <CongNhanForm initialData={editingCongNhan} isEditMode={isEditMode} onSuccess={() => setIsCongNhanModalOpen(false)} />
-        </ModalWrapper>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in-0">
+          <div className="bg-card w-full max-w-lg rounded-xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between border-b px-6 py-4 bg-muted/40">
+              <h3 className="font-semibold text-lg flex items-center gap-2">
+                <HardHat className="w-5 h-5 text-primary" />
+                {editingCongNhan ? "Chi tiết / Sửa Công Nhân" : "Thêm Công Nhân Mới"}
+              </h3>
+              <div className="flex items-center gap-2">
+                {editingCongNhan && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setIsEditMode(!isEditMode)} 
+                    className="h-8 px-3 text-xs"
+                  >
+                    {isEditMode ? "Hủy Sửa" : "Chỉnh Sửa"}
+                  </Button>
+                )}
+                <Button variant="ghost" size="sm" onClick={() => setIsCongNhanModalOpen(false)} className="h-8 w-8 p-0">✕</Button>
+              </div>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              <CongNhanForm 
+                initialData={editingCongNhan} 
+                isEditMode={!editingCongNhan || isEditMode}
+                onSuccess={() => setIsCongNhanModalOpen(false)} 
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -187,7 +240,7 @@ function TaiKhoanRow({ item, onClick }: { item: any, onClick: () => void }) {
   return (
     <div 
       onClick={onClick}
-      className={`grid grid-cols-[250px_200px_1fr] md:grid-cols-[300px_250px_1fr] gap-4 p-3 md:p-4 items-center transition-colors hover:bg-accent cursor-pointer ${!item.dang_hoat_dong ? 'opacity-60 bg-muted/30' : ''}`}
+      className={`grid grid-cols-[200px_110px_130px_1fr] md:grid-cols-[250px_130px_150px_1fr] gap-3 p-3 md:p-4 items-center transition-colors hover:bg-accent cursor-pointer ${!item.dang_hoat_dong ? 'opacity-60 bg-muted/30' : ''}`}
     >
       <div className="flex items-center gap-3 overflow-x-auto custom-scrollbar whitespace-nowrap pb-1 -mb-1">
         <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-secondary overflow-hidden shrink-0 border border-muted-foreground/20">
@@ -208,13 +261,44 @@ function TaiKhoanRow({ item, onClick }: { item: any, onClick: () => void }) {
           <span className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5"><User className="w-3 h-3" /> {item.tai_khoan}</span>
         </div>
       </div>
-      <div className="flex items-center text-sm font-medium overflow-x-auto custom-scrollbar whitespace-nowrap pb-1 -mb-1">
-        <span className="font-mono bg-muted px-2 py-0.5 rounded border">••••••••</span>
-      </div>
+
       <div className="flex items-center">
         <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${item.vai_tro === 'Quan ly' ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground border'}`}>
           {item.vai_tro === 'Quan ly' ? 'Quản lý' : 'Nhân viên'}
         </span>
+      </div>
+
+      <div className="flex items-center">
+        {item.is_online ? (
+          <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            Đang hoạt động
+          </span>
+        ) : (
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full border">
+            <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50 shrink-0" />
+            Offline
+          </span>
+        )}
+      </div>
+
+      <div className="flex flex-col text-xs truncate">
+        {item.giao_dich_cuoi ? (
+          <>
+            <span className="font-medium text-foreground truncate">{item.giao_dich_cuoi.ten_danh_muc}</span>
+            <span className="text-[11px] text-muted-foreground">
+              {new Date(item.giao_dich_cuoi.created_at).toLocaleString("vi-VN", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+              })}
+            </span>
+          </>
+        ) : (
+          <span className="text-muted-foreground italic">Chưa có giao dịch</span>
+        )}
       </div>
     </div>
   );

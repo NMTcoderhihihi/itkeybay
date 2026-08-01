@@ -104,32 +104,26 @@ export async function taoPhieuGiaoDichKho(payload: {
 }
 
 export async function getTongQuanTonKho() {
-  // Thay vì query toàn bộ sổ cái, ta sẽ query lấy bản ghi mới nhất của mỗi (nguyen_lieu, quy_cach)
-  // Supabase/Postgres hỗ trợ DISTINCT ON
   /* using imported supabase */
-  const { data, error } = await supabase.rpc('get_current_stock') // Cần tạo function, hoặc lấy hết rồi tính
-  // Để đơn giản (vì không có RPC sẵn), ta lấy toàn bộ nguyen_lieu và map với sổ cái
-  const { data: nlData } = await supabase.from('nguyen_lieu').select('*')
-  const { data: scData } = await supabase.from('so_cai_vat_tu').select('*').order('created_at', { ascending: false })
+  const { data: nlData } = await supabase.from('nguyen_lieu').select('*').order('created_at', { ascending: false })
+  const { data: scData } = await supabase.from('so_cai_vat_tu').select('id_nguyen_lieu, ma_quy_cach, bien_dong_so_luong')
   
   if (!nlData || !scData) return []
 
-  // Group by nguyen_lieu & quy_cach để lấy cái đầu tiên (mới nhất)
-  const stockMap: Record<string, any> = {}
+  // Tính tổng biến động số lượng (Nhập +, Xuất -) từ toàn bộ sổ cái cho mỗi (nguyen_lieu, quy_cach)
+  const stockSumMap: Record<string, number> = {}
   scData.forEach((row) => {
     const key = `${row.id_nguyen_lieu}_${row.ma_quy_cach}`
-    if (!stockMap[key]) {
-      stockMap[key] = row
-    }
+    stockSumMap[key] = (stockSumMap[key] || 0) + Number(row.bien_dong_so_luong || 0)
   })
 
-  // Map về giao diện
+  // Map về giao diện với số lượng tồn kho chính xác
   const result = nlData.map(nl => {
-    const quyCachTon = nl.danh_sach_quy_cach.map((qc: any) => {
+    const quyCachTon = (nl.danh_sach_quy_cach || []).map((qc: any) => {
       const key = `${nl.id}_${qc.ma_quy_cach}`
       return {
         ...qc,
-        ton_kho: stockMap[key]?.ton_kho_hien_tai || 0
+        ton_kho: stockSumMap[key] ?? 0
       }
     })
     return {

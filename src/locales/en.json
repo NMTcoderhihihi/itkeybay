@@ -175,5 +175,30 @@
     "statusTonKho": "WIP Stock",
     "statusDaGiao": "Delivered",
     "statusChuaLam": "Pending"
+  },
+  "production": {
+    "pageTitle": "Production Management",
+    "pageDesc": "Track processing progress and manage manufacturing stages.",
+    "tabOrders": "Work Orders",
+    "tabStages": "Stage Categories",
+    "createOrder": "New Work Order",
+    "manageWorkflow": "Manage Workflows",
+    "statusAll": "All",
+    "statusChuaLam": "Pending",
+    "statusDangLam": "In Progress",
+    "statusDaLam": "Completed",
+    "viewCard": "Cards",
+    "viewTable": "Table",
+    "editOrder": "Edit Details",
+    "historyProgress": "Progress History",
+    "deleteOrder": "Delete Order",
+    "orderCode": "Work Order ID",
+    "product": "Order / Product",
+    "stageProgress": "Stage Progress",
+    "steps": "steps",
+    "inStock": "WIP Stock",
+    "delivered": "Delivered",
+    "notImported": "Not Imported",
+    "noOrders": "No matching work orders found."
   }
 }

@@ -54,6 +54,12 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [data, setData] = useState<DashboardData>(initialData);
   const [isPending, startTransition] = useTransition();
   const [highlightSection, setHighlightSection] = useState<string | null>(null);
+  const [isChartReady, setIsChartReady] = useState(false);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsChartReady(true), 60);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Kết nối SSE Realtime toàn cục từ máy chủ
   useRealtimeSSE({
@@ -306,6 +312,10 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                 <div className="h-[220px] flex items-center justify-center text-xs text-muted-foreground">
                   {t("dashboard.noOrderData")}
                 </div>
+              ) : !isChartReady ? (
+                <div className="w-full h-[240px] sm:h-[260px] flex items-center justify-center bg-muted/20 rounded-lg animate-pulse">
+                  <span className="text-xs text-muted-foreground font-medium">Đang dựng biểu đồ...</span>
+                </div>
               ) : (
                 <div className="w-full h-[240px] sm:h-[260px]">
                   <ResponsiveContainer width="100%" height="100%">
@@ -376,7 +386,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               {t("dashboard.recentTxTitle")}
             </CardTitle>
           </div>
-          <Link href="/kho/giao-dich">
+          <Link href="/kho?tab=ledger">
             <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs">
               {t("dashboard.viewLedger")}
               <ArrowUpRight className="ml-1 h-3.5 w-3.5" />

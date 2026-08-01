@@ -175,5 +175,30 @@
     "statusTonKho": "半成品库存",
     "statusDaGiao": "已交货",
     "statusChuaLam": "未开工"
+  },
+  "production": {
+    "pageTitle": "生产管理",
+    "pageDesc": "追踪加工进度并管理车间各个生产工序。",
+    "tabOrders": "工单列表",
+    "tabStages": "工序管理",
+    "createOrder": "新建工单",
+    "manageWorkflow": "管理流程",
+    "statusAll": "全部",
+    "statusChuaLam": "未开工",
+    "statusDangLam": "进行中",
+    "statusDaLam": "已完成",
+    "viewCard": "卡片",
+    "viewTable": "表格",
+    "editOrder": "修改信息",
+    "historyProgress": "进度历史",
+    "deleteOrder": "删除工单",
+    "orderCode": "工单编号",
+    "product": "订单 / 产品",
+    "stageProgress": "工序进度",
+    "steps": "步骤",
+    "inStock": "半成品库存",
+    "delivered": "已交货",
+    "notImported": "未入库",
+    "noOrders": "没有找到符合条件的工单。"
   }
 }
