@@ -488,19 +488,45 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                         </div>
                       </TableCell>
                       <TableCell className="py-2.5 px-3 text-xs whitespace-nowrap">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="font-bold text-foreground">
-                            {tx.so_luong_tong > 0 ? `+${tx.so_luong_tong}` : (tx.so_luong_tong || 0)} SL
-                          </span>
-                          {tx.quy_cach_ghi_chu && (
-                            <span
-                              className="text-[10px] text-muted-foreground font-medium truncate max-w-[150px]"
-                              title={tx.quy_cach_ghi_chu}
-                            >
-                              {tx.quy_cach_ghi_chu}
+                        {tx.loai_doi_tuong === "BAN_THANH_PHAM" ? (
+                          <div className="space-y-1 max-h-24 overflow-y-auto pr-1 min-w-[140px]">
+                            {tx.danh_sach_don_hang && tx.danh_sach_don_hang.length > 0 ? (
+                              tx.danh_sach_don_hang.map((dh, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-center justify-between gap-2 text-xs border-b border-border/40 last:border-0 pb-0.5 last:pb-0"
+                                >
+                                  <span className="font-semibold text-foreground truncate" title={dh.ma_hang}>
+                                    {dh.ma_hang}
+                                  </span>
+                                  {dh.so_luong_san_xuat !== undefined && (
+                                    <span className="shrink-0 text-[11px] font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                      x{dh.so_luong_san_xuat}
+                                    </span>
+                                  )}
+                                </div>
+                              ))
+                            ) : (
+                              <span className="text-muted-foreground font-medium">
+                                {tx.so_luong_tong > 0 ? `${tx.so_luong_tong} SL` : "-"}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-bold text-foreground">
+                              {tx.so_luong_tong > 0 ? `+${tx.so_luong_tong}` : (tx.so_luong_tong || 0)} SL
                             </span>
-                          )}
-                        </div>
+                            {tx.quy_cach_ghi_chu && (
+                              <span
+                                className="text-[10px] text-muted-foreground font-medium truncate max-w-[150px]"
+                                title={tx.quy_cach_ghi_chu}
+                              >
+                                {tx.quy_cach_ghi_chu}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="py-2.5 px-3 text-xs whitespace-nowrap">
                         {tx.ma_cong_hang ? (

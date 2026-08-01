@@ -33,6 +33,7 @@ export type DashboardTransactionItem = {
   so_luong_tong: number;
   quy_cach_ghi_chu?: string;
   danh_sach_anh?: string[];
+  danh_sach_don_hang?: Array<{ ma_hang: string; so_luong_san_xuat?: number }>;
 };
 
 export type DashboardData = {
@@ -191,14 +192,19 @@ export async function getDashboardData(): Promise<DashboardData> {
     let doi_tuong_ten = "Vật tư xưởng";
     let so_luong_tong = 0;
     let quy_cach_ghi_chu: string | undefined = undefined;
+    let danh_sach_don_hang: Array<{ ma_hang: string; so_luong_san_xuat?: number }> | undefined = undefined;
 
     if (isBtp) {
       const dhList: any[] = Array.isArray(t.cong_hang?.don_hang) ? t.cong_hang.don_hang : [];
       if (dhList.length > 0) {
         so_luong_tong = dhList.reduce((sum, d) => sum + (Number(d.so_luong_san_xuat) || 0), 0);
+        danh_sach_don_hang = dhList.map((d: any) => ({
+          ma_hang: d.ma_hang || "Sản phẩm",
+          so_luong_san_xuat: Number(d.so_luong_san_xuat) || 0,
+        }));
       }
       doi_tuong_ten = t.cong_hang?.ma_cong_hang || "Bán thành phẩm xưởng";
-      quy_cach_ghi_chu = "(BTP)";
+      quy_cach_ghi_chu = undefined;
     } else {
       const uniqueNames = Array.from(new Set(scList.map(sc => sc.nguyen_lieu?.ten_nguyen_lieu).filter(Boolean)));
       doi_tuong_ten = uniqueNames.length > 0 ? uniqueNames.join(", ") : "Nguyên liệu xưởng";
@@ -238,6 +244,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       so_luong_tong,
       quy_cach_ghi_chu,
       danh_sach_anh: Array.isArray(t.danh_sach_anh) ? t.danh_sach_anh : [],
+      danh_sach_don_hang,
     };
   });
 

@@ -14,13 +14,6 @@ type CongDoan = {
   ten_cong_doan: string
 }
 
-const MAU_DON_HANG = [
-  { ma_don_hang: "DH-2026-001", ma_hang: "Bàn Làm Việc Gỗ Sồi 1m4", so_luong_san_xuat: 50 },
-  { ma_don_hang: "DH-2026-002", ma_hang: "Tủ Quần Áo 3 Buồng", so_luong_san_xuat: 30 },
-  { ma_don_hang: "DH-2026-003", ma_hang: "Ghế Sofa Chân Gỗ", so_luong_san_xuat: 100 },
-  { ma_don_hang: "DH-2026-004", ma_hang: "Kệ Sách Trang Trí 5 Tầng", so_luong_san_xuat: 75 },
-]
-
 export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -45,17 +38,6 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
     const newList = [...donHangList]
     newList[index] = { ...newList[index], [field]: value }
     setDonHangList(newList)
-  }
-
-  const selectMauDonHang = (index: number, mau: typeof MAU_DON_HANG[0]) => {
-    const newList = [...donHangList]
-    newList[index] = {
-      ma_don_hang: mau.ma_don_hang,
-      ma_hang: mau.ma_hang,
-      so_luong_san_xuat: mau.so_luong_san_xuat
-    }
-    setDonHangList(newList)
-    toast.success(`Đã chọn đơn hàng ${mau.ma_don_hang} - Tự động điền SL: ${mau.so_luong_san_xuat}`)
   }
 
   const handleToggleCongDoan = (id: string) => {
@@ -105,7 +87,7 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
       <DialogTrigger render={<Button />}>
         <Plus className="h-4 w-4 mr-1.5" /> Tạo Công Hàng Mới
       </DialogTrigger>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl lg:max-w-5xl xl:max-w-6xl w-[95vw] sm:w-[90vw] md:w-[85vw] max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Tạo Công Hàng Mới</DialogTitle>
           </DialogHeader>
@@ -138,23 +120,6 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
                 <Button type="button" variant="outline" size="sm" onClick={addDonHang} className="h-7 text-xs">
                   <Plus className="h-3 w-3 mr-1" /> Thêm đơn hàng
                 </Button>
-              </div>
-
-              {/* Nút chọn nhanh từ đơn mẫu (Item 25) */}
-              <div className="flex flex-wrap items-center gap-1.5 p-2 rounded-lg bg-muted/30 border">
-                <span className="text-[11px] font-semibold text-muted-foreground mr-1">Chọn mẫu nhanh (Tự điền SL):</span>
-                {MAU_DON_HANG.map(mau => (
-                  <Button
-                    key={mau.ma_don_hang}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-6 text-[11px] px-2 bg-background hover:bg-primary/10 hover:text-primary"
-                    onClick={() => selectMauDonHang(0, mau)}
-                  >
-                    {mau.ma_don_hang}
-                  </Button>
-                ))}
               </div>
 
               <div className="space-y-2">
@@ -233,7 +198,7 @@ export function CongHangForm({ congDoanList }: { congDoanList: CongDoan[] }) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 border rounded-lg p-3 max-h-56 overflow-y-auto bg-muted/10">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 border rounded-lg p-3 max-h-72 overflow-y-auto bg-muted/10">
                 {congDoanList.map(cd => {
                   const checked = selectedCongDoan.includes(cd.id)
                   return (
