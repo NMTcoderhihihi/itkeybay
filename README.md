@@ -4,9 +4,10 @@ Dự án phát triển hệ thống phần mềm quản lý sản xuất, vật 
 
 ## Tính năng chính
 - **Quản lý Kho (Vật tư):** Theo dõi số lượng, quy cách, lô giao dịch (nhập/xuất), sổ cái biến động kho. Tính năng upload ảnh minh chứng thời gian thực (chỉ hỗ trợ trên thiết bị di động).
+- **Quản lý Sản xuất & Kho Bán thành phẩm:** Quản lý Công hàng (theo dõi tiến độ từng công đoạn, phân công công nhân theo vị trí chuyên môn), lịch sử phát liệu chi tiết (kèm quy cách, số lượng) và tự động đồng bộ sang kho bán thành phẩm sau khi hoàn thành.
 - **Quản lý Nhân sự:** Quản lý tài khoản hệ thống (phân quyền Quản lý/Nhân viên) và danh sách công nhân phân xưởng.
 - **Quản lý Danh mục Giao dịch:** Thiết lập các lý do xuất/nhập/điều chỉnh cho từng phân hệ (Nguyên liệu, Sản xuất, Bán thành phẩm).
-- **Cài đặt & Đa ngôn ngữ:** Hỗ trợ giao diện đa ngôn ngữ (Tiếng Việt, Tiếng Anh, Tiếng Trung).
+- **Cài đặt & Đa ngôn ngữ:** Hỗ trợ giao diện đa ngôn ngữ (Tiếng Việt, Tiếng Anh, Tiếng Trung) cho toàn bộ trang và các popup/modal.
 
 ## Hướng dẫn cài đặt
 1. Cài đặt các gói phụ thuộc: `npm install`

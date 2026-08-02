@@ -46,3 +46,9 @@ Mục tiêu: Xây dựng hệ thống MVP để thử nghiệm, ưu tiên **tố
 ### Giai đoạn 4: Giám sát và Hoàn thiện (Views & Polish)
 - Màn hình Dashboard cho Quản lý.
 - Tinh chỉnh giao diện trên điện thoại và gắn nút chuyển đổi (Toggle) 3 ngôn ngữ (Việt - Anh - Trung) vào thanh điều hướng.
+
+### Giai đoạn 5: Phân hệ Sản xuất & Kho Bán thành phẩm (Hoàn thành)
+- Xây dựng module Quản lý Công hàng (chuyển đổi linh hoạt dạng Thẻ/Bảng, theo dõi tiến độ công đoạn, phân công công nhân theo vị trí chuyên môn).
+- Quản lý danh mục Công đoạn mẫu (`cong-doan-manager.tsx`) và theo dõi lịch sử cấp liệu chi tiết (kèm quy cách, số lượng, thời gian).
+- Tích hợp tự động chuyển giao hàng từ Sản xuất sang Kho Bán thành phẩm sau khi nghiệm thu hoàn thành.
+- Hoàn thiện tính năng đa ngôn ngữ (i18n) cho toàn bộ trang Sản xuất và 100% popup/modal.
