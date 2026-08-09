@@ -9,29 +9,30 @@ export function SSEStatusIcon() {
   const { t } = useTranslation();
   const { lastSyncedAt, isSyncing, triggerSync, status } = useRealtimeSync();
   const [showTooltip, setShowTooltip] = useState(false);
-  const [secondsAgo, setSecondsAgo] = useState(0);
+  const [minutesAgo, setMinutesAgo] = useState(0);
 
   useEffect(() => {
-    const updateSeconds = () => {
+    const updateTime = () => {
       const diffMs = Date.now() - new Date(lastSyncedAt).getTime();
-      const secs = Math.max(0, Math.floor(diffMs / 1000));
-      setSecondsAgo(secs);
+      const mins = Math.floor(diffMs / 60000);
+      setMinutesAgo(Math.max(0, mins));
     };
 
-    updateSeconds();
-    const timer = setInterval(updateSeconds, 1000);
+    updateTime();
+    // Cập nhật lại mỗi 10 giây để UI không bị "đứng hình" lâu
+    const timer = setInterval(updateTime, 10000);
     return () => clearInterval(timer);
   }, [lastSyncedAt]);
 
   const isConnected = status === "CONNECTED";
 
   const statusTitle = isSyncing
-    ? "Đang truy vấn ngầm số liệu mới..."
+    ? "Đang cập nhật số liệu mới..."
     : isConnected
-    ? `Đồng bộ ngầm: 30s/lần (${secondsAgo === 0 ? "vừa xong" : `${secondsAgo}s trước`})`
+    ? `Trực tuyến (Cập nhật: ${minutesAgo < 1 ? "<1phút trước" : `${minutesAgo} phút trước`})`
     : "Mất kết nối (Đang thử lại)";
 
-  const statusDesc = "Hệ thống tự động kiểm tra thay đổi trong CSDL mỗi 30 giây (tạm dừng khi ẩn trang để tiết kiệm Vercel). Bấm để tải lại số liệu mới ngay lập tức mà không làm chớp/reload trang.";
+  const statusDesc = "Hệ thống tự động đồng bộ dữ liệu theo thời gian thực. Bấm để làm mới dữ liệu thủ công nếu cần thiết.";
 
   return (
     <div 
@@ -66,9 +67,9 @@ export function SSEStatusIcon() {
         <span className="min-w-[48px] text-left">
           {isSyncing
             ? "Đang tải..."
-            : secondsAgo === 0
-            ? "Vừa xong"
-            : `${secondsAgo}s trước`}
+            : minutesAgo < 1
+            ? "<1phút"
+            : `${minutesAgo} phút`}
         </span>
       </button>
 
