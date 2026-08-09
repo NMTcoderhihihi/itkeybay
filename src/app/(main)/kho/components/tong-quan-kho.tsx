@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import { getTongQuanTonKho, getSoCaiChiTietPaginated, getDanhSachDanhMuc, TrangThaiLocSoCai, getSoCaiChiTiet } from "@/app/actions/giao-dich"
 import { getTaiKhoan } from "@/app/actions/nhan-su"
 import { getCongHangList } from "@/app/actions/san-xuat"
@@ -161,6 +161,39 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
   const goToPage = (page: number) => {
     // Không dùng goToPage nữa do đã chuyển sang Infinite scroll
   }
+
+  // Ref để giữ trạng thái hiện tại của Modal phục vụ đồng bộ Realtime
+  const modalStateRef = useRef({ selectedItem, viewMode, currentPage, filters })
+  useEffect(() => {
+    modalStateRef.current = { selectedItem, viewMode, currentPage, filters }
+  }, [selectedItem, viewMode, currentPage, filters])
+
+  useEffect(() => {
+    // Đồng bộ Realtime cho Popup nếu đang mở khi dữ liệu mới được đẩy từ Server (thông qua useRealtimeSSE -> router.refresh)
+    const { selectedItem: currentItem, viewMode: currentView, currentPage: currPage, filters: currFilters } = modalStateRef.current;
+    if (currentItem) {
+      const freshItem = initialData?.find(item => item.id === currentItem.id);
+      if (freshItem) {
+        setSelectedItem(freshItem); // Tự động cập nhật số lượng tồn kho trong popup
+        
+        // Cập nhật lại giao dịch gần nhất ngầm
+        getSoCaiChiTiet(freshItem.id).then(soCaiList => {
+          const latest: Record<string, any> = {}
+          soCaiList.forEach((sc: any) => {
+            if (!latest[sc.ma_quy_cach]) {
+              latest[sc.ma_quy_cach] = sc
+            }
+          })
+          setLatestTransactions(latest)
+        }).catch(() => {})
+
+        // Tự động load mới lịch sử giao dịch (sổ cái) nếu đang mở popup ở dạng lịch sử
+        if (currentView === 'lich_su' && currPage === 1) {
+          fetchLedger(freshItem.id, 1, currFilters).catch(() => {});
+        }
+      }
+    }
+  }, [initialData])
 
   // Filtered quy cach
   const filteredQuyCach = useMemo(() => {
