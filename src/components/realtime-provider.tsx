@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 export interface RealtimeEvent {
   type: string;
@@ -36,11 +37,11 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const isSyncingRef = useRef<boolean>(false);
   const lastSyncTimeRef = useRef<number>(0);
 
-  // Hàm truy vấn ngầm số liệu mới từ máy chủ (Silent Fetch & DOM Partial Update)
+  // Hàm truy vấn làm mới số liệu ngầm từ máy chủ (dùng khi quay lại tab hoặc nhấn nút refresh thủ công)
   const triggerSync = useCallback(async () => {
     const now = Date.now();
-    // Khóa chống spam/chồng chéo: nếu đang sync, mất mạng, ẩn tab, hoặc khoảng cách giữa 2 lần sync < 10 giây -> bỏ qua
-    if (isSyncingRef.current || now - lastSyncTimeRef.current < 10000) return;
+    // Khóa chống spam/chồng chéo: nếu đang sync, mất mạng, ẩn tab, hoặc khoảng cách giữa 2 lần sync < 15 giây -> bỏ qua
+    if (isSyncingRef.current || now - lastSyncTimeRef.current < 15000) return;
     if (typeof window !== "undefined" && !window.navigator.onLine) {
       setStatus("DISCONNECTED");
       return;
@@ -54,20 +55,6 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       lastSyncTimeRef.current = now;
       setIsSyncing(true);
 
-      // Thông báo cho các client subscriber (popup/modal/table) để họ tự làm mới số liệu cục bộ
-      const event: RealtimeEvent = {
-        type: "POLL_UPDATE",
-        table: "*",
-        timestamp: new Date().toISOString(),
-      };
-      subscribersRef.current.forEach((sub) => {
-        try {
-          sub.callback(event);
-        } catch (err) {
-          console.warn("Lỗi trong callback subscriber Realtime:", err);
-        }
-      });
-
       // router.refresh() tự động re-fetch RSC một lần duy nhất mà không reload lại trang
       React.startTransition(() => {
         router.refresh();
@@ -76,7 +63,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       setLastSyncedAt(new Date());
       setStatus("CONNECTED");
     } catch (err) {
-      console.warn("Lỗi đồng bộ ngầm Polling (đã tạm qua để thử lại):", err);
+      console.warn("Lỗi làm mới dữ liệu:", err);
       setStatus("DISCONNECTED");
     } finally {
       isSyncingRef.current = false;
@@ -85,14 +72,73 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   }, [router]);
 
   useEffect(() => {
-    // Kiến trúc Polling ngầm mỗi 30 giây (Tương thích 100% trên Vercel Serverless)
-    const interval = setInterval(() => {
-      triggerSync();
-    }, 30000);
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    const coreTables = [
+      "lo_giao_dich",
+      "so_cai_vat_tu",
+      "nguyen_lieu",
+      "cong_hang",
+      "don_hang",
+      "tai_khoan",
+      "cong_nhan",
+      "cong_doan",
+      "danh_muc_giao_dich",
+    ];
 
-    // Kích hoạt đồng bộ ngay khi người dùng chuyển lại tab
+    try {
+      setStatus("CONNECTING");
+      // Mở đúng 01 Kênh WebSocket duy nhất tới Supabase Realtime Server
+      channel = supabase.channel("global-app-realtime");
+
+      coreTables.forEach((table) => {
+        channel!.on(
+          "postgres_changes",
+          { event: "*", schema: "public", table },
+          (payload) => {
+            const event: RealtimeEvent = {
+              type: "UPDATE",
+              table: payload.table,
+              eventType: payload.eventType,
+              timestamp: new Date().toISOString(),
+            };
+
+            // Phân phối sự kiện tới đúng các Subscriber đang theo dõi bảng này (cách ly sự kiện theo trang)
+            subscribersRef.current.forEach((sub) => {
+              if (
+                sub.tables.includes("*") ||
+                (event.table && sub.tables.includes(event.table))
+              ) {
+                try {
+                  sub.callback(event);
+                } catch (err) {
+                  console.warn("Lỗi trong callback subscriber Realtime:", err);
+                }
+              }
+            });
+          }
+        );
+      });
+
+      channel.subscribe((statusResult) => {
+        if (statusResult === "SUBSCRIBED") {
+          setStatus("CONNECTED");
+          setLastSyncedAt(new Date());
+        } else if (
+          statusResult === "CLOSED" ||
+          statusResult === "CHANNEL_ERROR" ||
+          statusResult === "TIMED_OUT"
+        ) {
+          setStatus("DISCONNECTED");
+        }
+      });
+    } catch (err) {
+      console.warn("Lỗi kết nối Supabase Realtime WebSocket:", err);
+      setStatus("DISCONNECTED");
+    }
+
+    // Kích hoạt đồng bộ một lần khi người dùng chuyển lại tab sau khi offline lâu
     const handleVisibilityChange = () => {
-      if (!document.hidden) {
+      if (!document.hidden && window.navigator.onLine) {
         triggerSync();
       }
     };
@@ -101,7 +147,9 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     }
 
     return () => {
-      clearInterval(interval);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
       if (typeof document !== "undefined") {
         document.removeEventListener("visibilitychange", handleVisibilityChange);
       }
@@ -162,16 +210,16 @@ export function useRealtimeSSE({
     }
 
     const unsubscribe = context.subscribe(tables, (event) => {
-      // Nếu là sự kiện POLL_UPDATE ngầm định kỳ -> bỏ qua gọi onUpdate cục bộ để tránh gọi chồng chéo router.refresh()
-      if (event.type === "POLL_UPDATE") {
-        return;
-      }
-
+      // Dùng cơ chế Debounce nhằm gộp nhiều sự kiện DB liên tiếp thành 1 lần làm mới duy nhất
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
       timeoutRef.current = setTimeout(() => {
-        onUpdateRef.current(event);
+        try {
+          onUpdateRef.current(event);
+        } catch (err) {
+          console.warn("Lỗi khi xử lý onUpdate Realtime:", err);
+        }
       }, debounceMs);
     });
 
@@ -181,3 +229,4 @@ export function useRealtimeSSE({
     };
   }, [context, JSON.stringify(tables), debounceMs]);
 }
+
