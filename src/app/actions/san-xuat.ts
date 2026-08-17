@@ -155,7 +155,7 @@ export async function getLichSuPhatLieu(id_cong_hang: string) {
   const { data, error } = await supabase
     .from('lo_giao_dich')
     .select(`
-      id, ma_lo, ngay_tao, ghi_chu,
+      id, ma_lo, ngay_tao, ghi_chu, danh_sach_anh,
       tai_khoan (ho_ten),
       danh_muc_giao_dich (ten_danh_muc),
       so_cai_vat_tu (

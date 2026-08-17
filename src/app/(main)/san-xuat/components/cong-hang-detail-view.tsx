@@ -568,6 +568,7 @@ export function CongHangDetailView({
                         <th className="px-4 py-3 whitespace-nowrap w-[180px]">Người thực hiện</th>
                         <th className="px-4 py-3 min-w-[200px] max-w-[250px]">Loại & Nội dung</th>
                         <th className="px-4 py-3 min-w-[300px]">Chi tiết vật tư</th>
+                        <th className="px-4 py-3 whitespace-nowrap w-[150px]">Ảnh minh chứng</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -605,6 +606,26 @@ export function CongHangDetailView({
                                 <span className="text-muted-foreground italic text-xs">Không có vật tư chi tiết</span>
                               )}
                             </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            {phieu.danh_sach_anh && phieu.danh_sach_anh.length > 0 ? (
+                              <div className="flex flex-wrap gap-2">
+                                {phieu.danh_sach_anh.map((url: string, i: number) => (
+                                  <div 
+                                    key={i} 
+                                    className="w-12 h-12 relative rounded border overflow-hidden cursor-pointer hover:opacity-80 shadow-sm transition-opacity"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setPreviewImage(url);
+                                    }}
+                                  >
+                                    <Image src={url} alt={`Minh chứng ${i+1}`} fill sizes="48px" className="object-cover" />
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground italic text-[11px]">Không có</span>
+                            )}
                           </td>
                         </tr>
                       ))}
