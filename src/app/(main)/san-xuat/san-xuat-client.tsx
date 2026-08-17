@@ -93,10 +93,7 @@ export function SanXuatClient({
   const [currentPage, setCurrentPage] = useState(1)
   const ITEMS_PER_PAGE = 10
   
-  // Modal state
-  const [selectedCongHang, setSelectedCongHang] = useState<CongHang | null>(null)
-  const [lichSuPhatLieu, setLichSuPhatLieu] = useState<any[]>([])
-  const [loadingLichSu, setLoadingLichSu] = useState(false)
+
   const [loadingAction, setLoadingAction] = useState(false)
     
   // Edit mode state
@@ -139,13 +136,8 @@ export function SanXuatClient({
     setCurrentPage(1)
   }, [searchQuery, filterStatus, filterKhoStatus, filterWorker])
 
-  const handleOpenDetail = async (ch: CongHang) => {
-    setSelectedCongHang(ch)
-
-    setLoadingLichSu(true)
-    const ls = await getLichSuPhatLieu(ch.id)
-    setLichSuPhatLieu(ls)
-    setLoadingLichSu(false)
+  const handleOpenDetail = (ch: CongHang) => {
+    router.push(`/san-xuat/${ch.id}`)
   }
 
   const congDoanMap = useMemo(() => {
@@ -718,28 +710,6 @@ export function SanXuatClient({
         </TabsContent>
       </Tabs>
 
-      {/* POPUP CHI TIẾT CÔNG HÀNG */}
-      <Dialog open={!!selectedCongHang} onOpenChange={(open) => !open && setSelectedCongHang(null)}>
-        <DialogContent className="w-[98vw] sm:max-w-6xl h-[96vh] max-h-[96vh] p-0 border-none overflow-hidden bg-transparent">
-          {selectedCongHang && !loadingLichSu && (
-            <CongHangDetailView
-              initialCongHang={selectedCongHang}
-              congDoanList={congDoanList}
-              congNhanList={congNhanList}
-              danhMucList={danhMucList}
-              lichSuPhatLieu={lichSuPhatLieu}
-              isManager={isManager}
-              onClose={() => setSelectedCongHang(null)}
-              isPopup={true}
-            />
-          )}
-          {loadingLichSu && (
-            <div className="flex items-center justify-center h-full bg-slate-50/50 rounded-xl">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Popup chỉnh sửa thông tin công hàng (Item 22) */}
       {editingCongHangModal && (

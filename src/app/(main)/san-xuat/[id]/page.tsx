@@ -1,4 +1,4 @@
-import { getCongHangDetail, getCongDoanList } from "@/app/actions/san-xuat"
+import { getCongHangDetail, getCongDoanList, getLichSuPhatLieu } from "@/app/actions/san-xuat"
 import { getCongNhan } from "@/app/actions/nhan-su"
 import { getDanhMucGiaoDich } from "@/app/actions/danh-muc"
 import { getSession } from "@/lib/session"
@@ -26,16 +26,7 @@ export default async function CongHangDetailPage({ params }: { params: Promise<{
     return <div className="p-6">Không tìm thấy Công hàng này.</div>
   }
 
-  // Lấy lịch sử phát liệu cho công hàng này
-  const { data: lichSuPhatLieu } = await supabase
-    .from('lo_giao_dich')
-    .select(`
-      id, ma_lo, ngay_tao, ghi_chu,
-      tai_khoan (ho_ten),
-      danh_muc_giao_dich (ten_danh_muc)
-    `)
-    .eq('id_cong_hang', id)
-    .order('ngay_tao', { ascending: false })
+  const lichSuPhatLieu = await getLichSuPhatLieu(id)
 
   return (
     <div className="p-2 sm:p-6 w-full max-w-7xl mx-auto">
