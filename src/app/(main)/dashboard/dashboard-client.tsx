@@ -211,15 +211,12 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                       <TableHead className="py-2.5 px-3 text-xs font-bold whitespace-nowrap">
                         {t("dashboard.inProgress")}
                       </TableHead>
-                      <TableHead className="py-2.5 px-3 text-xs font-bold text-right whitespace-nowrap">
-                        {t("dashboard.action")}
-                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {activeCongHangList.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} className="h-28 text-center text-muted-foreground text-xs">
+                        <TableCell colSpan={4} className="h-28 text-center text-muted-foreground text-xs">
                           {t("dashboard.noActiveOrders")}
                         </TableCell>
                       </TableRow>
@@ -230,7 +227,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                           className="hover:bg-muted/30 transition-colors"
                         >
                           <TableCell className="py-2.5 px-3 text-xs font-bold whitespace-nowrap">
-                            <span className="text-primary">{ch.ma_cong_hang}</span>
+                            <Link href={`/san-xuat/${ch.id}`} className="text-primary hover:underline hover:text-primary/80 transition-colors" title="Bấm để xem chi tiết">
+                              {ch.ma_cong_hang}
+                            </Link>
                           </TableCell>
                           <TableCell className="py-2.5 px-3 text-xs">
                             <div className="space-y-1 max-h-24 overflow-y-auto pr-1">
@@ -277,18 +276,6 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                             <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                               {ch.currentStageName}
                             </span>
-                          </TableCell>
-                          <TableCell className="py-2.5 px-3 text-xs text-right whitespace-nowrap">
-                            <Link href={`/san-xuat/${ch.id}`}>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                                title={t("dashboard.viewDetailTooltip")}
-                              >
-                                <ExternalLink className="h-3.5 w-3.5" />
-                              </Button>
-                            </Link>
                           </TableCell>
                         </TableRow>
                       ))

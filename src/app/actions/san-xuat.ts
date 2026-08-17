@@ -161,7 +161,7 @@ export async function getLichSuPhatLieu(id_cong_hang: string) {
       so_cai_vat_tu (
         ma_quy_cach,
         bien_dong_so_luong,
-        nguyen_lieu ( ten_nguyen_lieu, danh_sach_quy_cach )
+        nguyen_lieu ( ten_nguyen_lieu, don_vi, danh_sach_quy_cach )
       )
     `)
     .eq('id_cong_hang', id_cong_hang)
