@@ -25,7 +25,6 @@ import { CircularProgressRing } from "@/components/ui/circular-progress-ring"
 import { EditCongHangModal } from "./components/edit-cong-hang-modal"
 import { HistoryCongDoanModal } from "./components/history-cong-doan-modal"
 import { CongHangDetailView } from "./components/cong-hang-detail-view"
-import { ImportCongHangModal } from "./components/import-cong-hang-modal"
 import Link from "next/link"
 import { format } from "date-fns"
 import { vi } from "date-fns/locale"
@@ -74,7 +73,6 @@ export function SanXuatClient({
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card')
   const [editingCongHangModal, setEditingCongHangModal] = useState<any | null>(null)
   const [historyCongHangModal, setHistoryCongHangModal] = useState<any | null>(null)
-  const [showImportModal, setShowImportModal] = useState(false)
 
   // Đăng ký nhận sự kiện Realtime SSE khi có thay đổi trong sản xuất và kho BTP (đồng bộ ngầm yên lặng)
   useRealtimeSSE({
@@ -185,10 +183,12 @@ export function SanXuatClient({
       <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center gap-4 mb-2">
         {activeTab === "cong-hang" && (
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <Button variant="outline" className="hidden md:flex border-primary/20 text-primary hover:bg-primary/5" onClick={() => setShowImportModal(true)}>
-              <FileSpreadsheet className="w-4 h-4 mr-2" />
-              Import
-            </Button>
+            <Link href="/san-xuat/import" className="hidden md:flex">
+              <Button variant="outline" className="border-primary/20 text-primary hover:bg-primary/5">
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                Import
+              </Button>
+            </Link>
             <CongHangForm congDoanList={congDoanList} />
           </div>
         )}
@@ -763,16 +763,6 @@ export function SanXuatClient({
             onClick={(e) => e.stopPropagation()}
           />
         </div>
-      )}
-
-      {/* Import Modal */}
-      {showImportModal && (
-        <ImportCongHangModal
-          open={showImportModal}
-          onOpenChange={setShowImportModal}
-          congDoanList={congDoanList}
-          onSuccess={() => router.refresh()}
-        />
       )}
     </div>
   )
