@@ -185,7 +185,7 @@ export function SanXuatClient({
       <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center gap-4 mb-2">
         {activeTab === "cong-hang" && (
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <Button variant="outline" className="flex-1 sm:flex-none border-primary/20 text-primary hover:bg-primary/5" onClick={() => setShowImportModal(true)}>
+            <Button variant="outline" className="hidden md:flex border-primary/20 text-primary hover:bg-primary/5" onClick={() => setShowImportModal(true)}>
               <FileSpreadsheet className="w-4 h-4 mr-2" />
               Import
             </Button>

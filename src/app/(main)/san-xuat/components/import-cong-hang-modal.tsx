@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
@@ -34,6 +34,15 @@ export function ImportCongHangModal({ open, onOpenChange, congDoanList, onSucces
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState("")
 
+  useEffect(() => {
+    if (open) {
+      setSelectedCongDoanIds(congDoanList.map(c => c.id))
+      setPasteData("")
+      setParsedJobs([])
+      setErrorMsg("")
+    }
+  }, [open, congDoanList])
+
   const handleParse = (text: string) => {
     setPasteData(text)
     setErrorMsg("")
@@ -46,23 +55,28 @@ export function ImportCongHangModal({ open, onOpenChange, congDoanList, onSucces
       const rows = text.trim().split('\n')
       const jobsMap = new Map<string, ParsedJob>()
 
+      let lastMaCongHang = ""
+
       for (let i = 0; i < rows.length; i++) {
         if (!rows[i].trim()) continue;
         const cols = rows[i].split(/\t|,/)
         if (cols[0].toLowerCase().includes("mã") && i === 0) continue
         
-        if (cols.length < 4) {
-          throw new Error(`Dòng ${i + 1} không đủ 4 cột dữ liệu.`)
+        // Cột 0 có thể trống nếu bị merge cell trong Excel, lúc này sẽ kế thừa từ dòng trước đó
+        let ma_cong_hang = cols[0]?.trim() || ""
+        if (!ma_cong_hang && lastMaCongHang) {
+          ma_cong_hang = lastMaCongHang
         }
 
-        const ma_cong_hang = cols[0].trim()
-        const ma_don_hang = cols[1].trim()
-        const ma_hang = cols[2].trim()
-        const so_luong = parseInt(cols[3].trim().replace(/,/g, '')) || 0
+        const ma_don_hang = cols[1]?.trim() || ""
+        const ma_hang = cols[2]?.trim() || ""
+        const so_luong = parseInt((cols[3] || "").trim().replace(/,/g, '')) || 0
 
         if (!ma_cong_hang || !ma_don_hang || !ma_hang) {
           throw new Error(`Dòng ${i + 1} bị thiếu dữ liệu bắt buộc.`)
         }
+
+        lastMaCongHang = ma_cong_hang
 
         if (!jobsMap.has(ma_cong_hang)) {
           jobsMap.set(ma_cong_hang, { ma_cong_hang, don_hang: [] })
@@ -103,7 +117,7 @@ export function ImportCongHangModal({ open, onOpenChange, congDoanList, onSucces
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[95vw] max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="w-5 h-5 text-primary" />
