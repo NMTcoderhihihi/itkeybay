@@ -187,9 +187,9 @@ export function SanXuatClient({
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 md:w-[400px]">
+        <TabsList className={`grid w-full md:w-[400px] ${isManager ? "grid-cols-2" : "grid-cols-1"}`}>
           <TabsTrigger value="cong-hang">{t("production.tabOrders")}</TabsTrigger>
-          <TabsTrigger value="cong-doan">{t("production.tabStages")}</TabsTrigger>
+          {isManager && <TabsTrigger value="cong-doan">{t("production.tabStages")}</TabsTrigger>}
         </TabsList>
         
         <TabsContent value="cong-hang" className="mt-6">
@@ -705,9 +705,11 @@ export function SanXuatClient({
           </div>
         </TabsContent>
 
-        <TabsContent value="cong-doan" className="mt-3 sm:mt-6">
-          <CongDoanManager initialData={congDoanList} />
-        </TabsContent>
+        {isManager && (
+          <TabsContent value="cong-doan" className="mt-3 sm:mt-6">
+            <CongDoanManager initialData={congDoanList} />
+          </TabsContent>
+        )}
       </Tabs>
 
 
