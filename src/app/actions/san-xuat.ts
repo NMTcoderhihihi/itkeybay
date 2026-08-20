@@ -115,6 +115,64 @@ export async function createCongHang(payload: {
   return { success: true }
 }
 
+export async function importBulkCongHang(payload: {
+  congHangList: {
+    ma_cong_hang: string
+    don_hang: { ma_don_hang: string; ma_hang: string; so_luong_san_xuat: number }[]
+  }[]
+  congDoanIds: string[]
+}) {
+  const session = await getSession()
+  if (!session) return { success: false, error: "Không có quyền" }
+
+  const danh_sach_cong_doan = payload.congDoanIds.map(id => ({
+    id_cong_doan: id,
+    da_xong: false
+  }))
+
+  const congHangInserts = payload.congHangList.map(ch => ({
+    ma_cong_hang: ch.ma_cong_hang,
+    danh_sach_cong_doan,
+    trang_thai_sx: 'CHUA_LAM',
+    trang_thai_kho: 'CHUA_NHAP'
+  }))
+
+  const { data: insertedCongHang, error: chError } = await supabase
+    .from('cong_hang')
+    .insert(congHangInserts)
+    .select('id, ma_cong_hang')
+
+  if (chError || !insertedCongHang) {
+    return { success: false, error: "Lỗi khi import Công Hàng: " + chError?.message }
+  }
+
+  const donHangInserts: any[] = []
+  insertedCongHang.forEach(dbCh => {
+    // Find the original payload cong hang by ma_cong_hang
+    const originalCh = payload.congHangList.find(c => c.ma_cong_hang === dbCh.ma_cong_hang)
+    if (originalCh) {
+      originalCh.don_hang.forEach(dh => {
+        donHangInserts.push({
+          id_cong_hang: dbCh.id,
+          ma_don_hang: dh.ma_don_hang,
+          ma_hang: dh.ma_hang,
+          so_luong_san_xuat: dh.so_luong_san_xuat
+        })
+      })
+    }
+  })
+
+  if (donHangInserts.length > 0) {
+    const { error: dhError } = await supabase.from('don_hang').insert(donHangInserts)
+    if (dhError) {
+      return { success: false, error: "Lỗi khi import Đơn Hàng chi tiết: " + dhError.message }
+    }
+  }
+
+  revalidatePath('/san-xuat')
+  return { success: true, count: insertedCongHang.length }
+}
+
 export async function getCongHangList() {
   const { data, error } = await supabase
     .from('cong_hang')
