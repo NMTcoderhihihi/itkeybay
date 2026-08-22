@@ -68,7 +68,7 @@ export function KhoClient({
             className="gap-2 rounded-full border border-transparent data-[state=active]:!bg-emerald-600 data-[state=active]:!text-white data-[state=active]:font-bold data-[state=active]:shadow-md data-[state=active]:ring-2 data-[state=active]:ring-emerald-500/40 text-muted-foreground hover:text-foreground !h-9 px-4 transition-all"
           >
             <PlusCircle className="h-4 w-4" />
-            <span>Phiếu Nhập/Xuất</span>
+            <span>{t("warehouse.importExportVoucher")}</span>
           </TabsTrigger>
         </TabsList>
 
@@ -104,7 +104,7 @@ export function KhoClient({
           }`}
         >
           <PlusCircle className="h-5 w-5 shrink-0" />
-          <span className="font-bold text-sm sm:text-base">Nhập / Xuất Kho</span>
+          <span className="font-bold text-sm sm:text-base">{t("warehouse.importExport")}</span>
         </Button>
       </div>
     </div>

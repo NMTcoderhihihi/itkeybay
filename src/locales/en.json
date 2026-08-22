@@ -388,6 +388,8 @@
     "actor": "Actor",
     "viewDetails": "View Details",
     "searchOrder": "Search order code...",
-    "statusFilter": "Status Filter"
+    "statusFilter": "Status Filter",
+    "importExport": "Import / Export",
+    "importExportVoucher": "Import/Export Voucher"
   }
 }
