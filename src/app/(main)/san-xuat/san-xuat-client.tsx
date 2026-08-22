@@ -213,7 +213,7 @@ export function SanXuatClient({
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="text"
-                      placeholder="Tìm mã công, mã hàng..."
+                      placeholder={t("production.searchShortPlaceholder")}
                       className="pl-9 bg-background h-9 sm:h-10 w-full"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -234,9 +234,7 @@ export function SanXuatClient({
                 
                 {/* View Mode Toggle luôn hiện */}
                 <div className="flex items-center justify-between md:justify-end gap-2 w-full md:w-auto mt-2 md:mt-0">
-                  <div className="text-xs text-muted-foreground whitespace-nowrap">
-                    Hiển thị <span className="font-semibold text-foreground">{filteredList.length}</span> công hàng
-                  </div>
+                  <div className="text-xs text-muted-foreground whitespace-nowrap">{t("production.display")}<span className="font-semibold text-foreground">{filteredList.length}</span>{t("production.ordersLower")}</div>
                   <div className="flex items-center gap-1 border rounded-lg p-1 bg-background/60 shadow-sm">
                     <Button
                       variant={viewMode === 'card' ? 'default' : 'ghost'}
@@ -438,11 +436,11 @@ export function SanXuatClient({
                           <DropdownMenuContent align="end" className="w-48" onClick={(e) => e.stopPropagation()}>
                             <DropdownMenuItem onClick={() => setEditingCongHangModal(ch)}>
                               <Edit className="w-3.5 h-3.5 mr-2 text-primary" />
-                              Sửa thông tin
+                              {t("production.editInfo")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => setHistoryCongHangModal(ch)}>
                               <History className="w-3.5 h-3.5 mr-2 text-primary" />
-                              Lịch sử tiến độ
+                              {t("production.progressHistory")}
                             </DropdownMenuItem>
                             {isManager && (
                               <DropdownMenuItem
@@ -450,7 +448,7 @@ export function SanXuatClient({
                                 className="text-destructive focus:text-destructive"
                               >
                                 <Trash2 className="w-3.5 h-3.5 mr-2" />
-                                Xóa công hàng
+                                {t("production.deleteOrder")}
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>
@@ -488,9 +486,9 @@ export function SanXuatClient({
                           </div>
 
                           <div className="flex flex-col items-end gap-1">
-                            {ch.trang_thai_sx === 'CHUA_LAM' && <Badge variant="secondary" className="bg-muted text-muted-foreground text-[10px]"><ListTodo className="w-3 h-3 mr-1"/> Chưa làm</Badge>}
-                            {ch.trang_thai_sx === 'DANG_LAM' && <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px]"><Factory className="w-3 h-3 mr-1"/> Đang SX</Badge>}
-                            {ch.trang_thai_sx === 'DA_LAM' && <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-[10px]"><CheckCircle2 className="w-3 h-3 mr-1"/> Đã xong</Badge>}
+                            {ch.trang_thai_sx === 'CHUA_LAM' && <Badge variant="secondary" className="bg-muted text-muted-foreground text-[10px]"><ListTodo className="w-3 h-3 mr-1"/> {t("production.statusChuaLam")}</Badge>}
+                            {ch.trang_thai_sx === 'DANG_LAM' && <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px]"><Factory className="w-3 h-3 mr-1"/> {t("production.statusDangSX")}</Badge>}
+                            {ch.trang_thai_sx === 'DA_LAM' && <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-[10px]"><CheckCircle2 className="w-3 h-3 mr-1"/> {t("production.statusDaXong")}</Badge>}
                           </div>
                         </div>
 
@@ -498,7 +496,7 @@ export function SanXuatClient({
                         <div className="pt-2 border-t flex items-start justify-between gap-3">
                           <div className="flex-1 space-y-1 min-w-0">
                             <div className="text-xs font-semibold text-muted-foreground flex items-center justify-between mb-1">
-                              <span>Các bước công đoạn:</span>
+                              <span>{t("production.stageSteps")}:</span>
                               <span className="font-bold text-foreground">{completedSteps}/{totalSteps} xong</span>
                             </div>
                             <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
@@ -520,7 +518,7 @@ export function SanXuatClient({
                                     {cd.da_xong ? (
                                       <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 ml-1" />
                                     ) : (
-                                      <span className="text-[10px] text-muted-foreground shrink-0 ml-1">Đang làm</span>
+                                      <span className="text-[10px] text-muted-foreground shrink-0 ml-1">{t("production.statusDangLam")}</span>
                                     )}
                                   </div>
                                 );
@@ -550,12 +548,12 @@ export function SanXuatClient({
                   <Table className="min-w-[1000px]">
                     <TableHeader className="bg-muted/50">
                       <TableRow>
-                        <TableHead className="w-[220px]">Công hàng</TableHead>
-                        <TableHead className="w-[260px]">Đơn hàng / Sản phẩm</TableHead>
-                        <TableHead className="w-[140px]">Trạng thái SX</TableHead>
-                        <TableHead className="w-[130px]">Trạng thái Kho</TableHead>
-                        <TableHead>Tiến độ công đoạn</TableHead>
-                        <TableHead className="w-[70px] text-right">Thao tác</TableHead>
+                        <TableHead className="w-[220px]">{t("production.order")}</TableHead>
+                        <TableHead className="w-[260px]">{t("production.orderProduct")}</TableHead>
+                        <TableHead className="w-[140px]">{t("production.statusSX")}</TableHead>
+                        <TableHead className="w-[130px]">{t("production.statusWarehouse")}</TableHead>
+                        <TableHead>{t("production.stageProgressTitle")}</TableHead>
+                        <TableHead className="w-[70px] text-right">{t("production.action")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -606,17 +604,17 @@ export function SanXuatClient({
                               </div>
                             </TableCell>
                             <TableCell>
-                              {ch.trang_thai_sx === 'CHUA_LAM' && <Badge variant="secondary" className="bg-muted text-muted-foreground"><ListTodo className="w-3 h-3 mr-1"/> Chưa làm</Badge>}
-                              {ch.trang_thai_sx === 'DANG_LAM' && <Badge className="bg-primary/10 text-primary border-primary/20"><Factory className="w-3 h-3 mr-1"/> Đang sản xuất</Badge>}
-                              {ch.trang_thai_sx === 'DA_LAM' && <Badge className="bg-green-500/10 text-green-600 border-green-500/20"><CheckCircle2 className="w-3 h-3 mr-1"/> Đã hoàn thành</Badge>}
+                              {ch.trang_thai_sx === 'CHUA_LAM' && <Badge variant="secondary" className="bg-muted text-muted-foreground"><ListTodo className="w-3 h-3 mr-1"/> {t("production.statusChuaLam")}</Badge>}
+                              {ch.trang_thai_sx === 'DANG_LAM' && <Badge className="bg-primary/10 text-primary border-primary/20"><Factory className="w-3 h-3 mr-1"/> {t("production.inProduction")}</Badge>}
+                              {ch.trang_thai_sx === 'DA_LAM' && <Badge className="bg-green-500/10 text-green-600 border-green-500/20"><CheckCircle2 className="w-3 h-3 mr-1"/> {t("production.statusDaHoanThanh")}</Badge>}
                             </TableCell>
                             <TableCell>
                               {ch.trang_thai_kho === 'TON_KHO' ? (
-                                <Badge className="bg-amber-500 hover:bg-amber-600">Tồn kho BTP</Badge>
+                                <Badge className="bg-amber-500 hover:bg-amber-600">{t("production.stockBTP")}</Badge>
                               ) : ch.trang_thai_kho === 'DA_GIAO' ? (
-                                <Badge className="bg-green-600 hover:bg-green-700">Đã giao</Badge>
+                                <Badge className="bg-green-600 hover:bg-green-700">{t("production.delivered")}</Badge>
                               ) : (
-                                <Badge variant="secondary" className="bg-muted text-muted-foreground">Chưa nhập</Badge>
+                                <Badge variant="secondary" className="bg-muted text-muted-foreground">{t("production.notImported")}</Badge>
                               )}
                             </TableCell>
                             <TableCell>
@@ -647,11 +645,11 @@ export function SanXuatClient({
                                 <DropdownMenuContent align="end" className="w-48">
                                   <DropdownMenuItem onClick={() => setEditingCongHangModal(ch)}>
                                     <Edit className="w-3.5 h-3.5 mr-2 text-primary" />
-                                    Sửa thông tin
+                                    {t("production.editInfo")}
                                   </DropdownMenuItem>
                                   <DropdownMenuItem onClick={() => setHistoryCongHangModal(ch)}>
                                     <History className="w-3.5 h-3.5 mr-2 text-primary" />
-                                    Lịch sử tiến độ
+                                    {t("production.progressHistory")}
                                   </DropdownMenuItem>
                                   {isManager && (
                                     <DropdownMenuItem
@@ -659,7 +657,7 @@ export function SanXuatClient({
                                       className="text-destructive focus:text-destructive"
                                     >
                                       <Trash2 className="w-3.5 h-3.5 mr-2" />
-                                      Xóa công hàng
+                                      {t("production.deleteOrder")}
                                     </DropdownMenuItem>
                                   )}
                                 </DropdownMenuContent>
@@ -685,8 +683,7 @@ export function SanXuatClient({
             {filteredList.length > 0 && (
               <div className="flex flex-col sm:flex-row items-center justify-between mt-2 gap-4">
                 <div className="text-sm text-muted-foreground">
-                  Hiển thị {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, filteredList.length)} đến {Math.min(currentPage * ITEMS_PER_PAGE, filteredList.length)} trong tổng số <span className="font-semibold text-foreground">{filteredList.length}</span> bản ghi
-                </div>
+                  Hiển thị {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, filteredList.length)} đến {Math.min(currentPage * ITEMS_PER_PAGE, filteredList.length)} trong tổng số <span className="font-semibold text-foreground">{filteredList.length}</span>{t("production.records")}</div>
                 <div className="flex items-center space-x-2">
                   <Button 
                     variant="outline" 
@@ -694,7 +691,7 @@ export function SanXuatClient({
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(prev => prev - 1)}
                   >
-                    Trước
+                    {t("production.prev")}
                   </Button>
                   <div className="text-sm font-medium px-2">
                     {currentPage} / {totalPages}
@@ -705,7 +702,7 @@ export function SanXuatClient({
                     disabled={currentPage === totalPages || totalPages === 0}
                     onClick={() => setCurrentPage(prev => prev + 1)}
                   >
-                    Tiếp
+                    {t("production.next")}
                   </Button>
                 </div>
               </div>
