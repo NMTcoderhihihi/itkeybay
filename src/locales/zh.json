@@ -323,7 +323,7 @@
     "importSuccess": "成功导入",
     "orderInfo": "订单信息",
     "cancelOrder": "取消订单",
-    "startProduction": "开始生产",
+    "startProduction": "开始订单",
     "issueMaterial": "发放物料",
     "markCompleted": "标记完成",
     "exportSemiProduct": "出口半成品",
@@ -359,7 +359,17 @@
     "exportItem": "出口项目",
     "selectCategory": "-- 选择类别 --",
     "deliveryPhoto": "交货照片",
-    "confirmDelivery": "确认交货"
+    "confirmDelivery": "确认交货",
+    "createdAt": "创建于",
+    "update": "更新",
+    "saveUpdate": "保存更新",
+    "notePlaceholder": "输入订单备注...",
+    "dh": "订单",
+    "maSp": "产品代码",
+    "noTxHistory": "没有交易记录",
+    "txCode": "交易代码",
+    "proofImage": "证明图片",
+    "cancelDone": "取消完成"
   },
   "warehouse": {
     "overviewTab": "概览",

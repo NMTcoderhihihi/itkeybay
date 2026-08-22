@@ -127,8 +127,8 @@ export async function getDashboardData(): Promise<DashboardData> {
       chuaLamCount++;
     }
 
-    // Nếu công hàng đang sản xuất trong xưởng (chưa hoàn tất DA_LAM và chưa giao DA_GIAO) -> thêm vào activeCongHangList
-    if (ch.trang_thai_sx !== "DA_LAM" && ch.trang_thai_kho !== "DA_GIAO" && ch.trang_thai_kho !== "TON_KHO") {
+    // Nếu công hàng đang sản xuất trong xưởng (chỉ lọc lấy công hàng có trạng thái DANG_LAM) -> thêm vào activeCongHangList
+    if (ch.trang_thai_sx === "DANG_LAM") {
       const stages: Array<{ id_cong_doan: string; da_xong: boolean }> = Array.isArray(
         ch.danh_sach_cong_doan
       )

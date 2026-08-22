@@ -323,7 +323,7 @@
     "importSuccess": "Đã import thành công",
     "orderInfo": "Thông tin Công Hàng",
     "cancelOrder": "Hủy công hàng",
-    "startProduction": "Bắt đầu Sản xuất",
+    "startProduction": "Bắt đầu công hàng",
     "issueMaterial": "Cấp / Phát Liệu",
     "markCompleted": "Chốt Hoàn Thành",
     "exportSemiProduct": "Xuất BTP",
@@ -359,7 +359,17 @@
     "exportItem": "Mục xuất",
     "selectCategory": "-- Chọn danh mục --",
     "deliveryPhoto": "Ảnh giao hàng",
-    "confirmDelivery": "Xác nhận Giao"
+    "confirmDelivery": "Xác nhận Giao",
+    "createdAt": "Tạo lúc",
+    "update": "Cập nhật",
+    "saveUpdate": "Lưu cập nhật",
+    "notePlaceholder": "Nhập ghi chú cho công hàng...",
+    "dh": "ĐH",
+    "maSp": "Mã SP",
+    "noTxHistory": "Chưa có lịch sử giao dịch",
+    "txCode": "Mã giao dịch",
+    "proofImage": "Ảnh minh chứng",
+    "cancelDone": "Hủy xong"
   },
   "warehouse": {
     "overviewTab": "Tổng quan",

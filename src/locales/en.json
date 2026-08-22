@@ -323,7 +323,7 @@
     "importSuccess": "Successfully imported",
     "orderInfo": "Order Info",
     "cancelOrder": "Cancel Order",
-    "startProduction": "Start Production",
+    "startProduction": "Start Order",
     "issueMaterial": "Issue Material",
     "markCompleted": "Mark Completed",
     "exportSemiProduct": "Export Semi-product",
@@ -359,7 +359,17 @@
     "exportItem": "Export Item",
     "selectCategory": "-- Select category --",
     "deliveryPhoto": "Delivery Photo",
-    "confirmDelivery": "Confirm Delivery"
+    "confirmDelivery": "Confirm Delivery",
+    "createdAt": "Created at",
+    "update": "Update",
+    "saveUpdate": "Save Update",
+    "notePlaceholder": "Enter notes for order...",
+    "dh": "Order",
+    "maSp": "Product Code",
+    "noTxHistory": "No transaction history",
+    "txCode": "Tx Code",
+    "proofImage": "Proof Image",
+    "cancelDone": "Cancel done"
   },
   "warehouse": {
     "overviewTab": "Overview",
