@@ -1,5 +1,4 @@
 "use client"
-
 import { useState, useMemo } from "react"
 import { useTranslation } from "@/hooks/use-translation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -257,26 +256,23 @@ export function CongHangDetailView({
           
           {congHang.trang_thai_sx === 'CHUA_LAM' && !isEditingMode && (
             <Button onClick={handleStart} disabled={loadingAction} className="bg-primary text-primary-foreground font-bold shadow-md h-9 border-2 border-primary">
-              <Play className="mr-2 h-4 w-4" /> Bắt đầu Sản xuất
-            </Button>
+              <Play className="mr-2 h-4 w-4" />{t("")}</Button>
           )}
           
           {congHang.trang_thai_sx === 'DANG_LAM' && !isEditingMode && (
             <>
               <Link href={`/kho`} className="flex h-9 px-4 items-center justify-center rounded-md border-2 border-primary/60 bg-primary/10 hover:bg-primary/20 text-primary font-bold shadow-sm transition-colors text-sm">
-                <Truck className="mr-2 h-4 w-4" /> Cấp / Phát Liệu
-              </Link>
+                <Truck className="mr-2 h-4 w-4" />{t("")}</Link>
               {isManager && isAllStepsCompleted && (
                 <Button onClick={() => setShowFinalUpload(true)} disabled={loadingAction} className="bg-green-600 hover:bg-green-700 text-white font-bold h-9 shadow-md border-2 border-green-500">
-                  <CheckCircle2 className="mr-2 h-4 w-4" /> Chốt Hoàn Thành
-                </Button>
+                  <CheckCircle2 className="mr-2 h-4 w-4" />{t("")}</Button>
               )}
             </>
           )}
           
           {congHang.trang_thai_sx === 'DA_LAM' && !isEditingMode && (
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="bg-green-600 text-sm py-1.5 px-4"><CheckCircle2 className="mr-2 h-4 w-4" /> Đã hoàn thành</Badge>
+              <Badge className="bg-green-600 text-sm py-1.5 px-4"><CheckCircle2 className="mr-2 h-4 w-4" />{t("")}</Badge>
               {congHang.trang_thai_kho === 'TON_KHO' && (
                 <Button 
                   onClick={() => {
@@ -289,11 +285,10 @@ export function CongHangDetailView({
                   disabled={loadingAction}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-bold h-9 shadow-md border-2 border-blue-500"
                 >
-                  <Truck className="mr-2 h-4 w-4" /> Xuất BTP
-                </Button>
+                  <Truck className="mr-2 h-4 w-4" />{t("")}</Button>
               )}
               {congHang.trang_thai_kho === 'DA_GIAO' && (
-                <Badge className="bg-green-700 text-sm py-1.5 px-4">Đã giao hàng</Badge>
+                <Badge className="bg-green-700 text-sm py-1.5 px-4">{t("")}</Badge>
               )}
             </div>
           )}
@@ -313,9 +308,7 @@ export function CongHangDetailView({
             <Card className="shadow-sm">
               <CardHeader className="pb-3 bg-muted/10 border-b">
                 <CardTitle className="text-base flex items-center">
-                  <CircularProgressRing progress={progress} size={24} strokeWidth={3} className="mr-2" />
-                  Tiến độ Tổng quan
-                </CardTitle>
+                  <CircularProgressRing progress={progress} size={24} strokeWidth={3} className="mr-2" />{t("")}</CardTitle>
               </CardHeader>
               <CardContent className="pt-4 space-y-2">
                 <div className="flex justify-between text-sm">
@@ -335,9 +328,7 @@ export function CongHangDetailView({
                     Chi tiết Đơn Hàng ({isEditingMode ? editDonHang.length : congHang.don_hang.length})
                   </div>
                   {isEditingMode && (
-                    <Button variant="outline" size="sm" onClick={handleAddDonHang} className="h-7 px-2 text-xs font-bold bg-primary/10 hover:bg-primary/20 text-primary border-primary/40 shadow-sm">
-                      + Thêm
-                    </Button>
+                    <Button variant="outline" size="sm" onClick={handleAddDonHang} className="h-7 px-2 text-xs font-bold bg-primary/10 hover:bg-primary/20 text-primary border-primary/40 shadow-sm">{t("")}</Button>
                   )}
                 </CardTitle>
               </CardHeader>
@@ -394,9 +385,7 @@ export function CongHangDetailView({
             <Card className="shadow-sm">
               <CardHeader className="pb-3 bg-muted/10 border-b">
                 <CardTitle className="text-base flex items-center">
-                  <ListTodo className="mr-2 h-4 w-4 text-primary" />
-                  Ghi chú
-                </CardTitle>
+                  <ListTodo className="mr-2 h-4 w-4 text-primary" />{t("")}</CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
                 {isEditingMode ? (
@@ -408,7 +397,7 @@ export function CongHangDetailView({
                   />
                 ) : (
                   <div className="text-sm whitespace-pre-wrap">
-                    {congHang.ghi_chu || <span className="text-muted-foreground italic">Không có ghi chú</span>}
+                    {congHang.ghi_chu || <span className="text-muted-foreground italic">{t("")}</span>}
                   </div>
                 )}
               </CardContent>
@@ -445,9 +434,7 @@ export function CongHangDetailView({
             <Card className="shadow-sm border-primary/20 h-full flex flex-col">
               <CardHeader className="pb-3 border-b bg-muted/10">
                 <CardTitle className="text-base sm:text-lg flex items-center">
-                  <ListTodo className="mr-2 h-5 w-5 text-primary" />
-                  Phân công & Tiến độ chi tiết
-                </CardTitle>
+                  <ListTodo className="mr-2 h-5 w-5 text-primary" />{t("")}</CardTitle>
               </CardHeader>
               <CardContent className="p-0 flex-1">
                 <div className="divide-y h-full">
@@ -463,7 +450,7 @@ export function CongHangDetailView({
                             <span className={`font-bold text-sm sm:text-base ${cd.da_xong ? 'text-green-800 dark:text-green-300 line-through opacity-80' : 'text-foreground'}`}>
                               {index + 1}. {congDoanInfo?.ten_cong_doan || "Công đoạn không xác định"}
                             </span>
-                            {cd.da_xong && <Badge variant="outline" className="text-green-700 bg-green-500/20 text-[10px] uppercase font-semibold">Đã xong</Badge>}
+                            {cd.da_xong && <Badge variant="outline" className="text-green-700 bg-green-500/20 text-[10px] uppercase font-semibold">{t("")}</Badge>}
                           </div>
                           
                           <div className="w-full sm:w-80">
@@ -473,7 +460,7 @@ export function CongHangDetailView({
                               onChange={e => handleUpdateProgress(index, { id_cong_nhan: e.target.value })}
                               disabled={congHang.trang_thai_sx === 'DA_LAM' || !isEditingMode}
                             >
-                              <option value="">{t("production.assignWorker")}</option>
+                              <option value="">{t("")}</option>
                               {congNhanList.map(cn => (
                                 <option key={cn.id} value={cn.id}>{cn.ho_ten} - {cn.vai_tro || "Công nhân"}</option>
                               ))}
@@ -493,7 +480,7 @@ export function CongHangDetailView({
                                 <div className="relative w-16 h-16 rounded-md border cursor-pointer overflow-hidden hover:border-primary transition-colors shrink-0" onClick={() => setPreviewImage(cd.anh_minh_chung)}>
                                   <Image src={cd.anh_minh_chung} alt="Minh chứng" fill className="object-cover" />
                                 </div>
-                              ) : <div className="text-xs italic text-muted-foreground">Đã xong</div>}
+                              ) : <div className="text-xs italic text-muted-foreground">{t("")}</div>}
                               {congHang.trang_thai_sx !== 'DA_LAM' && isEditingMode && (
                                 <label 
                                   className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/15 hover:bg-red-500/15 text-green-700 hover:text-red-600 border-2 border-green-500/40 hover:border-red-500/40 cursor-pointer shadow-sm w-full justify-center"
@@ -528,11 +515,11 @@ export function CongHangDetailView({
                                     onClick={(e) => { e.preventDefault(); setShowStageUploadForIndex(index); }}
                                   >
                                     <Checkbox checked={false} className="h-4 w-4 pointer-events-none" />
-                                    <span className="text-sm font-bold group-hover:underline">Xác nhận xong</span>
+                                    <span className="text-sm font-bold group-hover:underline">{t("")}</span>
                                   </label>
                                 )
                               ) : (
-                                <div className="h-10 flex items-center"><span className="text-xs text-muted-foreground italic">Đang chờ...</span></div>
+                                <div className="h-10 flex items-center"><span className="text-xs text-muted-foreground italic">{t("")}</span></div>
                               )}
                             </>
                           )}
@@ -551,13 +538,11 @@ export function CongHangDetailView({
           <Card className="shadow-sm border-primary/10">
             <CardHeader className="pb-3 bg-muted/10 border-b">
               <CardTitle className="text-base flex items-center">
-                <Truck className="mr-2 h-5 w-5 text-primary" />
-                Lịch sử Cấp / Phát Liệu (Kho)
-              </CardTitle>
+                <Truck className="mr-2 h-5 w-5 text-primary" />{t("")}</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               {lichSuPhatLieu.length === 0 ? (
-                <div className="p-6 text-center text-muted-foreground text-sm">Chưa có lịch sử giao dịch</div>
+                <div className="p-6 text-center text-muted-foreground text-sm">{t("")}</div>
               ) : (
                 <div className="overflow-x-auto w-full">
                   <table className="w-full text-sm text-left">
@@ -642,7 +627,7 @@ export function CongHangDetailView({
       <Dialog open={showFinalUpload} onOpenChange={setShowFinalUpload}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Hoàn thành Công hàng</DialogTitle>
+            <DialogTitle>{t("")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">Tải lên ảnh Bán thành phẩm để chuyển hàng vào kho.</p>
@@ -672,7 +657,7 @@ export function CongHangDetailView({
       {/* GIAO HÀNG (XUẤT BTP) DIALOG */}
       <Dialog open={showGiaoHangModal} onOpenChange={setShowGiaoHangModal}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle className="flex items-center text-primary"><Truck className="mr-2 h-5 w-5" /> Xuất Kho (Giao hàng)</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="flex items-center text-primary"><Truck className="mr-2 h-5 w-5" />{t("")}</DialogTitle></DialogHeader>
           <div className="space-y-4 py-2">
             <div>
               <label className="text-sm font-medium mb-1 block">Mục xuất</label>
@@ -696,7 +681,7 @@ export function CongHangDetailView({
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium mb-1 block">Ghi chú</label>
+              <label className="text-sm font-medium mb-1 block">{t("")}</label>
               <Textarea value={giaoHangGhiChu} onChange={e => setGiaoHangGhiChu(e.target.value)} className="text-sm" />
             </div>
           </div>

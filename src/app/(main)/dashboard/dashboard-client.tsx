@@ -227,7 +227,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                           className="hover:bg-muted/30 transition-colors"
                         >
                           <TableCell className="py-2.5 px-3 text-xs font-bold whitespace-nowrap">
-                            <Link href={`/san-xuat/${ch.id}`} className="text-primary hover:underline hover:text-primary/80 transition-colors" title="Bấm để xem chi tiết">
+                            <Link href={`/san-xuat/${ch.id}`} className="text-primary hover:underline hover:text-primary/80 transition-colors" title={t("dashboard.viewAll")}>
                               {ch.ma_cong_hang}
                             </Link>
                           </TableCell>
@@ -302,7 +302,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                 </div>
               ) : !isChartReady ? (
                 <div className="w-full h-[240px] sm:h-[260px] flex items-center justify-center bg-muted/20 rounded-lg animate-pulse">
-                  <span className="text-xs text-muted-foreground font-medium">Đang dựng biểu đồ...</span>
+                  <span className="text-xs text-muted-foreground font-medium">{t("dashboard.renderingChart")}</span>
                 </div>
               ) : (
                 <div className="w-full h-[240px] sm:h-[260px]">
@@ -397,19 +397,19 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                     {t("dashboard.txAction")}
                   </TableHead>
                   <TableHead className="py-2.5 px-3 text-xs font-bold min-w-[150px]">
-                    Đối tượng
+                    {t("dashboard.objectType")}
                   </TableHead>
                   <TableHead className="py-2.5 px-3 text-xs font-bold whitespace-nowrap">
-                    Số lượng
+                    {t("dashboard.quantity")}
                   </TableHead>
                   <TableHead className="py-2.5 px-3 text-xs font-bold whitespace-nowrap">
-                    Công hàng
+                    {t("dashboard.totalOrders")}
                   </TableHead>
                   <TableHead className="py-2.5 px-3 text-xs font-bold min-w-[140px]">
                     {t("dashboard.note")}
                   </TableHead>
                   <TableHead className="py-2.5 px-3 text-xs font-bold text-center whitespace-nowrap">
-                    Minh chứng
+                    {t("dashboard.proof")}
                   </TableHead>
                   <TableHead className="py-2.5 px-3 text-xs font-bold text-right whitespace-nowrap">
                     {t("dashboard.batchOrderCode")}
@@ -460,11 +460,11 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                           <span
                             className={`inline-flex w-fit items-center px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase ${
                               tx.loai_doi_tuong === "BAN_THANH_PHAM"
-                                ? "bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20"
-                                : "bg-teal-500/10 text-teal-600 dark:text-teal-400 border border-teal-500/20"
+                                ? "bg-purple-500/10 text-purple-600 dark:purple-400 border border-purple-500/20"
+                                : "bg-teal-500/10 text-teal-600 dark:teal-400 border border-teal-500/20"
                             }`}
                           >
-                            {tx.loai_doi_tuong === "BAN_THANH_PHAM" ? "Bán thành phẩm" : "Nguyên liệu"}
+                            {tx.loai_doi_tuong === "BAN_THANH_PHAM" ? t("dashboard.semiProduct") : t("dashboard.rawMaterial")}
                           </span>
                           <span
                             className="font-medium text-foreground truncate max-w-[150px] sm:max-w-[200px]"

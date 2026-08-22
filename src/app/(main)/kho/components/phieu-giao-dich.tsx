@@ -167,7 +167,7 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
       })
 
       if (result.success) {
-        toast.success("Tạo phiếu giao dịch thành công!")
+        toast.success(t(""))
         // Reset form
         setLoaiGiaoDich('')
         setIdDanhMuc('')
@@ -224,11 +224,11 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
 
             {loaiGiaoDich && (
               <div className="space-y-2 animate-in fade-in">
-                <Label>Lý do (Danh mục)</Label>
+                <Label>{t("")}</Label>
                 <Select value={idDanhMuc} onValueChange={(val) => setIdDanhMuc(val || "")}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Chọn lý do...">
-                      {idDanhMuc ? filteredDanhMuc.find(d => d.id === idDanhMuc)?.ten_danh_muc : "Chọn lý do..."}
+                    <SelectValue placeholder={t("")}>
+                      {idDanhMuc ? filteredDanhMuc.find(d => d.id === idDanhMuc)?.ten_danh_muc : t("")}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="w-auto min-w-[var(--radix-select-trigger-width)] max-h-[300px] max-w-[90vw]">
@@ -246,11 +246,11 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
 
             {loaiGiaoDich === 'XUAT' && (
               <div className="space-y-2 animate-in fade-in">
-                <Label>Cấp cho Công Hàng (Tùy chọn)</Label>
+                <Label>{t("")}</Label>
                 <Select value={idCongHang} onValueChange={(val) => setIdCongHang(val === "none" ? "" : (val || ""))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn công hàng...">
-                      {idCongHang ? congHangList?.find(c => c.id === idCongHang)?.ma_cong_hang : "Không áp dụng"}
+                      {idCongHang ? congHangList?.find(c => c.id === idCongHang)?.ma_cong_hang : t("")}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="w-auto min-w-[var(--radix-select-trigger-width)] max-h-[300px] max-w-[90vw]">
@@ -515,7 +515,7 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
             {isPending || isUploadingImage ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                {isUploadingImage ? "Đang xử lý ảnh..." : "Đang lưu..."}
+                {isUploadingImage ? "Đang xử lý ảnh..." : t("")}
               </>
             ) : (
               <>

@@ -267,7 +267,7 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
               ) : null}
-              {viewMode === 'quy_cach' ? 'Bảng Quy Cách' : t('inventory.ledgerTitle')}: 
+              {viewMode === 'quy_cach' ? t('warehouse.specifications') : t('inventory.ledgerTitle')}: 
               <span className="text-primary">{selectedItem?.ten_nguyen_lieu}</span>
             </DialogTitle>
           </DialogHeader>
@@ -281,7 +281,7 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="text"
-                      placeholder="Tìm kiếm quy cách..."
+                      placeholder={t("warehouse.searchMaterial")}
                       className="pl-9"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -297,8 +297,8 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Tên Quy Cách</TableHead>
-                        <TableHead className="text-right">Tồn Kho</TableHead>
+                        <TableHead>{t("warehouse.specifications")}</TableHead>
+                        <TableHead className="text-right">{t("warehouse.currentStock")}</TableHead>
                         <TableHead className="text-right">Giao dịch gần nhất</TableHead>
                         <TableHead className="text-right">Hành Động</TableHead>
                       </TableRow>
@@ -343,14 +343,14 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                               </div>
                             ) : (
                               <span className="italic text-muted-foreground">
-                                Chưa có giao dịch
+                                {t("warehouse.noData")}
                               </span>
                             )}
                           </TableCell>
                           <TableCell className="text-right">
                             <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground hover:text-primary" onClick={() => handleOpenHistory(selectedItem.id, qc.ma_quy_cach)}>
                               <History className="h-4 w-4" />
-                              Lịch sử
+                              {t("warehouse.transactionHistory")}
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -359,7 +359,7 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                       {filteredQuyCach.length === 0 && (
                         <TableRow>
                           <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
-                            Không tìm thấy quy cách nào.
+                            {t("warehouse.noData")}
                           </TableCell>
                         </TableRow>
                       )}
@@ -385,7 +385,7 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 p-3 bg-muted/20 border rounded-md">
                       {/* Lọc Quy cách */}
                       <div className="space-y-1">
-                        <label className="text-xs font-medium text-muted-foreground">Quy cách</label>
+                        <label className="text-xs font-medium text-muted-foreground">{t("warehouse.specifications")}</label>
                         <select
                           className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
                           value={filters.ma_quy_cach}

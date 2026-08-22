@@ -1,4 +1,5 @@
 "use client"
+import { useTranslation } from "@/hooks/use-translation"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -9,6 +10,7 @@ import { vi } from "date-fns/locale"
 import { Button, buttonVariants } from "@/components/ui/button"
 
 export function BanThanhPhamList({ congHangList }: { congHangList: any[] }) {
+  const { t } = useTranslation();
   // Chỉ lấy những công hàng đã làm xong và đang ở trạng thái kho TON_KHO hoặc DA_GIAO
   const banThanhPham = congHangList.filter(ch => ch.trang_thai_kho === 'TON_KHO' || ch.trang_thai_kho === 'DA_GIAO')
 
@@ -52,7 +54,7 @@ export function BanThanhPhamList({ congHangList }: { congHangList: any[] }) {
                     </Link>
                     
                     {ch.trang_thai_kho === 'TON_KHO' && (
-                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => alert("Tính năng Xuất Giao Hàng đang phát triển...")}>
+                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={() => alert("")}>
                         <Truck className="h-4 w-4 mr-2" /> Giao hàng
                       </Button>
                     )}

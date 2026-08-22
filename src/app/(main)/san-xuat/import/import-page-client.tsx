@@ -10,6 +10,7 @@ import { toast } from "sonner"
 import { FileSpreadsheet, Loader2, AlertCircle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useTranslation } from "@/hooks/use-translation"
 
 type ParsedJob = {
   ma_cong_hang: string
@@ -22,6 +23,7 @@ type ParsedJob = {
 
 export function ImportPageClient({ congDoanList }: { congDoanList: any[] }) {
   const router = useRouter()
+  const { t } = useTranslation()
   const [pasteData, setPasteData] = useState("")
   const [parsedJobs, setParsedJobs] = useState<ParsedJob[]>([])
   const [selectedCongDoanIds, setSelectedCongDoanIds] = useState<string[]>([])
@@ -126,7 +128,7 @@ export function ImportPageClient({ congDoanList }: { congDoanList: any[] }) {
   const handleImport = async () => {
     if (parsedJobs.length === 0) return
     if (selectedCongDoanIds.length === 0) {
-      toast.error("Vui lòng chọn ít nhất 1 công đoạn áp dụng chung")
+      toast.error(t("production.errorNoStage"))
       return
     }
     setLoading(true)
@@ -134,7 +136,7 @@ export function ImportPageClient({ congDoanList }: { congDoanList: any[] }) {
     setLoading(false)
 
     if (res.success) {
-      toast.success(`Đã import thành công ${res.count} công hàng!`)
+      toast.success(`${t("production.importSuccess")} ${res.count} ${t("dashboard.totalOrders").toLowerCase()}!`)
       localStorage.removeItem("draft_import_cong_hang")
       localStorage.removeItem("draft_import_cong_doan")
       router.push("/san-xuat")
@@ -153,14 +155,16 @@ export function ImportPageClient({ congDoanList }: { congDoanList: any[] }) {
         </Link>
         <div className="flex items-center gap-2">
           <FileSpreadsheet className="w-6 h-6 text-primary" />
-          <h1 className="text-2xl font-bold">Import Công Hàng Hàng Loạt</h1>
+          <h1 className="text-2xl font-bold">{t("production.importTitle")}</h1>
         </div>
       </div>
 
       <div className="bg-muted/10 border rounded-xl p-4 sm:p-6 space-y-6">
         <div className="space-y-2">
-          <label className="text-sm font-medium">1. Dán (Paste) dữ liệu từ Excel:</label>
-          <p className="text-xs text-muted-foreground mb-2">Copy dữ liệu từ bảng tính (4 cột: <strong>Mã Công Hàng | Mã Đơn Hàng | Mã/Tên Hàng | Số lượng</strong>) và dán vào ô bên dưới.</p>
+          <label className="text-sm font-medium">{t("production.importStep1")}</label>
+          <p className="text-xs text-muted-foreground mb-2">
+            <span dangerouslySetInnerHTML={{ __html: t("production.importDesc") }} />
+          </p>
           <Textarea 
             className="min-h-[150px] font-mono text-sm whitespace-pre" 
             placeholder={"CH-001\tDH-A\tBàn gỗ\t10"}
@@ -180,9 +184,9 @@ export function ImportPageClient({ congDoanList }: { congDoanList: any[] }) {
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">2. Chọn bộ Công đoạn áp dụng chung:</label>
+                <label className="text-sm font-medium">{t("production.importStep2")}</label>
                 <Button variant="outline" size="sm" onClick={selectAllCongDoan} className="h-8 text-xs">
-                  {selectedCongDoanIds.length === congDoanList.length ? "Bỏ chọn tất cả" : "Chọn tất cả"}
+                  {selectedCongDoanIds.length === congDoanList.length ? t("production.deselectAll") : t("production.selectAll")}
                 </Button>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 border rounded-lg p-4 bg-background">
@@ -199,14 +203,14 @@ export function ImportPageClient({ congDoanList }: { congDoanList: any[] }) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">3. Xem trước Dữ liệu ({parsedJobs.length} Công hàng):</label>
+              <label className="text-sm font-medium">{t("production.importStep3")} ({parsedJobs.length} {t("dashboard.totalOrders")}):</label>
               <div className="border rounded-md overflow-hidden max-h-[500px] overflow-y-auto bg-background">
                 <Table>
                   <TableHeader className="bg-muted/80 sticky top-0 backdrop-blur-sm shadow-sm z-10">
                     <TableRow>
-                      <TableHead className="w-[200px]">Mã Công Hàng</TableHead>
-                      <TableHead className="w-[150px]">Số Đơn Hàng Con</TableHead>
-                      <TableHead>Chi tiết các đơn</TableHead>
+                      <TableHead className="w-[200px]">{t("production.importCodeCol")}</TableHead>
+                      <TableHead className="w-[150px]">{t("production.orderCountCol")}</TableHead>
+                      <TableHead>{t("production.detailCol")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -238,11 +242,11 @@ export function ImportPageClient({ congDoanList }: { congDoanList: any[] }) {
 
             <div className="flex justify-end gap-3 pt-6 border-t mt-6">
               <Link href="/san-xuat">
-                <Button variant="outline" type="button">Hủy bỏ</Button>
+                <Button variant="outline" type="button">{t("production.cancel")}</Button>
               </Link>
               <Button onClick={handleImport} disabled={loading || selectedCongDoanIds.length === 0} size="lg">
                 {loading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
-                Xác nhận Import ({parsedJobs.length} CH)
+                {t("production.confirmImport")} ({parsedJobs.length} CH)
               </Button>
             </div>
           </div>
