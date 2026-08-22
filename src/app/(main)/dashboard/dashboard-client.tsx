@@ -95,201 +95,86 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
-      {/* TẦNG 1: 3 THẺ KPI CHIẾN LƯỢC (3 CỘT TRÊN DESKTOP) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4">
-        {/* Thẻ 1: Tiến độ Xưởng */}
-        <Card
-          className={`transition-all duration-500 ${
-            highlightSection === "cong_hang" || highlightSection === "all"
-              ? "ring-2 ring-primary bg-primary/5 shadow-md"
-              : "hover:border-primary/40"
-          }`}
-        >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-semibold text-muted-foreground">
-              {t("dashboard.activeProduction")}
-            </CardTitle>
-            <Factory className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent className="p-3 sm:p-4 pt-0">
-            <div className="text-lg sm:text-2xl font-bold">{kpi.activeCongHangCount}</div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-              {totalStatusCount > 0
-                ? `${Math.round((kpi.activeCongHangCount / totalStatusCount) * 100)} ${t("dashboard.percentTotalOrders")}`
-                : t("dashboard.noOrders")}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Thẻ 2: Tồn kho Bán thành phẩm (BTP) */}
-        <Card
-          className={`transition-all duration-500 ${
-            highlightSection === "cong_hang" || highlightSection === "all"
-              ? "ring-2 ring-amber-500 bg-amber-500/5 shadow-md"
-              : "hover:border-amber-500/40"
-          }`}
-        >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-semibold text-muted-foreground">
-              {t("dashboard.btpStock")}
-            </CardTitle>
-            <Package className="h-4 w-4 text-amber-500" />
-          </CardHeader>
-          <CardContent className="p-3 sm:p-4 pt-0">
-            <div className="text-lg sm:text-2xl font-bold text-amber-600 dark:text-amber-400">
-              {kpi.tonKhoBtpCount}
-            </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-              {t("dashboard.readyToShip")}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Thẻ 3: Hoạt động 24h qua */}
-        <Card
-          className={`transition-all duration-500 ${
-            highlightSection === "lo_giao_dich" || highlightSection === "all"
-              ? "ring-2 ring-emerald-500 bg-emerald-500/5 shadow-md"
-              : "hover:border-emerald-500/40"
-          }`}
-        >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-semibold text-muted-foreground">
-              {t("dashboard.transactions24h")}
-            </CardTitle>
-            <Activity className="h-4 w-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent className="p-3 sm:p-4 pt-0">
-            <div className="text-lg sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-              {kpi.todayActivityCount}
-            </div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
-              {t("dashboard.dailyUpdates")}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* TẦNG 2: BẢNG TIẾN ĐỘ CÔNG HÀNG (60%) & BIỂU ĐỒ DONUT (40%) */}
+      {/* TẦNG 1: 3 THẺ KPI CHIẾN LƯỢC & BIỂU ĐỒ TRẠNG THÁI (TOP ROW) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
-        {/* Cột Trái (7 cột trên lg): Bảng Tiến độ Công Hàng Đang Sản Xuất */}
-        <div className="lg:col-span-7 flex flex-col">
+        {/* Nhóm KPI (8 cột trên lg) */}
+        <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4">
+          {/* Thẻ 1: Tiến độ Xưởng */}
           <Card
-            className={`flex-1 transition-all duration-500 ${
-              highlightSection === "cong_hang" ? "ring-2 ring-primary/60 shadow-lg" : ""
+            className={`transition-all duration-500 ${
+              highlightSection === "cong_hang" || highlightSection === "all"
+                ? "ring-2 ring-primary bg-primary/5 shadow-md"
+                : "hover:border-primary/40"
             }`}
           >
-            <CardHeader className="p-3 sm:p-4 border-b flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-sm sm:text-base font-bold flex items-center gap-1.5">
-                  <Factory className="h-4 w-4 text-primary" />
-                  {t("dashboard.activeOrdersTitle")}
-                </CardTitle>
-              </div>
-              <Link href="/san-xuat">
-                <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs">
-                  {t("dashboard.viewAll")}
-                  <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
-                </Button>
-              </Link>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-2">
+              <CardTitle className="text-xs sm:text-sm font-semibold text-muted-foreground">
+                {t("dashboard.activeProduction")}
+              </CardTitle>
+              <Factory className="h-4 w-4 text-primary" />
             </CardHeader>
-            <CardContent className="p-0">
-              {/* Bảng dọc tiết kiệm diện tích, cho phép cuộn ngang (overflow-x-auto) trên Mobile */}
-              <div className="w-full overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-muted/40">
-                      <TableHead className="py-2.5 px-3 text-xs font-bold whitespace-nowrap">
-                        {t("dashboard.orderCode")}
-                      </TableHead>
-                      <TableHead className="py-2.5 px-3 text-xs font-bold min-w-[120px]">
-                        {t("dashboard.productOrder")}
-                      </TableHead>
-                      <TableHead className="py-2.5 px-3 text-xs font-bold min-w-[140px]">
-                        {t("dashboard.stageProgress")}
-                      </TableHead>
-                      <TableHead className="py-2.5 px-3 text-xs font-bold whitespace-nowrap">
-                        {t("dashboard.inProgress")}
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {activeCongHangList.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="h-28 text-center text-muted-foreground text-xs">
-                          {t("dashboard.noActiveOrders")}
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      activeCongHangList.map((ch) => (
-                        <TableRow
-                          key={ch.id}
-                          className="hover:bg-muted/30 transition-colors"
-                        >
-                          <TableCell className="py-2.5 px-3 text-xs font-bold whitespace-nowrap">
-                            <Link href={`/san-xuat/${ch.id}`} className="text-primary hover:underline hover:text-primary/80 transition-colors" title={t("dashboard.viewAll")}>
-                              {ch.ma_cong_hang}
-                            </Link>
-                          </TableCell>
-                          <TableCell className="py-2.5 px-3 text-xs">
-                            <div className="space-y-1 max-h-24 overflow-y-auto pr-1">
-                              {ch.danh_sach_don_hang && ch.danh_sach_don_hang.length > 0 ? (
-                                ch.danh_sach_don_hang.map((dh, idx) => (
-                                  <div
-                                    key={idx}
-                                    className="flex items-center justify-between gap-2 text-xs border-b border-border/40 last:border-0 pb-1 last:pb-0"
-                                  >
-                                    <span className="font-semibold text-foreground truncate" title={dh.ma_hang}>
-                                      {dh.ma_hang}
-                                    </span>
-                                    {dh.so_luong_san_xuat !== undefined && (
-                                      <span className="shrink-0 text-[11px] font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                                        x{dh.so_luong_san_xuat}
-                                      </span>
-                                    )}
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="font-medium text-foreground whitespace-normal break-words text-xs leading-relaxed">
-                                  {ch.ten_san_pham}
-                                </div>
-                              )}
-                            </div>
-                            {ch.ghi_chu && (
-                              <div className="text-[10px] text-muted-foreground truncate max-w-[150px] sm:max-w-[200px] mt-1">
-                                {ch.ghi_chu}
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell className="py-2.5 px-3 text-xs">
-                            <div className="space-y-1">
-                              <div className="flex items-center justify-between text-[11px] font-semibold">
-                                <span>{ch.progress}%</span>
-                                <span className="text-muted-foreground">
-                                  {ch.completedStages}/{ch.totalStages}
-                                </span>
-                              </div>
-                              <Progress value={ch.progress} className="h-1.5" />
-                            </div>
-                          </TableCell>
-                          <TableCell className="py-2.5 px-3 text-xs whitespace-nowrap">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                              {ch.currentStageName}
-                            </span>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
+            <CardContent className="p-3 sm:p-4 pt-0">
+              <div className="text-lg sm:text-2xl font-bold">{kpi.activeCongHangCount}</div>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                {totalStatusCount > 0
+                  ? `${Math.round((kpi.activeCongHangCount / totalStatusCount) * 100)} ${t("dashboard.percentTotalOrders")}`
+                  : t("dashboard.noOrders")}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Thẻ 2: Tồn kho Bán thành phẩm (BTP) */}
+          <Card
+            className={`transition-all duration-500 ${
+              highlightSection === "cong_hang" || highlightSection === "all"
+                ? "ring-2 ring-amber-500 bg-amber-500/5 shadow-md"
+                : "hover:border-amber-500/40"
+            }`}
+          >
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-2">
+              <CardTitle className="text-xs sm:text-sm font-semibold text-muted-foreground">
+                {t("dashboard.btpStock")}
+              </CardTitle>
+              <Package className="h-4 w-4 text-amber-500" />
+            </CardHeader>
+            <CardContent className="p-3 sm:p-4 pt-0">
+              <div className="text-lg sm:text-2xl font-bold text-amber-600 dark:text-amber-400">
+                {kpi.tonKhoBtpCount}
               </div>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                {t("dashboard.readyToShip")}
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Thẻ 3: Hoạt động 24h qua */}
+          <Card
+            className={`transition-all duration-500 ${
+              highlightSection === "lo_giao_dich" || highlightSection === "all"
+                ? "ring-2 ring-emerald-500 bg-emerald-500/5 shadow-md"
+                : "hover:border-emerald-500/40"
+            }`}
+          >
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 sm:p-4 pb-2">
+              <CardTitle className="text-xs sm:text-sm font-semibold text-muted-foreground">
+                {t("dashboard.transactions24h")}
+              </CardTitle>
+              <Activity className="h-4 w-4 text-emerald-500" />
+            </CardHeader>
+            <CardContent className="p-3 sm:p-4 pt-0">
+              <div className="text-lg sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                {kpi.todayActivityCount}
+              </div>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
+                {t("dashboard.dailyUpdates")}
+              </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Cột Phải (5 cột trên lg): Biểu đồ Donut Phân bổ Trạng thái */}
-        <div className="lg:col-span-5 flex flex-col">
-          <Card className="flex-1 flex flex-col">
+        {/* Cột Biểu đồ (Chiếm 4/12 cột trên Desktop) */}
+        <div className="lg:col-span-4 flex flex-col">
+          <Card className="flex-1 flex flex-col h-full">
             <CardHeader className="p-3 sm:p-4 border-b">
               <CardTitle className="text-sm sm:text-base font-bold">
                 {t("dashboard.statusChartTitle")}
@@ -297,23 +182,23 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             </CardHeader>
             <CardContent className="p-3 sm:p-4 flex-1 flex flex-col items-center justify-center">
               {totalStatusCount === 0 ? (
-                <div className="h-[220px] flex items-center justify-center text-xs text-muted-foreground">
+                <div className="h-[120px] flex items-center justify-center text-xs text-muted-foreground">
                   {t("dashboard.noOrderData")}
                 </div>
               ) : !isChartReady ? (
-                <div className="w-full h-[240px] sm:h-[260px] flex items-center justify-center bg-muted/20 rounded-lg animate-pulse">
+                <div className="w-full h-[120px] sm:h-[140px] flex items-center justify-center bg-muted/20 rounded-lg animate-pulse">
                   <span className="text-xs text-muted-foreground font-medium">{t("dashboard.renderingChart")}</span>
                 </div>
               ) : (
-                <div className="w-full h-[240px] sm:h-[260px]">
+                <div className="w-full h-[120px] sm:h-[140px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={statusDistribution}
-                        cx="50%"
-                        cy="45%"
-                        innerRadius={55}
-                        outerRadius={80}
+                        cx="40%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={55}
                         paddingAngle={4}
                         dataKey="value"
                       >
@@ -331,8 +216,10 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                         }}
                       />
                       <Legend
-                        verticalAlign="bottom"
-                        height={36}
+                        verticalAlign="middle"
+                        layout="vertical"
+                        align="right"
+                        wrapperStyle={{ fontSize: "11px" }}
                         formatter={(value: string, entry: any) => {
                           const code = entry.payload?.code || "";
                           const label =
@@ -346,7 +233,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                               ? t("dashboard.statusChuaLam")
                               : value;
                           return (
-                            <span className="text-xs font-medium text-foreground mr-3">
+                            <span className="text-[11px] font-medium text-foreground ml-1">
                               {label} ({entry.payload.value})
                             </span>
                           );
@@ -360,6 +247,119 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           </Card>
         </div>
       </div>
+
+      {/* TẦNG 2: BẢNG TIẾN ĐỘ CÔNG HÀNG (100% WIDTH) */}
+      <Card
+        className={`w-full transition-all duration-500 ${
+          highlightSection === "cong_hang" ? "ring-2 ring-primary/60 shadow-lg" : ""
+        }`}
+      >
+        <CardHeader className="p-3 sm:p-4 border-b flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-sm sm:text-base font-bold flex items-center gap-1.5">
+              <Factory className="h-4 w-4 text-primary" />
+              {t("dashboard.activeOrdersTitle")}
+            </CardTitle>
+          </div>
+          <Link href="/san-xuat">
+            <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs">
+              {t("dashboard.viewAll")}
+              <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
+            </Button>
+          </Link>
+        </CardHeader>
+        <CardContent className="p-0">
+          {/* Bảng dọc tiết kiệm diện tích, cho phép cuộn ngang (overflow-x-auto) trên Mobile */}
+          <div className="w-full overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/40">
+                  <TableHead className="py-2.5 px-3 text-xs font-bold whitespace-nowrap">
+                    {t("dashboard.orderCode")}
+                  </TableHead>
+                  <TableHead className="py-2.5 px-3 text-xs font-bold min-w-[120px]">
+                    {t("dashboard.productOrder")}
+                  </TableHead>
+                  <TableHead className="py-2.5 px-3 text-xs font-bold min-w-[140px]">
+                    {t("dashboard.stageProgress")}
+                  </TableHead>
+                  <TableHead className="py-2.5 px-3 text-xs font-bold whitespace-nowrap">
+                    {t("dashboard.inProgress")}
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activeCongHangList.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-28 text-center text-muted-foreground text-xs">
+                      {t("dashboard.noActiveOrders")}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  activeCongHangList.map((ch) => (
+                    <TableRow
+                      key={ch.id}
+                      className="hover:bg-muted/30 transition-colors"
+                    >
+                      <TableCell className="py-2.5 px-3 text-xs font-bold whitespace-nowrap">
+                        <Link href={`/san-xuat/${ch.id}`} className="text-primary hover:underline hover:text-primary/80 transition-colors" title={t("dashboard.viewAll")}>
+                          {ch.ma_cong_hang}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="py-2.5 px-3 text-xs">
+                        <div className="space-y-1 max-h-24 overflow-y-auto pr-1">
+                          {ch.danh_sach_don_hang && ch.danh_sach_don_hang.length > 0 ? (
+                            ch.danh_sach_don_hang.map((dh, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between gap-2 text-xs border-b border-border/40 last:border-0 pb-1 last:pb-0"
+                              >
+                                <span className="font-semibold text-foreground truncate" title={dh.ma_hang}>
+                                  {dh.ma_hang}
+                                </span>
+                                {dh.so_luong_san_xuat !== undefined && (
+                                  <span className="shrink-0 text-[11px] font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                                    x{dh.so_luong_san_xuat}
+                                  </span>
+                                )}
+                              </div>
+                            ))
+                          ) : (
+                            <div className="font-medium text-foreground whitespace-normal break-words text-xs leading-relaxed">
+                              {ch.ten_san_pham}
+                            </div>
+                          )}
+                        </div>
+                        {ch.ghi_chu && (
+                          <div className="text-[10px] text-muted-foreground truncate max-w-[150px] sm:max-w-[200px] mt-1">
+                            {ch.ghi_chu}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="py-2.5 px-3 text-xs">
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[11px] font-semibold">
+                            <span>{ch.progress}%</span>
+                            <span className="text-muted-foreground">
+                              {ch.completedStages}/{ch.totalStages}
+                            </span>
+                          </div>
+                          <Progress value={ch.progress} className="h-1.5" />
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-2.5 px-3 text-xs whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                          {ch.currentStageName}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* TẦNG 3: DANH SÁCH 10 HÀNH ĐỘNG GIAO DỊCH GẦN NHẤT (100% WIDTH) */}
       <Card
