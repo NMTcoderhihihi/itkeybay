@@ -167,7 +167,7 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
       })
 
       if (result.success) {
-        toast.success(t(""))
+        toast.success("Cập nhật giao dịch thành công!")
         // Reset form
         setLoaiGiaoDich('')
         setIdDanhMuc('')
@@ -193,7 +193,6 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
         <div className="bg-card rounded-xl border shadow-sm p-4 md:p-6 space-y-6">
           <div>
             <h2 className="text-xl font-bold flex items-center gap-2">
-              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm">1</span>
               {t('inventory.transactionStep1')}
             </h2>
             <p className="text-muted-foreground text-sm mt-1">{t('inventory.transactionStep1Desc')}</p>
@@ -224,11 +223,11 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
 
             {loaiGiaoDich && (
               <div className="space-y-2 animate-in fade-in">
-                <Label>{t("")}</Label>
+                <Label>{t("inventory.detailCategory")}</Label>
                 <Select value={idDanhMuc} onValueChange={(val) => setIdDanhMuc(val || "")}>
                   <SelectTrigger>
-                    <SelectValue placeholder={t("")}>
-                      {idDanhMuc ? filteredDanhMuc.find(d => d.id === idDanhMuc)?.ten_danh_muc : t("")}
+                    <SelectValue placeholder={t("inventory.selectCategory")}>
+                      {idDanhMuc ? filteredDanhMuc.find(d => d.id === idDanhMuc)?.ten_danh_muc : t("inventory.selectCategory")}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="w-auto min-w-[var(--radix-select-trigger-width)] max-h-[300px] max-w-[90vw]">
@@ -246,11 +245,11 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
 
             {loaiGiaoDich === 'XUAT' && (
               <div className="space-y-2 animate-in fade-in">
-                <Label>{t("")}</Label>
+                <Label>{t("inventory.order")}</Label>
                 <Select value={idCongHang} onValueChange={(val) => setIdCongHang(val === "none" ? "" : (val || ""))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn công hàng...">
-                      {idCongHang ? congHangList?.find(c => c.id === idCongHang)?.ma_cong_hang : t("")}
+                      {idCongHang ? congHangList?.find(c => c.id === idCongHang)?.ma_cong_hang : "Chọn công hàng (tùy chọn)"}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="w-auto min-w-[var(--radix-select-trigger-width)] max-h-[300px] max-w-[90vw]">
@@ -275,7 +274,6 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-xl font-bold flex items-center gap-2">
-                <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm">2</span>
                 {t('inventory.transactionStep2')}
               </h2>
               <p className="text-muted-foreground text-sm mt-1">{t('inventory.transactionStep2Desc')}</p>
@@ -405,7 +403,6 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
         <div className={`bg-card rounded-xl border shadow-sm p-4 md:p-6 space-y-6 transition-opacity duration-300 ${(chiTiet.length === 0) ? 'opacity-50 pointer-events-none' : ''}`}>
           <div>
             <h2 className="text-xl font-bold flex items-center gap-2">
-              <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm">3</span>
               {t('inventory.transactionStep3')}
             </h2>
             <p className="text-muted-foreground text-sm mt-1">{t('inventory.transactionStep3Desc')}</p>
@@ -515,7 +512,7 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
             {isPending || isUploadingImage ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                {isUploadingImage ? "Đang xử lý ảnh..." : t("")}
+                {isUploadingImage ? "Đang xử lý ảnh..." : "Đang xử lý..."}
               </>
             ) : (
               <>

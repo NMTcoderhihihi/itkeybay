@@ -487,22 +487,22 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                                     {dh.ma_hang}
                                   </span>
                                   {dh.so_luong_san_xuat !== undefined && (
-                                    <span className="shrink-0 text-[11px] font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                                      x{dh.so_luong_san_xuat}
+                                    <span className={`shrink-0 text-[11px] font-bold px-1.5 py-0.5 rounded bg-muted ${tx.loai_giao_dich === "XUAT" ? "text-red-600 dark:text-red-400" : tx.loai_giao_dich === "NHAP" ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
+                                      {tx.loai_giao_dich === "XUAT" ? "-" : "+"}{dh.so_luong_san_xuat}
                                     </span>
                                   )}
                                 </div>
                               ))
                             ) : (
-                              <span className="text-muted-foreground font-medium">
-                                {tx.so_luong_tong > 0 ? `${tx.so_luong_tong} SL` : "-"}
+                              <span className={`font-medium ${tx.loai_giao_dich === "XUAT" ? "text-red-600 dark:text-red-400" : tx.loai_giao_dich === "NHAP" ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
+                                {tx.so_luong_tong > 0 ? `${tx.loai_giao_dich === "XUAT" ? "-" : "+"}${tx.so_luong_tong} SL` : "-"}
                               </span>
                             )}
                           </div>
                         ) : (
                           <div className="flex flex-col gap-0.5">
-                            <span className="font-bold text-foreground">
-                              {tx.so_luong_tong > 0 ? `+${tx.so_luong_tong}` : (tx.so_luong_tong || 0)} SL
+                            <span className={`font-bold ${tx.loai_giao_dich === "XUAT" ? "text-red-600 dark:text-red-400" : tx.loai_giao_dich === "NHAP" ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}>
+                              {tx.so_luong_tong > 0 ? `${tx.loai_giao_dich === "XUAT" ? "-" : "+"}${tx.so_luong_tong}` : (tx.so_luong_tong || 0)} SL
                             </span>
                             {tx.quy_cach_ghi_chu && (
                               <span
