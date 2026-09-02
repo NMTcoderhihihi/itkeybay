@@ -260,7 +260,7 @@ export function PhieuGiaoDich({
 
             {loaiGiaoDich === 'NHAP' && (
               <div className="space-y-3 animate-in fade-in">
-                <Label>Áp dụng cho Đơn tổng (Tùy chọn)</Label>
+                <Label>{t("masterOrder.applyFor")}</Label>
                 <div className="flex flex-col gap-2">
                   <Select 
                     value="" 
@@ -271,7 +271,7 @@ export function PhieuGiaoDich({
                     }}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="-- Chọn để thêm Đơn tổng --" />
+                      <SelectValue placeholder={t("masterOrder.selectToAdd")} />
                     </SelectTrigger>
                     <SelectContent className="w-auto min-w-[var(--radix-select-trigger-width)] max-h-[300px] max-w-[90vw]">
                       {donTongList?.filter(dt => dt.trang_thai !== 'DA_DU').map(dt => (
@@ -282,7 +282,7 @@ export function PhieuGiaoDich({
 
                   {danhSachDonTong.length > 0 && (
                     <div className="flex flex-col gap-1.5 p-3 border rounded-md bg-muted/20">
-                      <span className="text-xs font-semibold text-muted-foreground mb-1">Thứ tự ưu tiên trừ lùi khi nhập kho:</span>
+                      <span className="text-xs font-semibold text-muted-foreground mb-1">{t("masterOrder.deductionOrder")}</span>
                       {danhSachDonTong.map((dtId, idx) => {
                         const dt = donTongList?.find(d => d.id === dtId)
                         return (

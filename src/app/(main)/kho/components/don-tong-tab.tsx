@@ -1,3 +1,4 @@
+import { useTranslation } from "@/hooks/use-translation"
 "use client"
 
 import { useState } from "react"
@@ -15,6 +16,7 @@ import { xoaDonTong } from "@/app/actions/don-tong"
 import { toast } from "sonner"
 
 export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongList: any[], nguyenLieuList: any[] }) {
+  const { t } = useTranslation()
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("ALL")
   const [dateFilter, setDateFilter] = useState("ALL") // "ALL", "TODAY", "WEEK", "MONTH"
@@ -28,10 +30,10 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
   }
 
   const handleDelete = async (id: string) => {
-    if (confirm("Bạn có chắc chắn muốn xóa đơn tổng này? Lịch sử nhập đã liên kết sẽ bị ảnh hưởng.")) {
+    if (confirm(t("masterOrder.deleteConfirm"))) {
       const res = await xoaDonTong(id)
-      if (res.success) toast.success("Đã xóa đơn tổng")
-      else toast.error(res.error || "Có lỗi khi xóa")
+      if (res.success) toast.success(t("masterOrder.deletedSuccess"))
+      else toast.error(res.error || t("masterOrder.deleteError"))
     }
   }
 
@@ -79,31 +81,31 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
           <div className="relative w-full sm:max-w-[250px]">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
-              placeholder="Tìm mã, tên đơn..." 
+              placeholder={t("masterOrder.searchPlaceholder")} 
               className="pl-9"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val || "ALL")}>
             <SelectTrigger className="w-full sm:w-[150px]">
-              <SelectValue placeholder="Trạng thái" />
+              <SelectValue placeholder={t("masterOrder.status")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">Tất cả trạng thái</SelectItem>
-              <SelectItem value="CHUA_DU">Chưa đủ</SelectItem>
-              <SelectItem value="DA_DU">Đã đủ</SelectItem>
+              <SelectItem value="ALL">{t("masterOrder.allStatus")}</SelectItem>
+              <SelectItem value="CHUA_DU">{t("masterOrder.statusNotEnough")}</SelectItem>
+              <SelectItem value="DA_DU">{t("masterOrder.statusEnough")}</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={dateFilter} onValueChange={setDateFilter}>
+          <Select value={dateFilter} onValueChange={(val) => setDateFilter(val || "ALL")}>
             <SelectTrigger className="w-full sm:w-[150px]">
-              <SelectValue placeholder="Thời gian" />
+              <SelectValue placeholder={t("masterOrder.time")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">Mọi lúc</SelectItem>
-              <SelectItem value="TODAY">Hôm nay</SelectItem>
-              <SelectItem value="WEEK">7 ngày qua</SelectItem>
-              <SelectItem value="MONTH">Tháng này</SelectItem>
+              <SelectItem value="ALL">{t("masterOrder.allTime")}</SelectItem>
+              <SelectItem value="TODAY">{t("masterOrder.today")}</SelectItem>
+              <SelectItem value="WEEK">{t("masterOrder.last7Days")}</SelectItem>
+              <SelectItem value="MONTH">{t("masterOrder.thisMonth")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -119,12 +121,12 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead className="w-[40px]"></TableHead>
-                <TableHead>Mã Đơn</TableHead>
-                <TableHead>Tên / Ghi chú</TableHead>
-                <TableHead>Tiến độ tổng</TableHead>
+                <TableHead>{t("masterOrder.orderCode")}</TableHead>
+                <TableHead>{t("masterOrder.nameNote")}</TableHead>
+                <TableHead>{t("masterOrder.totalProgress")}</TableHead>
                 <TableHead>Trạng thái</TableHead>
-                <TableHead>Ngày tạo</TableHead>
-                <TableHead className="text-right">Thao tác</TableHead>
+                <TableHead>{t("masterOrder.createdAt")}</TableHead>
+                <TableHead className="text-right">{t("masterOrder.action")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -162,9 +164,9 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
                         </TableCell>
                         <TableCell>
                           {dt.trang_thai === 'DA_DU' ? (
-                            <Badge className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/20">Đã đủ</Badge>
+                            <Badge className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/20">{t("masterOrder.statusEnough")}</Badge>
                           ) : (
-                            <Badge variant="outline" className="text-amber-600 border-amber-500/30 bg-amber-500/5">Chưa đủ</Badge>
+                            <Badge variant="outline" className="text-amber-600 border-amber-500/30 bg-amber-500/5">{t("masterOrder.statusNotEnough")}</Badge>
                           )}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
@@ -186,10 +188,10 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
                         <TableRow className="bg-muted/10">
                           <TableCell colSpan={7} className="p-0">
                             <div className="p-4 pl-12 border-l-2 border-l-primary/50 mx-2 my-2 bg-background rounded-r-lg shadow-sm">
-                              <h4 className="text-sm font-semibold mb-3">Chi tiết Yêu cầu & Tiến độ</h4>
+                              <h4 className="text-sm font-semibold mb-3">{t("masterOrder.detailsProgress")}</h4>
                               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {dt.don_tong_chi_tiet?.length === 0 ? (
-                                  <div className="text-sm text-muted-foreground">Không có chi tiết.</div>
+                                  <div className="text-sm text-muted-foreground">{t("masterOrder.noDetails")}</div>
                                 ) : (
                                   dt.don_tong_chi_tiet?.map((ct: any) => {
                                     const nl = ct.nguyen_lieu;
@@ -216,7 +218,7 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
                                         </div>
                                         <div className="space-y-1 mt-1">
                                           <div className="flex justify-between text-[11px]">
-                                            <span className="text-muted-foreground">Nhập: <span className="font-semibold text-foreground">{d}</span> / {y} {nl?.don_vi}</span>
+                                            <span className="text-muted-foreground">{t("masterOrder.imported")} <span className="font-semibold text-foreground">{d}</span> / {y} {nl?.don_vi}</span>
                                             <span className={pct === 100 ? 'text-emerald-600 font-bold' : 'font-medium'}>{pct}%</span>
                                           </div>
                                           <Progress value={pct} className={`h-1.5 ${pct === 100 ? '[&>div]:bg-emerald-500' : ''}`} />

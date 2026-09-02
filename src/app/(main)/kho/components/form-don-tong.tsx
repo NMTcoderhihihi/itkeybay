@@ -56,12 +56,12 @@ export function FormDonTong({ open, onOpenChange, nguyenLieuList, initialData }:
   }
 
   const handleSubmit = () => {
-    if (!maDonTong) return toast.error("Vui lòng nhập mã đơn tổng")
-    if (chiTiet.length === 0) return toast.error("Vui lòng thêm ít nhất 1 chi tiết vật tư yêu cầu")
+    if (!maDonTong) return toast.error(t("masterOrder.errNoCode"))
+    if (chiTiet.length === 0) return toast.error(t("masterOrder.errNoDetails"))
 
     for (const item of chiTiet) {
       if (!item.id_nguyen_lieu || !item.ma_quy_cach || item.so_luong_yeu_cau <= 0) {
-        return toast.error("Vui lòng nhập đầy đủ thông tin (vật tư, quy cách) và số lượng > 0")
+        return toast.error(t("masterOrder.errInvalidDetail"))
       }
     }
 
@@ -74,7 +74,7 @@ export function FormDonTong({ open, onOpenChange, nguyenLieuList, initialData }:
       }
 
       if (result.success) {
-        toast.success(isEdit ? "Cập nhật thành công!" : "Tạo đơn tổng thành công!")
+        toast.success(isEdit ? t("masterOrder.successUpdate") : t("masterOrder.successCreate"))
         onOpenChange(false)
         if (!isEdit) {
           setMaDonTong("")
@@ -83,7 +83,7 @@ export function FormDonTong({ open, onOpenChange, nguyenLieuList, initialData }:
           setChiTiet([])
         }
       } else {
-        toast.error(result.error || "Có lỗi xảy ra")
+        toast.error(result.error || t("masterOrder.errorOccurred"))
       }
     })
   }
@@ -92,7 +92,7 @@ export function FormDonTong({ open, onOpenChange, nguyenLieuList, initialData }:
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Sửa Đơn Tổng" : "Tạo Đơn Tổng Mới"}</DialogTitle>
+          <DialogTitle>{isEdit ? t("masterOrder.editTitle") : t("masterOrder.createTitle")}</DialogTitle>
           <DialogDescription>
             Tạo các yêu cầu nhập vật tư tổng thể cho các dự án lớn.
           </DialogDescription>
@@ -101,23 +101,23 @@ export function FormDonTong({ open, onOpenChange, nguyenLieuList, initialData }:
         <div className="space-y-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Mã đơn tổng</Label>
-              <Input placeholder="VD: DT-DA001" value={maDonTong} onChange={e => setMaDonTong(e.target.value)} />
+              <Label>{t("masterOrder.orderCode")}</Label>
+              <Input placeholder={t("masterOrder.codePlaceholder")} value={maDonTong} onChange={e => setMaDonTong(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Tên đơn (Tùy chọn)</Label>
-              <Input placeholder="VD: Dự án A" value={tenDon} onChange={e => setTenDon(e.target.value)} />
+              <Label>{t("masterOrder.orderNameOpt")}</Label>
+              <Input placeholder={t("masterOrder.namePlaceholder")} value={tenDon} onChange={e => setTenDon(e.target.value)} />
             </div>
           </div>
           
           <div className="space-y-2">
-            <Label>Ghi chú</Label>
-            <Input placeholder="Ghi chú thêm..." value={ghiChu} onChange={e => setGhiChu(e.target.value)} />
+            <Label>{t("common.notes") || t("masterOrder.nameNote")}</Label>
+            <Input placeholder={t("masterOrder.notePlaceholder")} value={ghiChu} onChange={e => setGhiChu(e.target.value)} />
           </div>
 
           <div className="pt-4 border-t">
             <div className="flex justify-between items-center mb-4">
-              <Label className="text-base font-semibold">Chi tiết Vật tư Yêu cầu</Label>
+              <Label className="text-base font-semibold">{t("masterOrder.materialDetails")}</Label>
               <Button type="button" variant="outline" size="sm" onClick={handleAddRow}>
                 <Plus className="w-4 h-4 mr-2" /> Thêm dòng
               </Button>
@@ -131,18 +131,18 @@ export function FormDonTong({ open, onOpenChange, nguyenLieuList, initialData }:
                 return (
                   <Card key={index} className="overflow-visible">
                     <div className="flex p-2 justify-between items-center bg-muted/30 border-b">
-                      <span className="text-sm font-medium ml-2">Dòng #{index + 1}</span>
+                      <span className="text-sm font-medium ml-2">{t("masterOrder.row")} #{index + 1}</span>
                       <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive" onClick={() => handleRemoveRow(index)}>
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
                     <CardContent className="p-3 grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Nguyên liệu</Label>
+                        <Label className="text-xs">{t("masterOrder.material")}</Label>
                         <Select value={item.id_nguyen_lieu} onValueChange={v => updateChiTiet(index, 'id_nguyen_lieu', v)}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Chọn...">
-                              {selectedNL?.ten_nguyen_lieu || "Chọn..."}
+                            <SelectValue placeholder={t("masterOrder.selectPlaceholder")}>
+                              {selectedNL?.ten_nguyen_lieu || t("masterOrder.selectPlaceholder")}
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
@@ -154,11 +154,11 @@ export function FormDonTong({ open, onOpenChange, nguyenLieuList, initialData }:
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Quy cách</Label>
+                        <Label className="text-xs">{t("masterOrder.spec")}</Label>
                         <Select value={item.ma_quy_cach} onValueChange={v => updateChiTiet(index, 'ma_quy_cach', v)} disabled={!item.id_nguyen_lieu}>
                           <SelectTrigger>
-                            <SelectValue placeholder="Chọn...">
-                              {quyCachList.find((q: any) => q.ma_quy_cach === item.ma_quy_cach)?.ten || "Chọn..."}
+                            <SelectValue placeholder={t("masterOrder.selectPlaceholder")}>
+                              {quyCachList.find((q: any) => q.ma_quy_cach === item.ma_quy_cach)?.ten || t("masterOrder.selectPlaceholder")}
                             </SelectValue>
                           </SelectTrigger>
                           <SelectContent>
@@ -170,7 +170,7 @@ export function FormDonTong({ open, onOpenChange, nguyenLieuList, initialData }:
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label className="text-xs">Số lượng CẦN ({selectedNL?.don_vi || '...'})</Label>
+                        <Label className="text-xs">{t("masterOrder.requiredQty")} ({selectedNL?.don_vi || '...'})</Label>
                         <Input 
                           type="number" min="0" step="0.01"
                           value={item.so_luong_yeu_cau || ''}
@@ -191,10 +191,10 @@ export function FormDonTong({ open, onOpenChange, nguyenLieuList, initialData }:
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Hủy</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("masterOrder.cancel")}</Button>
           <Button onClick={handleSubmit} disabled={isPending}>
             {isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            {isEdit ? "Lưu thay đổi" : "Tạo mới"}
+            {isEdit ? t("masterOrder.saveChanges") : t("masterOrder.create")}
           </Button>
         </DialogFooter>
       </DialogContent>
