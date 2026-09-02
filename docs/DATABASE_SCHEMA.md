@@ -84,7 +84,7 @@ erDiagram
     }
 
     %% ==========================================
-    %% 6. DANH MỤC GIAO DỊCH & LÔ GIAO DỊCH KHO
+    %% 6. DANH MỤC GIAO DỊCH, LÔ GIAO DỊCH & QUẢN LÝ ĐƠN TỔNG
     %% ==========================================
     danh_muc_giao_dich {
         uuid id PK
@@ -104,8 +104,27 @@ erDiagram
         uuid id_danh_muc FK
         uuid id_cong_hang FK "Dùng khi cấp phát hoặc xuất giao BTP"
         jsonb danh_sach_anh "Mảng URL ảnh minh chứng (Gộp bảng)"
+        jsonb danh_sach_don_tong "Mảng UUID liên kết thứ tự ưu tiên Đơn tổng"
         timestamp ngay_tao
         string ghi_chu
+    }
+    
+    don_tong {
+        uuid id PK
+        string ma_don_tong "VD: DT-DA001"
+        string ten_don
+        string ghi_chu
+        string trang_thai "CHUA_DU / DA_DU"
+        timestamp ngay_tao
+    }
+
+    don_tong_chi_tiet {
+        uuid id PK
+        uuid id_don_tong FK
+        uuid id_nguyen_lieu FK
+        string ma_quy_cach
+        numeric so_luong_yeu_cau
+        numeric so_luong_da_nhap
     }
     
     %% ==========================================
@@ -130,6 +149,8 @@ erDiagram
     cong_hang ||--o{ lo_giao_dich : "tham_chieu"
     cong_nhan ||--o{ cong_hang : "phan_cong_qua_jsonb"
     cong_doan ||--o{ cong_hang : "tham_chieu_qua_jsonb"
+    don_tong ||--o{ don_tong_chi_tiet : "chua"
+    nguyen_lieu ||--o{ don_tong_chi_tiet : "chi_dinh"
 ```
 
 ---
@@ -140,6 +161,7 @@ Kiến trúc Database này tập trung giải quyết:
 - **Gộp giao dịch (Batch):** Một phiếu giao dịch (`lo_giao_dich`) đính kèm ảnh bằng JSONB, nhập/xuất n-quy cách nguyên liệu.
 - **Tối giản Hóa Sản xuất:** Mảng `danh_sach_cong_doan` (JSONB) trong bảng Công hàng sẽ lưu trữ trực tiếp các liên kết (ID) tới bảng `cong_nhan` và `cong_doan` để theo dõi tiến độ một cách linh hoạt mà không cần tạo bảng trung gian khổng lồ.
 - **Truy vết Kế toán:** Bảng `so_cai_vat_tu` ghi nhận sự tăng/giảm (+/-) và số dư tồn kho tại chính thời điểm đó.
+- **Tự động hóa Đơn tổng:** Cấu trúc `don_tong` kết nối với `lo_giao_dich` thông qua mảng JSONB (`danh_sach_don_tong`). Hệ thống có thể quét danh sách này để tự động phân bổ trừ lùi (deduction) vật tư nhập kho cho các đơn tổng liên quan một cách tuần tự.
 
 ## 4. Tiêu chuẩn Chuẩn hóa & Nâng cấp (v1 - Ngày 26/07/2026)
 
@@ -148,5 +170,6 @@ Hệ thống cơ sở dữ liệu đã được chuẩn hóa giữa các môi tr
 2. **Quy cách Vật tư Tự động (`nguyen_lieu.danh_sach_quy_cach`)**: Các quy cách không còn sử dụng mã thủ công tự do mà do hệ thống tự sinh mã theo số thứ tự chuẩn `QC-01`, `QC-02`, `QC-03`..., đảm bảo tính duy nhất và nhất quán cho từng loại nguyên liệu.
 3. **Bảo toàn Liên kết Kế toán (`so_cai_vat_tu.ma_quy_cach`)**: Toàn bộ liên kết quy cách trong sổ cái được ánh xạ đồng bộ theo định danh `QC-xx` mới, bảo toàn tuyệt đối lịch sử giao dịch và số dư tồn kho.
 4. **Đồng bộ Realtime SSE Toàn cục (`/api/sse`)**: CSDL tích hợp Supabase Realtime (`postgres_changes`) đẩy sự kiện trực tiếp tới Global SSE Gateway, tự động đồng bộ ngầm dữ liệu tồn kho và tiến độ xưởng.
+5. **Logic Đơn Tổng (Master Orders)**: Áp dụng cơ chế trạng thái `CHUA_DU` / `DA_DU` và lưu giữ vết trừ lùi tại `don_tong_chi_tiet.so_luong_da_nhap`. Khi giao dịch nhập kho liên kết nhiều đơn tổng, số lượng được tự động phân bổ lần lượt dựa trên thứ tự mảng ID đơn tổng được người dùng chọn.
 
 **(Tất cả câu hỏi thảo luận đã được giải quyết!)**
