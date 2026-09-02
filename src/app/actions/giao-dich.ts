@@ -55,9 +55,21 @@ export async function taoPhieuGiaoDichKho(payload: {
   if (loError) return { success: false, error: "Lỗi tạo Lô giao dịch: " + loError.message }
   const id_lo_giao_dich = loData.id
 
+  // 1.5. Gộp các chi tiết vật tư trùng lặp (tránh lỗi xung đột tồn kho in-memory)
+  const groupedChiTiet = payload.chi_tiet.reduce((acc: any, curr: any) => {
+    const key = `${curr.id_nguyen_lieu}_${curr.ma_quy_cach}`
+    if (!acc[key]) {
+      acc[key] = { ...curr }
+    } else {
+      acc[key].so_luong += curr.so_luong
+    }
+    return acc
+  }, {})
+  const mergedChiTiet = Object.values(groupedChiTiet) as any[]
+
   // 2. Xử lý Sổ cái cho từng chi tiết
   const soCaiInserts = []
-  for (const item of payload.chi_tiet) {
+  for (const item of mergedChiTiet) {
     // Lấy tồn kho hiện tại
     const { data: lastLedger } = await supabase
       .from('so_cai_vat_tu')
@@ -113,7 +125,7 @@ export async function taoPhieuGiaoDichKho(payload: {
       // Đảm bảo thứ tự ưu tiên như mảng đã chọn
       const orderedDonTong = payload.danh_sach_don_tong.map(id => listDonTong.find(dt => dt.id === id)).filter(Boolean);
 
-      for (const item of payload.chi_tiet) {
+      for (const item of mergedChiTiet) {
         let remainingToDeduct = item.so_luong;
 
         for (const dt of orderedDonTong) {
