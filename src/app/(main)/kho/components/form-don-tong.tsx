@@ -106,8 +106,8 @@ export function FormDonTong({ open, onOpenChange, nguyenLieuList, initialData }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90vw] max-w-[1200px] max-h-[90vh] overflow-hidden flex flex-col p-0">
-        <div className="p-6 pb-0 flex-shrink-0">
+      <DialogContent className="!w-[95vw] sm:!max-w-[1200px] !max-h-[95vh] sm:!h-[90vh] overflow-hidden flex flex-col p-0">
+        <div className="p-4 sm:p-6 pb-0 flex-shrink-0">
           <DialogHeader>
             <DialogTitle>{isEdit ? t("masterOrder.editTitle") : t("masterOrder.createTitle")}</DialogTitle>
             <DialogDescription>
@@ -135,7 +135,7 @@ export function FormDonTong({ open, onOpenChange, nguyenLieuList, initialData }:
         </div>
 
         <div className="flex-1 overflow-auto border-t">
-          <div className="p-6 pt-4">
+          <div className="p-4 sm:p-6 pt-4 sm:pt-4">
             <div className="flex justify-between items-center mb-4">
               <Label className="text-base font-semibold">{t("masterOrder.materialDetails")}</Label>
               <Button type="button" variant="outline" size="sm" onClick={handleAddRow}>
@@ -222,7 +222,7 @@ export function FormDonTong({ open, onOpenChange, nguyenLieuList, initialData }:
           </div>
         </div>
 
-        <div className="p-6 pt-4 flex-shrink-0 border-t bg-muted/20">
+        <div className="p-4 sm:p-6 pt-4 flex-shrink-0 border-t bg-muted/20">
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>{t("masterOrder.cancel")}</Button>
             <Button onClick={handleSubmit} disabled={isPending}>
