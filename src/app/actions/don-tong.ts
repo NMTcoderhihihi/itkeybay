@@ -172,7 +172,7 @@ export async function getGiaoDichByDonTong(idDonTong: string) {
         nguyen_lieu (ten_nguyen_lieu, don_vi, danh_sach_quy_cach)
       )
     `)
-    .contains('danh_sach_don_tong', [idDonTong])
+    .contains('danh_sach_don_tong', JSON.stringify([idDonTong]))
     .order('ngay_tao', { ascending: false })
 
   if (error) {
