@@ -8,7 +8,8 @@ import { NguyenLieu } from "@/app/actions/kho"
 import { DanhMucVatTu } from "./danh-muc-vat-tu"
 import { TongQuanKho } from "./tong-quan-kho"
 import { PhieuGiaoDich } from "./phieu-giao-dich"
-import { Package2, History, ClipboardList, PlusCircle } from "lucide-react"
+import { DonTongTab } from "./don-tong-tab"
+import { Package2, History, ClipboardList, PlusCircle, ListChecks } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 import { useRouter } from "next/navigation"
@@ -20,13 +21,15 @@ export function KhoClient({
   nguyenLieuList,
   congHangList,
   tongQuanTonKho,
-  danhMucList
+  danhMucList,
+  donTongList
 }: { 
   session: SessionPayload,
   nguyenLieuList: NguyenLieu[],
   congHangList: any[],
   tongQuanTonKho: any[],
-  danhMucList: any[]
+  danhMucList: any[],
+  donTongList: any[]
 }) {
   const { t } = useTranslation()
   const router = useRouter()
@@ -34,7 +37,7 @@ export function KhoClient({
 
   // Đăng ký nhận sự kiện Realtime SSE khi có thay đổi trong kho (đồng bộ ngầm yên lặng)
   useRealtimeSSE({
-    tables: ["lo_giao_dich", "so_cai_vat_tu", "nguyen_lieu"],
+    tables: ["lo_giao_dich", "so_cai_vat_tu", "nguyen_lieu", "don_tong", "don_tong_chi_tiet"],
     onUpdate: () => {
       router.refresh();
     },
@@ -70,6 +73,14 @@ export function KhoClient({
             <PlusCircle className="h-4 w-4" />
             <span>{t("warehouse.importExportVoucher")}</span>
           </TabsTrigger>
+
+          <TabsTrigger
+            value="don-tong"
+            className="gap-2 rounded-full border border-transparent data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground data-[state=active]:font-bold data-[state=active]:shadow-md data-[state=active]:ring-2 data-[state=active]:ring-primary/40 text-muted-foreground hover:text-foreground !h-9 px-4 transition-all"
+          >
+            <ListChecks className="h-4 w-4" />
+            Quản lý Đơn tổng
+          </TabsTrigger>
         </TabsList>
 
         <div className="flex-1 mt-4 overflow-y-auto pb-8">
@@ -82,6 +93,14 @@ export function KhoClient({
               nguyenLieuList={tongQuanTonKho || nguyenLieuList}
               congHangList={congHangList}
               initialDanhMucList={danhMucList}
+              donTongList={donTongList}
+            />
+          </TabsContent>
+
+          <TabsContent value="don-tong" className="m-0 h-full">
+            <DonTongTab
+              donTongList={donTongList}
+              nguyenLieuList={nguyenLieuList}
             />
           </TabsContent>
 

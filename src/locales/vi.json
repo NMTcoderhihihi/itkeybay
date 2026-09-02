@@ -88,7 +88,10 @@
     "mobileRequired": "Yêu cầu dùng Điện thoại",
     "mobileRequiredDesc": "Vui lòng dùng điện thoại để chụp ảnh hiện trường.",
     "pageTitle": "Quản lý Kho",
-    "pageDesc": "Theo dõi tồn kho, tạo phiếu nhập/xuất và quản lý danh mục vật tư."
+    "pageDesc": "Theo dõi tồn kho, tạo phiếu nhập/xuất và quản lý danh mục vật tư.",
+    "detailCategory": "Danh mục / Lý do",
+    "selectCategory": "-- Chọn danh mục --",
+    "order": "Công hàng"
   },
   "categories": {
     "pageTitle": "Quản lý danh mục",

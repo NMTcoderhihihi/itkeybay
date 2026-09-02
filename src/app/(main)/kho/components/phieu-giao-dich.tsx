@@ -13,7 +13,19 @@ import { toast } from "sonner"
 import Image from "next/image"
 import { useTranslation } from "@/hooks/use-translation"
 
-export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList = [] }: { nguyenLieuList: any[], congHangList?: any[], initialDanhMucList?: any[] }) {
+import { Badge } from "@/components/ui/badge"
+
+export function PhieuGiaoDich({ 
+  nguyenLieuList, 
+  congHangList, 
+  initialDanhMucList = [],
+  donTongList = []
+}: { 
+  nguyenLieuList: any[], 
+  congHangList?: any[], 
+  initialDanhMucList?: any[],
+  donTongList?: any[]
+}) {
   const { t } = useTranslation()
   const [isPending, startTransition] = useTransition()
   const [danhMucList, setDanhMucList] = useState<any[]>(initialDanhMucList)
@@ -22,6 +34,7 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
   const [loaiGiaoDich, setLoaiGiaoDich] = useState<'NHAP' | 'XUAT' | ''>('')
   const [idDanhMuc, setIdDanhMuc] = useState("")
   const [idCongHang, setIdCongHang] = useState("")
+  const [danhSachDonTong, setDanhSachDonTong] = useState<string[]>([])
   const [ghiChu, setGhiChu] = useState("")
   const [chiTiet, setChiTiet] = useState<ChiTietGiaoDich[]>([])
   const [danhSachAnh, setDanhSachAnh] = useState<string[]>([])
@@ -163,7 +176,8 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
         loai_giao_dich: loaiGiaoDich as 'NHAP' | 'XUAT',
         ghi_chu: ghiChu,
         danh_sach_anh: danhSachAnh,
-        chi_tiet: chiTiet
+        chi_tiet: chiTiet,
+        danh_sach_don_tong: loaiGiaoDich === 'NHAP' ? danhSachDonTong : []
       })
 
       if (result.success) {
@@ -174,6 +188,7 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
         setGhiChu('')
         setChiTiet([])
         setDanhSachAnh([])
+        setDanhSachDonTong([])
         
         // Cuộn lên đầu trang sau khi hoàn tất
         if (typeof window !== 'undefined') {
@@ -240,6 +255,55 @@ export function PhieuGiaoDich({ nguyenLieuList, congHangList, initialDanhMucList
                     )}
                   </SelectContent>
                 </Select>
+              </div>
+            )}
+
+            {loaiGiaoDich === 'NHAP' && (
+              <div className="space-y-3 animate-in fade-in">
+                <Label>Áp dụng cho Đơn tổng (Tùy chọn)</Label>
+                <div className="flex flex-col gap-2">
+                  <Select 
+                    value="" 
+                    onValueChange={(val) => {
+                      if (val && !danhSachDonTong.includes(val)) {
+                        setDanhSachDonTong([...danhSachDonTong, val])
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="-- Chọn để thêm Đơn tổng --" />
+                    </SelectTrigger>
+                    <SelectContent className="w-auto min-w-[var(--radix-select-trigger-width)] max-h-[300px] max-w-[90vw]">
+                      {donTongList?.filter(dt => dt.trang_thai !== 'DA_DU').map(dt => (
+                        <SelectItem key={dt.id} value={dt.id}>{dt.ma_don_tong} - {dt.ten_don}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {danhSachDonTong.length > 0 && (
+                    <div className="flex flex-col gap-1.5 p-3 border rounded-md bg-muted/20">
+                      <span className="text-xs font-semibold text-muted-foreground mb-1">Thứ tự ưu tiên trừ lùi khi nhập kho:</span>
+                      {danhSachDonTong.map((dtId, idx) => {
+                        const dt = donTongList?.find(d => d.id === dtId)
+                        return (
+                          <div key={dtId} className="flex items-center justify-between bg-background p-2 rounded border shadow-sm text-sm">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center font-bold text-primary text-xs shrink-0">
+                                {idx + 1}
+                              </div>
+                              <span className="font-semibold">{dt?.ma_don_tong}</span>
+                              <span className="text-muted-foreground hidden sm:inline">- {dt?.ten_don}</span>
+                            </div>
+                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10 shrink-0" 
+                                    onClick={() => setDanhSachDonTong(danhSachDonTong.filter(id => id !== dtId))}>
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

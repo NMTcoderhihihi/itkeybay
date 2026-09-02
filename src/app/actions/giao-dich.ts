@@ -28,6 +28,7 @@ export async function taoPhieuGiaoDichKho(payload: {
   ghi_chu: string
   danh_sach_anh: string[]
   chi_tiet: ChiTietGiaoDich[]
+  danh_sach_don_tong?: string[] // Mảng id_don_tong được chọn
 }) {
   const session = await getSession()
   if (!session) return { success: false, error: "Không có quyền truy cập" }
@@ -45,7 +46,8 @@ export async function taoPhieuGiaoDichKho(payload: {
       id_danh_muc: payload.id_danh_muc,
       id_cong_hang: payload.id_cong_hang || null,
       ghi_chu: payload.ghi_chu,
-      danh_sach_anh: payload.danh_sach_anh
+      danh_sach_anh: payload.danh_sach_anh,
+      danh_sach_don_tong: payload.danh_sach_don_tong || []
     })
     .select('id')
     .single()
@@ -96,6 +98,67 @@ export async function taoPhieuGiaoDichKho(payload: {
     if (ledgerError) {
       await supabase.from('lo_giao_dich').delete().eq('id', id_lo_giao_dich)
       return { success: false, error: "Lỗi ghi sổ cái: " + ledgerError.message }
+    }
+  }
+
+  // 4. Xử lý logic trừ lùi tuần tự cho Đơn tổng (nếu có và là phiếu NHAP)
+  if (payload.loai_giao_dich === 'NHAP' && payload.danh_sach_don_tong && payload.danh_sach_don_tong.length > 0) {
+    // Lấy thông tin các đơn tổng được chọn và chi tiết của chúng
+    const { data: listDonTong } = await supabase
+      .from('don_tong')
+      .select('id, trang_thai, don_tong_chi_tiet(*)')
+      .in('id', payload.danh_sach_don_tong);
+
+    if (listDonTong) {
+      // Đảm bảo thứ tự ưu tiên như mảng đã chọn
+      const orderedDonTong = payload.danh_sach_don_tong.map(id => listDonTong.find(dt => dt.id === id)).filter(Boolean);
+
+      for (const item of payload.chi_tiet) {
+        let remainingToDeduct = item.so_luong;
+
+        for (const dt of orderedDonTong) {
+          if (remainingToDeduct <= 0) break;
+          if (!dt || dt.trang_thai === 'DA_DU' || !dt.don_tong_chi_tiet) continue;
+
+          // Tìm chi tiết vật tư trong đơn tổng
+          const targetCt = dt.don_tong_chi_tiet.find((ct: any) => 
+            ct.id_nguyen_lieu === item.id_nguyen_lieu && ct.ma_quy_cach === item.ma_quy_cach
+          );
+
+          if (targetCt) {
+            const yeuCau = Number(targetCt.so_luong_yeu_cau) || 0;
+            const daNhap = Number(targetCt.so_luong_da_nhap) || 0;
+            const thieu = yeuCau - daNhap;
+
+            if (thieu > 0) {
+              const capPhat = Math.min(thieu, remainingToDeduct);
+              remainingToDeduct -= capPhat;
+              
+              // Cập nhật số lượng đã nhập vào DB
+              await supabase
+                .from('don_tong_chi_tiet')
+                .update({ so_luong_da_nhap: daNhap + capPhat })
+                .eq('id', targetCt.id);
+            }
+          }
+        }
+      }
+
+      // Kiểm tra và cập nhật trạng thái đơn tổng nếu đã đủ
+      for (const dt of orderedDonTong) {
+        if (!dt) continue;
+        const { data: updatedCtList } = await supabase
+          .from('don_tong_chi_tiet')
+          .select('so_luong_yeu_cau, so_luong_da_nhap')
+          .eq('id_don_tong', dt.id);
+
+        if (updatedCtList && updatedCtList.length > 0) {
+          const isAllDone = updatedCtList.every(ct => Number(ct.so_luong_da_nhap) >= Number(ct.so_luong_yeu_cau));
+          if (isAllDone && dt.trang_thai !== 'DA_DU') {
+            await supabase.from('don_tong').update({ trang_thai: 'DA_DU' }).eq('id', dt.id);
+          }
+        }
+      }
     }
   }
 

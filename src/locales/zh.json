@@ -88,7 +88,10 @@
     "mobileRequired": "需要移动设备",
     "mobileRequiredDesc": "请使用手机拍摄现场照片。",
     "pageTitle": "库存管理",
-    "pageDesc": "跟踪库存，创建进出库单并管理材料。"
+    "pageDesc": "跟踪库存，创建进出库单并管理材料。",
+    "detailCategory": "分类 / 原因",
+    "selectCategory": "-- 选择分类 --",
+    "order": "订单"
   },
   "categories": {
     "pageTitle": "类别管理",

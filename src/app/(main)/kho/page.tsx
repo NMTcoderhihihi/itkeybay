@@ -4,6 +4,7 @@ import { KhoClient } from "./components/kho-client"
 import { getNguyenLieuList } from "@/app/actions/kho"
 import { getCongHangList } from "@/app/actions/san-xuat"
 import { getTongQuanTonKho, getDanhSachDanhMuc } from "@/app/actions/giao-dich"
+import { getDanhSachDonTong } from "@/app/actions/don-tong"
 
 export const dynamic = 'force-dynamic'
 
@@ -14,11 +15,12 @@ export default async function KhoPage() {
   }
 
   // Lấy dữ liệu trên server để tránh load lại liên tục ở client
-  const [nguyenLieuList, congHangList, tongQuanTonKho, danhMucList] = await Promise.all([
+  const [nguyenLieuList, congHangList, tongQuanTonKho, danhMucList, donTongList] = await Promise.all([
     getNguyenLieuList(),
     getCongHangList(),
     getTongQuanTonKho(),
-    getDanhSachDanhMuc()
+    getDanhSachDanhMuc(),
+    getDanhSachDonTong()
   ])
 
   return (
@@ -29,6 +31,7 @@ export default async function KhoPage() {
         congHangList={congHangList || []}
         tongQuanTonKho={tongQuanTonKho || []}
         danhMucList={danhMucList || []}
+        donTongList={donTongList || []}
       />
     </div>
   )

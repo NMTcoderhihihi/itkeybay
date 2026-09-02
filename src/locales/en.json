@@ -88,7 +88,10 @@
     "mobileRequired": "Mobile Device Required",
     "mobileRequiredDesc": "Please use a mobile phone to capture live photos.",
     "pageTitle": "Inventory Management",
-    "pageDesc": "Track stock, create import/export slips, and manage materials."
+    "pageDesc": "Track stock, create import/export slips, and manage materials.",
+    "detailCategory": "Category / Reason",
+    "selectCategory": "-- Select category --",
+    "order": "Order"
   },
   "categories": {
     "pageTitle": "Category Management",
