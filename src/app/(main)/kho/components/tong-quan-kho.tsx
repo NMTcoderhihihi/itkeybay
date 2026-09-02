@@ -369,7 +369,7 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
               </div>
             ) : (
               // VIEW 2: LỊCH SỬ SỔ CÁI
-              <div className="flex flex-col h-full overflow-hidden">
+              <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
                 
                 {/* Thanh công cụ lọc */}
                 <div className="flex flex-col gap-2 mb-3">
