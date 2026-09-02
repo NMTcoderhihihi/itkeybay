@@ -79,7 +79,7 @@ export function KhoClient({
             className="gap-2 rounded-full border border-transparent data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground data-[state=active]:font-bold data-[state=active]:shadow-md data-[state=active]:ring-2 data-[state=active]:ring-primary/40 text-muted-foreground hover:text-foreground !h-9 px-4 transition-all"
           >
             <ListChecks className="h-4 w-4" />
-            Quản lý Đơn tổng
+            {t("masterOrder.title")}
           </TabsTrigger>
         </TabsList>
 

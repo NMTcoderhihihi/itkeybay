@@ -92,7 +92,11 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
           </div>
           <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val || "ALL")}>
             <SelectTrigger className="w-full sm:w-auto min-w-[150px]">
-              <SelectValue placeholder={t("masterOrder.status")} />
+              <SelectValue placeholder={t("masterOrder.status")}>
+                {statusFilter === "ALL" && `${t("masterOrder.status")}: ${t("masterOrder.allStatus")}`}
+                {statusFilter === "CHUA_DU" && `${t("masterOrder.status")}: ${t("masterOrder.statusNotEnough")}`}
+                {statusFilter === "DA_DU" && `${t("masterOrder.status")}: ${t("masterOrder.statusEnough")}`}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">{t("masterOrder.status")}: {t("masterOrder.allStatus")}</SelectItem>
@@ -102,7 +106,12 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
           </Select>
           <Select value={dateFilter} onValueChange={(val) => setDateFilter(val || "ALL")}>
             <SelectTrigger className="w-full sm:w-auto min-w-[150px]">
-              <SelectValue placeholder={t("masterOrder.time")} />
+              <SelectValue placeholder={t("masterOrder.time")}>
+                {dateFilter === "ALL" && `${t("masterOrder.time")}: ${t("masterOrder.allTime")}`}
+                {dateFilter === "TODAY" && `${t("masterOrder.time")}: ${t("masterOrder.today")}`}
+                {dateFilter === "WEEK" && `${t("masterOrder.time")}: ${t("masterOrder.last7Days")}`}
+                {dateFilter === "MONTH" && `${t("masterOrder.time")}: ${t("masterOrder.thisMonth")}`}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">{t("masterOrder.time")}: {t("masterOrder.allTime")}</SelectItem>
@@ -113,7 +122,7 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
           </Select>
         </div>
         <Button onClick={handleAdd} className="w-full md:w-auto shrink-0 gap-2">
-          <Plus className="w-4 h-4" /> Thêm đơn mới
+          <Plus className="w-4 h-4" /> {t("masterOrder.addNew")}
         </Button>
       </div>
 
@@ -127,7 +136,7 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
                 <TableHead>{t("masterOrder.orderCode")}</TableHead>
                 <TableHead>{t("masterOrder.nameNote")}</TableHead>
                 <TableHead>{t("masterOrder.totalProgress")}</TableHead>
-                <TableHead>Trạng thái</TableHead>
+                <TableHead>{t("masterOrder.status")}</TableHead>
                 <TableHead>{t("masterOrder.createdAt")}</TableHead>
                 <TableHead className="text-right">{t("masterOrder.action")}</TableHead>
               </TableRow>
@@ -136,7 +145,7 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
               {filteredList.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                    Không tìm thấy đơn tổng nào.
+                    {t("masterOrder.notFound")}
                   </TableCell>
                 </TableRow>
               ) : (
