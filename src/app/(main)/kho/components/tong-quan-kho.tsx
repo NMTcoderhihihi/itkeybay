@@ -474,13 +474,14 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                 </div>
 
                 <div className="flex-1 overflow-auto border rounded-md min-h-[300px] relative" onScroll={handleScrollLedger}>
-                  {loadingLedger && currentPage === 1 ? (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50 z-10">
+                  {loadingLedger && currentPage === 1 && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50 backdrop-blur-[1px] z-10">
                       <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                      <p className="mt-2 text-sm text-muted-foreground">Đang tải sổ cái...</p>
+                      <p className="mt-2 text-sm text-muted-foreground font-medium">Đang tải sổ cái...</p>
                     </div>
-                  ) : (
-                    <Table className="min-w-[850px]">
+                  )}
+                  
+                  <Table className="min-w-[850px]">
                       <TableHeader>
                         <TableRow>
                           <TableHead>{t('inventory.date')}</TableHead>
@@ -556,7 +557,6 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                         )}
                       </TableBody>
                     </Table>
-                  )}
                 </div>
                 
                 {/* Hiển thị Loading khi cuộn tải thêm */}
