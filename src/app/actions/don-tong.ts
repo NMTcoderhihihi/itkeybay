@@ -163,7 +163,14 @@ export async function getGiaoDichByDonTong(idDonTong: string) {
     .select(`
       *,
       tai_khoan (ho_ten),
-      danh_muc_giao_dich (ten_danh_muc, loai_giao_dich)
+      danh_muc_giao_dich (ten_danh_muc, loai_giao_dich),
+      so_cai_vat_tu (
+        id_nguyen_lieu,
+        ma_quy_cach,
+        bien_dong_so_luong,
+        ton_kho_hien_tai,
+        nguyen_lieu (ten_nguyen_lieu, don_vi, danh_sach_quy_cach)
+      )
     `)
     .contains('danh_sach_don_tong', [idDonTong])
     .order('ngay_tao', { ascending: false })

@@ -136,33 +136,56 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Mã lô</TableHead>
-                  <TableHead>Loại</TableHead>
-                  <TableHead>Thời gian</TableHead>
-                  <TableHead>Người tạo</TableHead>
-                  <TableHead>Ghi chú</TableHead>
+                  <TableHead className="w-[120px]">Mã lô</TableHead>
+                  <TableHead className="w-[150px]">Loại & Ghi chú</TableHead>
+                  <TableHead className="w-[180px]">Thời gian & Người tạo</TableHead>
+                  <TableHead>Chi tiết vật tư</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {giaoDichList.map(gd => (
-                  <TableRow key={gd.id}>
-                    <TableCell className="font-medium">{gd.ma_lo}</TableCell>
+                  <TableRow key={gd.id} className="align-top">
+                    <TableCell className="font-medium text-primary">
+                      {gd.ma_lo}
+                    </TableCell>
                     <TableCell>
-                      <Badge variant={gd.danh_muc_giao_dich?.loai_giao_dich === 'NHAP' ? 'default' : 'secondary'}>
+                      <Badge variant={gd.danh_muc_giao_dich?.loai_giao_dich === 'NHAP' ? 'default' : 'secondary'} className="mb-1">
                         {gd.danh_muc_giao_dich?.ten_danh_muc}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {formatTime(gd.ngay_tao)}
+                      {gd.ghi_chu && <div className="text-xs text-muted-foreground italic line-clamp-2 mt-1">{gd.ghi_chu}</div>}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-muted-foreground" />
-                        {gd.tai_khoan?.ho_ten}
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm">{formatTime(gd.ngay_tao)}</span>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <User className="w-3.5 h-3.5" />
+                          {gd.tai_khoan?.ho_ten}
+                        </div>
                       </div>
                     </TableCell>
-                    <TableCell className="max-w-[300px] truncate">
-                      {gd.ghi_chu || "-"}
+                    <TableCell>
+                      <div className="space-y-1.5 bg-muted/10 p-2 rounded-md border min-w-[300px]">
+                        {gd.so_cai_vat_tu?.length > 0 ? (
+                          gd.so_cai_vat_tu.map((sc: any, idx: number) => {
+                            const qcArray = Array.isArray(sc.nguyen_lieu?.danh_sach_quy_cach) ? sc.nguyen_lieu.danh_sach_quy_cach : [];
+                            const qcObj = qcArray.find((q: any) => q.ma_quy_cach === sc.ma_quy_cach);
+                            const sl = Math.abs(Number(sc.bien_dong_so_luong) || 0);
+                            return (
+                              <div key={idx} className="flex items-center justify-between gap-3 text-sm py-1 border-b border-border/40 last:border-0 last:pb-0">
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <span className="font-medium text-foreground truncate">{sc.nguyen_lieu?.ten_nguyen_lieu}</span>
+                                  {qcObj?.ten && <span className="text-[11px] text-muted-foreground bg-background border px-1.5 py-0.5 rounded truncate">{qcObj.ten}</span>}
+                                </div>
+                                <div className="font-semibold tabular-nums shrink-0">
+                                  {sl} <span className="text-muted-foreground text-xs font-normal">{sc.nguyen_lieu?.don_vi}</span>
+                                </div>
+                              </div>
+                            )
+                          })
+                        ) : (
+                          <span className="text-xs text-muted-foreground italic">Không có vật tư</span>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
