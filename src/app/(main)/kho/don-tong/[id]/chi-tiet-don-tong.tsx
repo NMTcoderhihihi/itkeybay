@@ -60,6 +60,9 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
                     const d = Number(ct.so_luong_da_nhap);
                     const pct = y > 0 ? Math.min(100, Math.round((d / y) * 100)) : 0;
 
+                    const quyCachObj = nl?.danh_sach_quy_cach?.find((q: any) => q.ma_quy_cach === ct.ma_quy_cach);
+                    const quyCachName = quyCachObj ? quyCachObj.ten : ct.ma_quy_cach;
+
                     return (
                       <div key={ct.id_nguyen_lieu + ct.ma_quy_cach} className="bg-muted/20 p-4 rounded-lg border flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -73,7 +76,7 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
                           )}
                           <div className="flex flex-col">
                             <span className="font-semibold">{nl?.ten_nguyen_lieu}</span>
-                            <span className="text-sm text-muted-foreground">QC: {ct.ma_quy_cach}</span>
+                            <span className="text-sm text-muted-foreground">{quyCachName}</span>
                             <span className="text-sm mt-1">
                               {t("masterOrder.imported")} <span className="font-semibold text-foreground">{d}</span> / {y} {nl?.don_vi}
                             </span>

@@ -212,7 +212,8 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
                                     const y = Number(ct.so_luong_yeu_cau);
                                     const d = Number(ct.so_luong_da_nhap);
                                     const pct = y > 0 ? Math.min(100, Math.round((d / y) * 100)) : 0;
-                                    const quyCachName = "QC: " + ct.ma_quy_cach;
+                                    const quyCachObj = nl?.danh_sach_quy_cach?.find((q: any) => q.ma_quy_cach === ct.ma_quy_cach);
+                                    const quyCachName = quyCachObj ? quyCachObj.ten : ct.ma_quy_cach;
 
                                     return (
                                       <div key={ct.id} className="bg-muted/30 p-3 rounded-md border flex flex-col gap-2">

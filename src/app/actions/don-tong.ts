@@ -19,7 +19,7 @@ export async function getDanhSachDonTong() {
         ma_quy_cach,
         so_luong_yeu_cau,
         so_luong_da_nhap,
-        nguyen_lieu (ten_nguyen_lieu, anh_minh_hoa, don_vi)
+        nguyen_lieu (ten_nguyen_lieu, anh_minh_hoa, don_vi, danh_sach_quy_cach)
       )
     `)
     .order('ngay_tao', { ascending: false })
@@ -144,7 +144,7 @@ export async function getDonTongById(id: string) {
         ma_quy_cach,
         so_luong_yeu_cau,
         so_luong_da_nhap,
-        nguyen_lieu (ten_nguyen_lieu, anh_minh_hoa, don_vi)
+        nguyen_lieu (ten_nguyen_lieu, anh_minh_hoa, don_vi, danh_sach_quy_cach)
       )
     `)
     .eq('id', id)
