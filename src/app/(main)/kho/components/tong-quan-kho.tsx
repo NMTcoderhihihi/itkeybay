@@ -35,6 +35,7 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
   const [selectedItem, setSelectedItem] = useState<any | null>(null)
   const [viewMode, setViewMode] = useState<'quy_cach' | 'lich_su'>('quy_cach')
   const [searchQuery, setSearchQuery] = useState('')
+  const [loadingDetails, setLoadingDetails] = useState(false)
   
   // Ledger Pagination and Filter
   const [currentLedgerData, setCurrentLedgerData] = useState<any[]>([])
@@ -82,6 +83,9 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
     setSelectedItem(item)
     setViewMode('quy_cach')
     setSearchQuery('')
+    setCurrentLedgerData([])
+    setLatestTransactions({})
+    setLoadingDetails(true)
 
     const soCaiList = await getSoCaiChiTiet(item.id)
     const latest: Record<string, any> = {}
@@ -91,6 +95,7 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
       }
     })
     setLatestTransactions(latest)
+    setLoadingDetails(false)
   }
 
   const fetchLedger = async (id: string, page: number, currentFilters: TrangThaiLocSoCai) => {
@@ -275,7 +280,14 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
           <div className="flex-1 overflow-hidden flex flex-col mt-2">
             {viewMode === 'quy_cach' ? (
               // VIEW 1: DANH SÁCH QUY CÁCH
-              <div className="flex flex-col h-full overflow-hidden">
+              <div className="flex flex-col h-full overflow-hidden relative">
+                {loadingDetails && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50 backdrop-blur-[1px] z-10">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    <p className="mt-2 text-sm text-muted-foreground font-medium">Đang tải chi tiết tồn kho...</p>
+                  </div>
+                )}
+                
                 <div className="flex justify-between items-center mb-4 gap-4">
                   <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
