@@ -25,9 +25,8 @@ export function CircularProgressRing({
 
   const getColorClass = (val: number) => {
     if (val === 100) return "text-green-500";
-    if (val >= 60) return "text-primary";
-    if (val > 0) return "text-amber-500";
-    return "text-muted-foreground/40";
+    if (val >= 50) return "text-amber-500";
+    return "text-red-500";
   };
 
   return (

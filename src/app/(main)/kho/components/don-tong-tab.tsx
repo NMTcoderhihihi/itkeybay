@@ -7,16 +7,19 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, ChevronDown, ChevronUp, Edit2, Trash2, Calendar as CalendarIcon } from "lucide-react"
+import { Plus, Search, ChevronDown, ChevronUp, Edit2, Trash2, Calendar as CalendarIcon, Eye } from "lucide-react"
 import { format } from "date-fns"
 import { vi } from "date-fns/locale"
 import { FormDonTong } from "./form-don-tong"
-import { Progress } from "@/components/ui/progress"
 import { xoaDonTong } from "@/app/actions/don-tong"
+import { CircularProgressRing } from "@/components/ui/circular-progress-ring"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongList: any[], nguyenLieuList: any[] }) {
   const { t } = useTranslation()
+  const router = useRouter()
+
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("ALL")
   const [dateFilter, setDateFilter] = useState("ALL") // "ALL", "TODAY", "WEEK", "MONTH"
@@ -88,24 +91,24 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
             />
           </div>
           <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val || "ALL")}>
-            <SelectTrigger className="w-full sm:w-[150px]">
+            <SelectTrigger className="w-full sm:w-auto min-w-[150px]">
               <SelectValue placeholder={t("masterOrder.status")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">{t("masterOrder.allStatus")}</SelectItem>
-              <SelectItem value="CHUA_DU">{t("masterOrder.statusNotEnough")}</SelectItem>
-              <SelectItem value="DA_DU">{t("masterOrder.statusEnough")}</SelectItem>
+              <SelectItem value="ALL">{t("masterOrder.status")}: {t("masterOrder.allStatus")}</SelectItem>
+              <SelectItem value="CHUA_DU">{t("masterOrder.status")}: {t("masterOrder.statusNotEnough")}</SelectItem>
+              <SelectItem value="DA_DU">{t("masterOrder.status")}: {t("masterOrder.statusEnough")}</SelectItem>
             </SelectContent>
           </Select>
           <Select value={dateFilter} onValueChange={(val) => setDateFilter(val || "ALL")}>
-            <SelectTrigger className="w-full sm:w-[150px]">
+            <SelectTrigger className="w-full sm:w-auto min-w-[150px]">
               <SelectValue placeholder={t("masterOrder.time")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">{t("masterOrder.allTime")}</SelectItem>
-              <SelectItem value="TODAY">{t("masterOrder.today")}</SelectItem>
-              <SelectItem value="WEEK">{t("masterOrder.last7Days")}</SelectItem>
-              <SelectItem value="MONTH">{t("masterOrder.thisMonth")}</SelectItem>
+              <SelectItem value="ALL">{t("masterOrder.time")}: {t("masterOrder.allTime")}</SelectItem>
+              <SelectItem value="TODAY">{t("masterOrder.time")}: {t("masterOrder.today")}</SelectItem>
+              <SelectItem value="WEEK">{t("masterOrder.time")}: {t("masterOrder.last7Days")}</SelectItem>
+              <SelectItem value="MONTH">{t("masterOrder.time")}: {t("masterOrder.thisMonth")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -158,8 +161,7 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Progress value={progressPct} className="h-2 w-[80px]" />
-                            <span className="text-xs text-muted-foreground font-medium">{progressPct}%</span>
+                            <CircularProgressRing progress={progressPct} size={32} strokeWidth={3} />
                           </div>
                         </TableCell>
                         <TableCell>
@@ -174,6 +176,9 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1" onClick={e => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon" onClick={() => router.push(`/kho/don-tong/${dt.id}`)} className="h-8 w-8 text-blue-500 hover:bg-blue-500/10">
+                              <Eye className="w-4 h-4" />
+                            </Button>
                             <Button variant="ghost" size="icon" onClick={() => handleEdit(dt)} className="h-8 w-8 text-primary hover:bg-primary/10">
                               <Edit2 className="w-4 h-4" />
                             </Button>
@@ -198,30 +203,29 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
                                     const y = Number(ct.so_luong_yeu_cau);
                                     const d = Number(ct.so_luong_da_nhap);
                                     const pct = y > 0 ? Math.min(100, Math.round((d / y) * 100)) : 0;
-                                    const quyCachName = "QC: " + ct.ma_quy_cach; // Bạn có thể map tên từ nguyenLieuList nếu cần
+                                    const quyCachName = "QC: " + ct.ma_quy_cach;
 
                                     return (
                                       <div key={ct.id} className="bg-muted/30 p-3 rounded-md border flex flex-col gap-2">
-                                        <div className="flex items-center gap-2">
-                                          {nl?.anh_minh_hoa ? (
-                                            /* eslint-disable-next-line @next/next/no-img-element */
-                                            <img src={nl.anh_minh_hoa} alt="" className="w-6 h-6 rounded-full object-cover border shadow-sm" />
-                                          ) : (
-                                            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
-                                              {nl?.ten_nguyen_lieu?.charAt(0) || '?'}
+                                        <div className="flex items-center justify-between w-full">
+                                          <div className="flex items-center gap-2">
+                                            {nl?.anh_minh_hoa ? (
+                                              /* eslint-disable-next-line @next/next/no-img-element */
+                                              <img src={nl.anh_minh_hoa} alt="" className="w-8 h-8 rounded-full object-cover border shadow-sm" />
+                                            ) : (
+                                              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                                                {nl?.ten_nguyen_lieu?.charAt(0) || '?'}
+                                              </div>
+                                            )}
+                                            <div className="flex flex-col">
+                                              <span className="text-sm font-semibold truncate max-w-[150px]">{nl?.ten_nguyen_lieu}</span>
+                                              <span className="text-[11px] text-muted-foreground">{quyCachName}</span>
+                                              <span className="text-[11px] text-muted-foreground mt-0.5">
+                                                {t("masterOrder.imported")} <span className="font-semibold text-foreground">{d}</span> / {y} {nl?.don_vi}
+                                              </span>
                                             </div>
-                                          )}
-                                          <div className="flex flex-col">
-                                            <span className="text-sm font-semibold truncate max-w-[150px]">{nl?.ten_nguyen_lieu}</span>
-                                            <span className="text-[10px] text-muted-foreground">{quyCachName}</span>
                                           </div>
-                                        </div>
-                                        <div className="space-y-1 mt-1">
-                                          <div className="flex justify-between text-[11px]">
-                                            <span className="text-muted-foreground">{t("masterOrder.imported")} <span className="font-semibold text-foreground">{d}</span> / {y} {nl?.don_vi}</span>
-                                            <span className={pct === 100 ? 'text-emerald-600 font-bold' : 'font-medium'}>{pct}%</span>
-                                          </div>
-                                          <Progress value={pct} className={`h-1.5 ${pct === 100 ? '[&>div]:bg-emerald-500' : ''}`} />
+                                          <CircularProgressRing progress={pct} size={36} strokeWidth={3} />
                                         </div>
                                       </div>
                                     )
