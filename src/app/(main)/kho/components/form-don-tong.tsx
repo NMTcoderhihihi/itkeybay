@@ -105,7 +105,7 @@ export function FormDonTong({ open, onOpenChange, nguyenLieuList, initialData }:
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEdit ? t("masterOrder.editTitle") : t("masterOrder.createTitle")}</DialogTitle>
           <DialogDescription>
