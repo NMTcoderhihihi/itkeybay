@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -23,18 +23,32 @@ export function FormDonTong({ open, onOpenChange, nguyenLieuList, initialData }:
   const { t } = useTranslation()
   const [isPending, startTransition] = useTransition()
 
-  const [maDonTong, setMaDonTong] = useState(initialData?.ma_don_tong || "")
-  const [tenDon, setTenDon] = useState(initialData?.ten_don || "")
-  const [ghiChu, setGhiChu] = useState(initialData?.ghi_chu || "")
-  const [chiTiet, setChiTiet] = useState<ChiTietDonTong[]>(
-    initialData?.don_tong_chi_tiet?.map((ct: any) => ({
-      id_nguyen_lieu: ct.id_nguyen_lieu,
-      ma_quy_cach: ct.ma_quy_cach,
-      so_luong_yeu_cau: ct.so_luong_yeu_cau
-    })) || []
-  )
+  const [maDonTong, setMaDonTong] = useState("")
+  const [tenDon, setTenDon] = useState("")
+  const [ghiChu, setGhiChu] = useState("")
+  const [chiTiet, setChiTiet] = useState<ChiTietDonTong[]>([])
 
   const isEdit = !!initialData
+
+  useEffect(() => {
+    if (open) {
+      if (initialData) {
+        setMaDonTong(initialData.ma_don_tong)
+        setTenDon(initialData.ten_don || "")
+        setGhiChu(initialData.ghi_chu || "")
+        setChiTiet(initialData.don_tong_chi_tiet?.map((ct: any) => ({
+          id_nguyen_lieu: ct.id_nguyen_lieu,
+          ma_quy_cach: ct.ma_quy_cach,
+          so_luong_yeu_cau: ct.so_luong_yeu_cau
+        })) || [])
+      } else {
+        setMaDonTong(`DT-${new Date().getTime().toString().slice(-6)}`)
+        setTenDon("")
+        setGhiChu("")
+        setChiTiet([])
+      }
+    }
+  }, [open, initialData])
 
   const handleAddRow = () => {
     setChiTiet([...chiTiet, { id_nguyen_lieu: "", ma_quy_cach: "", so_luong_yeu_cau: 0 }])
@@ -66,18 +80,19 @@ export function FormDonTong({ open, onOpenChange, nguyenLieuList, initialData }:
     }
 
     startTransition(async () => {
+      const payload = { ma_don_tong: maDonTong, ten_don: tenDon, ghi_chu: ghiChu, chi_tiet: chiTiet }
       let result
       if (isEdit) {
-        result = await capNhatDonTong(initialData.id, { ma_don_tong: maDonTong, ten_don: tenDon, ghi_chu: ghiChu, chi_tiet: chiTiet })
+        result = await capNhatDonTong(initialData.id, payload)
       } else {
-        result = await taoDonTong({ ma_don_tong: maDonTong, ten_don: tenDon, ghi_chu: ghiChu, chi_tiet: chiTiet })
+        result = await taoDonTong(payload)
       }
 
       if (result.success) {
         toast.success(isEdit ? t("masterOrder.successUpdate") : t("masterOrder.successCreate"))
         onOpenChange(false)
         if (!isEdit) {
-          setMaDonTong("")
+          setMaDonTong(`DT-${new Date().getTime().toString().slice(-6)}`)
           setTenDon("")
           setGhiChu("")
           setChiTiet([])
@@ -102,7 +117,7 @@ export function FormDonTong({ open, onOpenChange, nguyenLieuList, initialData }:
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>{t("masterOrder.orderCode")}</Label>
-              <Input placeholder={t("masterOrder.codePlaceholder")} value={maDonTong} onChange={e => setMaDonTong(e.target.value)} />
+              <Input placeholder={t("masterOrder.codePlaceholder")} value={maDonTong} disabled className="bg-muted" />
             </div>
             <div className="space-y-2">
               <Label>{t("masterOrder.orderNameOpt")}</Label>
@@ -111,7 +126,7 @@ export function FormDonTong({ open, onOpenChange, nguyenLieuList, initialData }:
           </div>
           
           <div className="space-y-2">
-            <Label>{t("common.notes") || t("masterOrder.nameNote")}</Label>
+            <Label>{t("inventory.note")}</Label>
             <Input placeholder={t("masterOrder.notePlaceholder")} value={ghiChu} onChange={e => setGhiChu(e.target.value)} />
           </div>
 
