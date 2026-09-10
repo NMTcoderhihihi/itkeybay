@@ -140,11 +140,21 @@ export async function getDonTongById(id: string) {
     .select(`
       *,
       don_tong_chi_tiet (
+        id,
         id_nguyen_lieu,
         ma_quy_cach,
         so_luong_yeu_cau,
         so_luong_da_nhap,
-        nguyen_lieu (ten_nguyen_lieu, anh_minh_hoa, don_vi, danh_sach_quy_cach)
+        nguyen_lieu (ten_nguyen_lieu, anh_minh_hoa, don_vi, danh_sach_quy_cach),
+        chi_tiet_cap_phat (
+          id,
+          so_luong_cap_phat,
+          so_cai_vat_tu (
+            id,
+            bien_dong_so_luong,
+            lo_giao_dich (ma_lo, ngay_tao)
+          )
+        )
       )
     `)
     .eq('id', id)
@@ -158,6 +168,20 @@ export async function getDonTongById(id: string) {
 }
 
 export async function getGiaoDichByDonTong(idDonTong: string) {
+  // 1. Lấy tất cả chi_tiet_cap_phat liên quan đến đơn tổng này
+  const { data: dtct } = await supabase.from('don_tong_chi_tiet').select('id').eq('id_don_tong', idDonTong);
+  if (!dtct || dtct.length === 0) return [];
+
+  const dtctIds = dtct.map(c => c.id);
+  const { data: capPhat } = await supabase.from('chi_tiet_cap_phat').select('id_so_cai_vat_tu').in('id_don_tong_chi_tiet', dtctIds);
+  if (!capPhat || capPhat.length === 0) return [];
+
+  const soCaiIds = capPhat.map(c => c.id_so_cai_vat_tu);
+  const { data: soCai } = await supabase.from('so_cai_vat_tu').select('id_lo_giao_dich').in('id', soCaiIds);
+  if (!soCai || soCai.length === 0) return [];
+
+  const loIds = Array.from(new Set(soCai.map(sc => sc.id_lo_giao_dich)));
+
   const { data, error } = await supabase
     .from('lo_giao_dich')
     .select(`
@@ -165,6 +189,7 @@ export async function getGiaoDichByDonTong(idDonTong: string) {
       tai_khoan (ho_ten),
       danh_muc_giao_dich (ten_danh_muc, loai_giao_dich),
       so_cai_vat_tu (
+        id,
         id_nguyen_lieu,
         ma_quy_cach,
         bien_dong_so_luong,
@@ -172,7 +197,7 @@ export async function getGiaoDichByDonTong(idDonTong: string) {
         nguyen_lieu (ten_nguyen_lieu, don_vi, danh_sach_quy_cach)
       )
     `)
-    .contains('danh_sach_don_tong', JSON.stringify([idDonTong]))
+    .in('id', loIds)
     .order('ngay_tao', { ascending: false })
 
   if (error) {
@@ -180,4 +205,70 @@ export async function getGiaoDichByDonTong(idDonTong: string) {
     return []
   }
   return data
+}
+
+export async function getFreeInventoryForMaterial(idNguyenLieu: string, maQuyCach: string) {
+  const { data: soCaiList, error } = await supabase
+    .from('so_cai_vat_tu')
+    .select(`
+      id,
+      bien_dong_so_luong,
+      lo_giao_dich (ma_lo, ngay_tao),
+      chi_tiet_cap_phat (so_luong_cap_phat)
+    `)
+    .eq('id_nguyen_lieu', idNguyenLieu)
+    .eq('ma_quy_cach', maQuyCach)
+    .gt('bien_dong_so_luong', 0)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching free inventory:', error);
+    return [];
+  }
+
+  const freeList = soCaiList.map((sc: any) => {
+    const allocated = sc.chi_tiet_cap_phat.reduce((sum: number, cp: any) => sum + Number(cp.so_luong_cap_phat), 0);
+    const free = Number(sc.bien_dong_so_luong) - allocated;
+    return {
+      id_so_cai_vat_tu: sc.id,
+      ma_lo: sc.lo_giao_dich?.ma_lo,
+      ngay_tao: sc.lo_giao_dich?.ngay_tao,
+      bien_dong_so_luong: Number(sc.bien_dong_so_luong),
+      allocated,
+      free
+    };
+  }).filter((item: any) => item.free > 0);
+
+  return freeList;
+}
+
+export async function allocateFreeInventory(idDonTongChiTiet: string, allocations: { id_so_cai_vat_tu: string, so_luong: number }[], idDonTong: string) {
+  if (!allocations || allocations.length === 0) return { success: true };
+
+  const inserts = allocations.map(a => ({
+    id_don_tong_chi_tiet: idDonTongChiTiet,
+    id_so_cai_vat_tu: a.id_so_cai_vat_tu,
+    so_luong_cap_phat: a.so_luong
+  }));
+
+  const { error } = await supabase.from('chi_tiet_cap_phat').insert(inserts);
+  if (error) {
+    return { success: false, error: error.message };
+  }
+  
+  // Re-check master order status
+  const { data: updatedCtList } = await supabase
+    .from('don_tong_chi_tiet')
+    .select('so_luong_yeu_cau, so_luong_da_nhap')
+    .eq('id_don_tong', idDonTong);
+
+  if (updatedCtList && updatedCtList.length > 0) {
+    const isAllDone = updatedCtList.every(ct => Number(ct.so_luong_da_nhap) >= Number(ct.so_luong_yeu_cau));
+    if (isAllDone) {
+      await supabase.from('don_tong').update({ trang_thai: 'DA_DU' }).eq('id', idDonTong);
+    }
+  }
+
+  revalidatePath('/kho/don-tong/' + idDonTong);
+  return { success: true };
 }

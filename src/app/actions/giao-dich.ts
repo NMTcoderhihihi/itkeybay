@@ -102,18 +102,21 @@ export async function taoPhieuGiaoDichKho(payload: {
   }
 
   // 3. Insert Bulk vào Sổ cái
+  let insertedSoCai: any[] = []
   if (soCaiInserts.length > 0) {
-    const { error: ledgerError } = await supabase
+    const { data: ledgerData, error: ledgerError } = await supabase
       .from('so_cai_vat_tu')
       .insert(soCaiInserts)
+      .select()
 
     if (ledgerError) {
       await supabase.from('lo_giao_dich').delete().eq('id', id_lo_giao_dich)
       return { success: false, error: "Lỗi ghi sổ cái: " + ledgerError.message }
     }
+    insertedSoCai = ledgerData || []
   }
 
-  // 4. Xử lý logic trừ lùi tuần tự cho Đơn tổng (nếu có và là phiếu NHAP)
+  // 4. Xử lý logic cấp phát tự động cho Đơn tổng (nếu có và là phiếu NHAP)
   if (payload.loai_giao_dich === 'NHAP' && payload.danh_sach_don_tong && payload.danh_sach_don_tong.length > 0) {
     // Lấy thông tin các đơn tổng được chọn và chi tiết của chúng
     const { data: listDonTong } = await supabase
@@ -124,9 +127,11 @@ export async function taoPhieuGiaoDichKho(payload: {
     if (listDonTong) {
       // Đảm bảo thứ tự ưu tiên như mảng đã chọn
       const orderedDonTong = payload.danh_sach_don_tong.map(id => listDonTong.find(dt => dt.id === id)).filter(Boolean);
+      
+      const capPhatInserts = [];
 
-      for (const item of mergedChiTiet) {
-        let remainingToDeduct = item.so_luong;
+      for (const sc of insertedSoCai) {
+        let remainingToDeduct = Number(sc.bien_dong_so_luong);
 
         for (const dt of orderedDonTong) {
           if (remainingToDeduct <= 0) break;
@@ -134,7 +139,7 @@ export async function taoPhieuGiaoDichKho(payload: {
 
           // Tìm chi tiết vật tư trong đơn tổng
           const targetCt = dt.don_tong_chi_tiet.find((ct: any) => 
-            ct.id_nguyen_lieu === item.id_nguyen_lieu && ct.ma_quy_cach === item.ma_quy_cach
+            ct.id_nguyen_lieu === sc.id_nguyen_lieu && ct.ma_quy_cach === sc.ma_quy_cach
           );
 
           if (targetCt) {
@@ -146,14 +151,23 @@ export async function taoPhieuGiaoDichKho(payload: {
               const capPhat = Math.min(thieu, remainingToDeduct);
               remainingToDeduct -= capPhat;
               
-              // Cập nhật số lượng đã nhập vào DB
-              await supabase
-                .from('don_tong_chi_tiet')
-                .update({ so_luong_da_nhap: daNhap + capPhat })
-                .eq('id', targetCt.id);
+              // Ghi nhận vào bảng Cấp phát
+              capPhatInserts.push({
+                id_so_cai_vat_tu: sc.id,
+                id_don_tong_chi_tiet: targetCt.id,
+                so_luong_cap_phat: capPhat
+              });
+              
+              // Cập nhật lại số liệu in-memory để tính tiếp cho đơn khác nếu còn dư
+              targetCt.so_luong_da_nhap = daNhap + capPhat;
             }
           }
         }
+      }
+
+      // Lưu tất cả các dòng cấp phát
+      if (capPhatInserts.length > 0) {
+        await supabase.from('chi_tiet_cap_phat').insert(capPhatInserts);
       }
 
       // Kiểm tra và cập nhật trạng thái đơn tổng nếu đã đủ
