@@ -46,8 +46,7 @@ export async function taoPhieuGiaoDichKho(payload: {
       id_danh_muc: payload.id_danh_muc,
       id_cong_hang: payload.id_cong_hang || null,
       ghi_chu: payload.ghi_chu,
-      danh_sach_anh: payload.danh_sach_anh,
-      danh_sach_don_tong: payload.danh_sach_don_tong || []
+      danh_sach_anh: payload.danh_sach_anh
     })
     .select('id')
     .single()

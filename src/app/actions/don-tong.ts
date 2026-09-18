@@ -99,24 +99,39 @@ export async function capNhatDonTong(id: string, payload: {
 
     if (updateError) return { success: false, error: "Lỗi cập nhật đơn tổng: " + updateError.message }
 
-    // Xóa chi tiết cũ và thêm lại để đơn giản
-    await supabase.from('don_tong_chi_tiet').delete().eq('id_don_tong', id)
+    const { data: currentDetails } = await supabase.from('don_tong_chi_tiet').select('*').eq('id_don_tong', id)
+    const existing = currentDetails || []
+    const incomingKeys = payload.chi_tiet.map(c => `${c.id_nguyen_lieu}_${c.ma_quy_cach}`)
 
-    if (payload.chi_tiet.length > 0) {
-      const chiTietInserts = payload.chi_tiet.map(item => ({
-        id_don_tong: id,
-        id_nguyen_lieu: item.id_nguyen_lieu,
-        ma_quy_cach: item.ma_quy_cach,
-        so_luong_yeu_cau: item.so_luong_yeu_cau,
-        so_luong_da_nhap: 0 // Chú ý: Khi sửa đơn tổng có thể mất số lượng đã nhập nếu thay đổi hoàn toàn vật tư
-      }))
+    const toDeleteIds = []
+    for (const ex of existing) {
+      const key = `${ex.id_nguyen_lieu}_${ex.ma_quy_cach}`
+      if (!incomingKeys.includes(key)) {
+        if (Number(ex.so_luong_da_nhap) > 0) {
+          return { success: false, error: "Không thể xóa vật tư đã có dữ liệu nhập kho (Quy cách: " + ex.ma_quy_cach + ")" }
+        }
+        toDeleteIds.push(ex.id)
+      }
+    }
 
-      const { error: ctError } = await supabase
-        .from('don_tong_chi_tiet')
-        .insert(chiTietInserts)
+    if (toDeleteIds.length > 0) {
+      await supabase.from('don_tong_chi_tiet').delete().in('id', toDeleteIds)
+    }
 
-      if (ctError) {
-        return { success: false, error: "Lỗi cập nhật chi tiết đơn tổng: " + ctError.message }
+    for (const item of payload.chi_tiet) {
+      const key = `${item.id_nguyen_lieu}_${item.ma_quy_cach}`
+      const ex = existing.find(e => `${e.id_nguyen_lieu}_${e.ma_quy_cach}` === key)
+      if (ex) {
+        if (Number(ex.so_luong_yeu_cau) !== Number(item.so_luong_yeu_cau)) {
+          await supabase.from('don_tong_chi_tiet').update({ so_luong_yeu_cau: item.so_luong_yeu_cau }).eq('id', ex.id)
+        }
+      } else {
+        await supabase.from('don_tong_chi_tiet').insert({
+          id_don_tong: id,
+          id_nguyen_lieu: item.id_nguyen_lieu,
+          ma_quy_cach: item.ma_quy_cach,
+          so_luong_yeu_cau: item.so_luong_yeu_cau
+        })
       }
     }
 

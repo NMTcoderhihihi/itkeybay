@@ -2,8 +2,8 @@
 
 Tài liệu này chứa cấu trúc CSDL để chúng ta cùng thảo luận, chỉnh sửa trước khi chốt kiến trúc cuối cùng.
 
-## 1. Nguyên tắc thiết kế (Ledger-based & JSONB)
-Thiết kế Sổ cái (Ledger) kết hợp lưu trữ số dư tồn kho tức thời sẽ áp dụng cho Kho Nguyên liệu. Đối với Bán thành phẩm và Quản lý Sản xuất, hệ thống tận dụng tối đa sức mạnh NoSQL của Postgres (cột JSONB) để gộp các bảng quan hệ phức tạp thành các mảng linh hoạt, giúp tốc độ truy xuất cực nhanh. Việc kiểm soát trạng thái được tiêu chuẩn hóa bằng các cấu trúc **ENUM**.
+## 1. Nguyên tắc thiết kế (Ledger-based, JSONB & Bảng trung gian cấp phát)
+Thiết kế Sổ cái (Ledger) kết hợp lưu trữ số dư tồn kho tức thời sẽ áp dụng cho Kho Nguyên liệu. Đối với Bán thành phẩm và Quản lý Sản xuất, hệ thống tận dụng tối đa sức mạnh NoSQL của Postgres (cột JSONB) để gộp các bảng quan hệ phức tạp thành các mảng linh hoạt, giúp tốc độ truy xuất cực nhanh. Việc kiểm soát trạng thái được tiêu chuẩn hóa bằng các cấu trúc **ENUM**. Đối với nghiệp vụ phân bổ vật tư từ kho vào Đơn tổng, hệ thống sử dụng bảng trung gian `chi_tiet_cap_phat` và Database Trigger để đảm bảo dữ liệu toàn vẹn tuyệt đối.
 
 ---
 
@@ -104,7 +104,6 @@ erDiagram
         uuid id_danh_muc FK
         uuid id_cong_hang FK "Dùng khi cấp phát hoặc xuất giao BTP"
         jsonb danh_sach_anh "Mảng URL ảnh minh chứng (Gộp bảng)"
-        jsonb danh_sach_don_tong "Mảng UUID liên kết thứ tự ưu tiên Đơn tổng"
         timestamp ngay_tao
         string ghi_chu
     }
@@ -124,7 +123,15 @@ erDiagram
         uuid id_nguyen_lieu FK
         string ma_quy_cach
         numeric so_luong_yeu_cau
-        numeric so_luong_da_nhap
+        numeric so_luong_da_nhap "Auto-sync via Trigger từ chi_tiet_cap_phat"
+    }
+
+    chi_tiet_cap_phat {
+        uuid id PK
+        uuid id_don_tong_chi_tiet FK
+        uuid id_so_cai_vat_tu FK
+        numeric so_luong_cap_phat "Số lượng thực tế điều chuyển"
+        timestamp created_at
     }
     
     %% ==========================================
@@ -151,25 +158,27 @@ erDiagram
     cong_doan ||--o{ cong_hang : "tham_chieu_qua_jsonb"
     don_tong ||--o{ don_tong_chi_tiet : "chua"
     nguyen_lieu ||--o{ don_tong_chi_tiet : "chi_dinh"
+    don_tong_chi_tiet ||--o{ chi_tiet_cap_phat : "nhan_cap_phat"
+    so_cai_vat_tu ||--o{ chi_tiet_cap_phat : "nguon_cap_phat"
 ```
 
 ---
 
-## 3. Thảo luận & Open Questions (Dành cho bạn)
+## 3. Thảo luận & Open Questions
 
 Kiến trúc Database này tập trung giải quyết:
 - **Gộp giao dịch (Batch):** Một phiếu giao dịch (`lo_giao_dich`) đính kèm ảnh bằng JSONB, nhập/xuất n-quy cách nguyên liệu.
 - **Tối giản Hóa Sản xuất:** Mảng `danh_sach_cong_doan` (JSONB) trong bảng Công hàng sẽ lưu trữ trực tiếp các liên kết (ID) tới bảng `cong_nhan` và `cong_doan` để theo dõi tiến độ một cách linh hoạt mà không cần tạo bảng trung gian khổng lồ.
 - **Truy vết Kế toán:** Bảng `so_cai_vat_tu` ghi nhận sự tăng/giảm (+/-) và số dư tồn kho tại chính thời điểm đó.
-- **Tự động hóa Đơn tổng:** Cấu trúc `don_tong` kết nối với `lo_giao_dich` thông qua mảng JSONB (`danh_sach_don_tong`). Hệ thống có thể quét danh sách này để tự động phân bổ trừ lùi (deduction) vật tư nhập kho cho các đơn tổng liên quan một cách tuần tự.
+- **Tự động hóa & Khớp nối Đơn tổng (Auto-Dispatch & Allocation):** Loại bỏ hoàn toàn mảng liên kết lỏng lẻo. Hệ thống sử dụng bảng `chi_tiet_cap_phat` để theo dõi chính xác từng đơn vị vật tư được rót từ Giao dịch nào (`so_cai_vat_tu`) vào Đơn tổng nào (`don_tong_chi_tiet`). Từ đó sinh ra khái niệm **Tồn chưa phân (Free Inventory)**.
 
-## 4. Tiêu chuẩn Chuẩn hóa & Nâng cấp (v1 - Ngày 26/07/2026)
+## 4. Tiêu chuẩn Chuẩn hóa & Nâng cấp (Các Version)
 
 Hệ thống cơ sở dữ liệu đã được chuẩn hóa giữa các môi trường với các nguyên tắc cốt lõi sau:
 1. **Định danh Tài khoản (`tai_khoan.tai_khoan`)**: Chuyển đổi cột định danh đăng nhập từ `so_dien_thoai` thành `tai_khoan character varying NOT NULL UNIQUE` nhằm mở rộng khả năng đặt tên tài khoản cho quản lý và nhân viên.
 2. **Quy cách Vật tư Tự động (`nguyen_lieu.danh_sach_quy_cach`)**: Các quy cách không còn sử dụng mã thủ công tự do mà do hệ thống tự sinh mã theo số thứ tự chuẩn `QC-01`, `QC-02`, `QC-03`..., đảm bảo tính duy nhất và nhất quán cho từng loại nguyên liệu.
 3. **Bảo toàn Liên kết Kế toán (`so_cai_vat_tu.ma_quy_cach`)**: Toàn bộ liên kết quy cách trong sổ cái được ánh xạ đồng bộ theo định danh `QC-xx` mới, bảo toàn tuyệt đối lịch sử giao dịch và số dư tồn kho.
 4. **Đồng bộ Realtime SSE Toàn cục (`/api/sse`)**: CSDL tích hợp Supabase Realtime (`postgres_changes`) đẩy sự kiện trực tiếp tới Global SSE Gateway, tự động đồng bộ ngầm dữ liệu tồn kho và tiến độ xưởng.
-5. **Logic Đơn Tổng (Master Orders)**: Áp dụng cơ chế trạng thái `CHUA_DU` / `DA_DU` và lưu giữ vết trừ lùi tại `don_tong_chi_tiet.so_luong_da_nhap`. Khi giao dịch nhập kho liên kết nhiều đơn tổng, số lượng được tự động phân bổ lần lượt dựa trên thứ tự mảng ID đơn tổng được người dùng chọn.
+5. **Nâng cấp Logic Đơn Tổng (Line-Item Allocation Architecture)**: Lược bỏ mảng JSONB trong Lô giao dịch. Thay vào đó, áp dụng bảng `chi_tiet_cap_phat` làm cầu nối giữa Sổ cái và Đơn tổng. Một Database Trigger (`trg_update_cap_phat`) sẽ tự động tính toán tổng số lượng được cấp phát và đồng bộ vào cột read-only cache `so_luong_da_nhap` của bảng `don_tong_chi_tiet`, đảm bảo toàn vẹn dữ liệu và hỗ trợ truy vết 100%.
 
-**(Tất cả câu hỏi thảo luận đã được giải quyết!)**
+**(Tất cả cập nhật kiến trúc đã được hoàn thiện!)**
