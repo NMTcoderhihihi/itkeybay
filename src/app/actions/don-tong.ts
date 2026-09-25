@@ -290,7 +290,7 @@ export async function allocateFreeInventory(idDonTongChiTiet: string, allocation
     await supabase.from('don_tong').update({ trang_thai: isAllDone ? 'DA_DU' : 'CHUA_DU' }).eq('id', idDonTong);
   }
 
-  revalidatePath('/kho/don-tong/' + idDonTong);
+  revalidatePath('/kho', 'layout');
   return { success: true };
 }
 
@@ -349,7 +349,7 @@ export async function withdrawAllocatedInventory(withdrawals: { id_cap_phat: str
       await supabase.from('don_tong').update({ trang_thai: isAllDone ? 'DA_DU' : 'CHUA_DU' }).eq('id', idDonTong);
     }
 
-    revalidatePath('/kho/don-tong/' + idDonTong);
+    revalidatePath('/kho', 'layout');
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message };
