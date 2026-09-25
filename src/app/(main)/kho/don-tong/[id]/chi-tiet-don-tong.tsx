@@ -247,7 +247,8 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
               filteredDetails?.map((ct: any) => {
                 const y = Number(ct.so_luong_yeu_cau)
                 const d = Number(ct.so_luong_da_nhap)
-                const pct = y > 0 ? Math.min(100, Math.round((d / y) * 100)) : 0
+                const rawPct = Math.round((d / y) * 100)
+                const pct = y > 0 ? (d >= y ? 100 : Math.min(99, rawPct)) : 0
                 
                 const quyCachObj = ct.nguyen_lieu?.danh_sach_quy_cach?.find((q: any) => q.ma_quy_cach === ct.ma_quy_cach)
                 
