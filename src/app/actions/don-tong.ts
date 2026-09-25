@@ -122,6 +122,9 @@ export async function capNhatDonTong(id: string, payload: {
       const key = `${item.id_nguyen_lieu}_${item.ma_quy_cach}`
       const ex = existing.find(e => `${e.id_nguyen_lieu}_${e.ma_quy_cach}` === key)
       if (ex) {
+        if (Number(item.so_luong_yeu_cau) < Number(ex.so_luong_da_nhap)) {
+          return { success: false, error: `Không thể giảm số lượng yêu cầu xuống dưới mức đã thực cấp (${ex.so_luong_da_nhap}) đối với quy cách: ${ex.ma_quy_cach}. Vui lòng rút vật tư ra khỏi đơn trước.` }
+        }
         if (Number(ex.so_luong_yeu_cau) !== Number(item.so_luong_yeu_cau)) {
           await supabase.from('don_tong_chi_tiet').update({ so_luong_yeu_cau: item.so_luong_yeu_cau }).eq('id', ex.id)
         }
@@ -209,7 +212,12 @@ export async function getGiaoDichByDonTong(idDonTong: string) {
         ma_quy_cach,
         bien_dong_so_luong,
         ton_kho_hien_tai,
-        nguyen_lieu (ten_nguyen_lieu, don_vi, danh_sach_quy_cach)
+        nguyen_lieu (ten_nguyen_lieu, don_vi, danh_sach_quy_cach),
+        chi_tiet_cap_phat (
+          id,
+          so_luong_cap_phat,
+          id_don_tong_chi_tiet
+        )
       )
     `)
     .in('id', loIds)
@@ -279,11 +287,71 @@ export async function allocateFreeInventory(idDonTongChiTiet: string, allocation
 
   if (updatedCtList && updatedCtList.length > 0) {
     const isAllDone = updatedCtList.every(ct => Number(ct.so_luong_da_nhap) >= Number(ct.so_luong_yeu_cau));
-    if (isAllDone) {
-      await supabase.from('don_tong').update({ trang_thai: 'DA_DU' }).eq('id', idDonTong);
-    }
+    await supabase.from('don_tong').update({ trang_thai: isAllDone ? 'DA_DU' : 'CHUA_DU' }).eq('id', idDonTong);
   }
 
   revalidatePath('/kho/don-tong/' + idDonTong);
   return { success: true };
+}
+
+export async function getAllocatedInventoryForMaterial(idDonTongChiTiet: string) {
+  const { data, error } = await supabase
+    .from('chi_tiet_cap_phat')
+    .select(`
+      id,
+      so_luong_cap_phat,
+      so_cai_vat_tu (
+        id,
+        bien_dong_so_luong,
+        lo_giao_dich (ma_lo, ngay_tao)
+      )
+    `)
+    .eq('id_don_tong_chi_tiet', idDonTongChiTiet);
+
+  if (error) {
+    console.error('Error fetching allocated inventory:', error);
+    return [];
+  }
+
+  return data.map((cp: any) => ({
+    id_cap_phat: cp.id,
+    id_so_cai_vat_tu: cp.so_cai_vat_tu?.id,
+    ma_lo: cp.so_cai_vat_tu?.lo_giao_dich?.ma_lo,
+    ngay_tao: cp.so_cai_vat_tu?.lo_giao_dich?.ngay_tao,
+    so_luong_cap_phat: Number(cp.so_luong_cap_phat)
+  }));
+}
+
+export async function withdrawAllocatedInventory(withdrawals: { id_cap_phat: string, so_luong_rut: number }[], idDonTong: string): Promise<{ success: boolean; error?: string }> {
+  if (!withdrawals || withdrawals.length === 0) return { success: true };
+
+  try {
+    for (const w of withdrawals) {
+      const { data: cp } = await supabase.from('chi_tiet_cap_phat').select('so_luong_cap_phat').eq('id', w.id_cap_phat).single();
+      if (cp) {
+        const current = Number(cp.so_luong_cap_phat);
+        const remaining = current - w.so_luong_rut;
+        if (remaining <= 0) {
+          await supabase.from('chi_tiet_cap_phat').delete().eq('id', w.id_cap_phat);
+        } else {
+          await supabase.from('chi_tiet_cap_phat').update({ so_luong_cap_phat: remaining }).eq('id', w.id_cap_phat);
+        }
+      }
+    }
+
+    const { data: updatedCtList } = await supabase
+      .from('don_tong_chi_tiet')
+      .select('so_luong_yeu_cau, so_luong_da_nhap')
+      .eq('id_don_tong', idDonTong);
+
+    if (updatedCtList && updatedCtList.length > 0) {
+      const isAllDone = updatedCtList.every(ct => Number(ct.so_luong_da_nhap) >= Number(ct.so_luong_yeu_cau));
+      await supabase.from('don_tong').update({ trang_thai: isAllDone ? 'DA_DU' : 'CHUA_DU' }).eq('id', idDonTong);
+    }
+
+    revalidatePath('/kho/don-tong/' + idDonTong);
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
 }
