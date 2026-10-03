@@ -22,7 +22,17 @@ Hệ thống bao gồm 3 phân hệ (module) chính liên kết mật thiết v�
 
 ---
 
-## 4. Phân hệ 3: Quản lý Kho Bán Thành Phẩm
+## 4. Phân hệ 4: Quản lý Đơn tổng (Master Order)
+- **Khái niệm:** Đơn tổng dùng để gom các yêu cầu vật tư/sản xuất theo một chiến dịch hoặc giai đoạn cụ thể.
+- **Quy trình hoạt động:**
+  - Lên danh sách các vật tư và số lượng yêu cầu cần thiết cho một Đơn tổng.
+  - **Cấp phát linh hoạt (Allocation):** Người dùng có thể rót vật tư từ các Lô giao dịch (Sổ cái) đang có "tồn chưa phân" vào Đơn tổng.
+  - **Rút trả kho (Withdrawal):** Người dùng có thể rút bớt vật tư đã rót vào Đơn tổng trả về trạng thái "chưa phân", giúp khắc phục sự cố cấp dư hoặc nhầm lẫn.
+  - Hệ thống tự động theo dõi và cập nhật trạng thái của Đơn tổng (`CHUA_DU` hoặc `DA_DU`) dựa trên việc đối chiếu Số lượng đã nhập với Số lượng yêu cầu.
+
+---
+
+## 5. Phân hệ 5: Quản lý Kho Bán Thành Phẩm
 Kho Bán thành phẩm được **đơn giản hóa**, không quản lý số lượng chi tiết từng mã hàng nhỏ lẻ, mà **quản lý nguyên một Công hàng**.
 - Khi một Công hàng hoàn thành sản xuất (`Đã làm`), nó tự động có trạng thái Kho là **`TON_KHO`** (Tồn kho).
 - Khi tiến hành xuất hàng đi giao, người dùng thao tác giao Công hàng đó. Công hàng chuyển trạng thái Kho sang **`DA_GIAO`** (Đã giao).
@@ -30,7 +40,7 @@ Kho Bán thành phẩm được **đơn giản hóa**, không quản lý số l�
 
 ---
 
-## 5. Yêu cầu Hệ thống Chức năng Chung
+## 6. Yêu cầu Hệ thống Chức năng Chung
 - **Hệ thống Upload Đa phương tiện theo Lô (JSONB):** 
   - Trong các thao tác Nhập/Xuất kho và Cấp phát liệu: Bắt buộc đính kèm ảnh/video minh chứng.
   - Các hình ảnh đính kèm (URL) sẽ được lưu gọn trong 1 trường mảng JSONB của Phiếu giao dịch đó (Ví dụ: `[{anh1}, {anh2}]`).
