@@ -194,16 +194,24 @@ export async function taoPhieuGiaoDichKho(payload: {
 export async function getTongQuanTonKho() {
   /* using imported supabase */
   const { data: nlData } = await supabase.from('nguyen_lieu').select('*').order('created_at', { ascending: false })
-  const { data: scData } = await supabase.from('so_cai_vat_tu').select('id_nguyen_lieu, ma_quy_cach, bien_dong_so_luong')
-  
-  if (!nlData || !scData) return []
+  const { data: scData, error: viewError } = await supabase
+    .from('view_ton_kho_hien_tai')
+    .select('*')
 
-  // Tính tổng biến động số lượng (Nhập +, Xuất -) từ toàn bộ sổ cái cho mỗi (nguyen_lieu, quy_cach)
+  if (viewError) {
+    console.error("Lỗi lấy view tồn kho:", viewError)
+  }
+  
+  if (!nlData) return []
+
+  // Gán thẳng giá trị tồn cuối từ View
   const stockSumMap: Record<string, number> = {}
-  scData.forEach((row) => {
-    const key = `${row.id_nguyen_lieu}_${row.ma_quy_cach}`
-    stockSumMap[key] = (stockSumMap[key] || 0) + Number(row.bien_dong_so_luong || 0)
-  })
+  if (scData && scData.length > 0) {
+    scData.forEach((row) => {
+      const key = `${row.id_nguyen_lieu}_${row.ma_quy_cach}`
+      stockSumMap[key] = Number(row.ton_kho_hien_tai || 0)
+    })
+  }
 
   // Map về giao diện với số lượng tồn kho chính xác
   const result = nlData.map(nl => {

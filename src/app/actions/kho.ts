@@ -30,12 +30,19 @@ export async function getNguyenLieuList() {
     return []
   }
 
-  const { data: scData } = await supabase.from('so_cai_vat_tu').select('id_nguyen_lieu, ma_quy_cach, bien_dong_so_luong')
+  const { data: scData, error: viewError } = await supabase
+    .from('view_ton_kho_hien_tai')
+    .select('*')
+
+  if (viewError) {
+    console.error("Lỗi lấy view tồn kho:", viewError)
+  }
+
   const stockSumMap: Record<string, number> = {}
-  if (scData) {
+  if (scData && scData.length > 0) {
     scData.forEach((row) => {
       const key = `${row.id_nguyen_lieu}_${row.ma_quy_cach}`
-      stockSumMap[key] = (stockSumMap[key] || 0) + Number(row.bien_dong_so_luong || 0)
+      stockSumMap[key] = Number(row.ton_kho_hien_tai || 0)
     })
   }
 
