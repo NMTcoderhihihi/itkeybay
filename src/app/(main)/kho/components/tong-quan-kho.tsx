@@ -42,7 +42,7 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
   const [totalLedgerRows, setTotalLedgerRows] = useState(0)
   const [loadingLedger, setLoadingLedger] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const ITEMS_PER_PAGE = 10
+  const ITEMS_PER_PAGE = 30
 
   const [showFilters, setShowFilters] = useState(false)
   const [latestTransactions, setLatestTransactions] = useState<Record<string, any>>({})
@@ -485,7 +485,7 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                   )}
                 </div>
 
-                <div className="flex-1 overflow-auto border rounded-md min-h-[300px] relative" onScroll={handleScrollLedger}>
+                <div className="flex-1 overflow-auto border rounded-md relative" onScroll={handleScrollLedger}>
                   {loadingLedger && currentPage === 1 && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50 backdrop-blur-[1px] z-10">
                       <Loader2 className="h-6 w-6 animate-spin text-primary" />
