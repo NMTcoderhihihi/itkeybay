@@ -37,6 +37,21 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [popupTab, setPopupTab] = useState("add")
 
+  // Popup UI State
+  const [isFetchingInventory, setIsFetchingInventory] = useState(false)
+  const [popupSearchTerm, setPopupSearchTerm] = useState("")
+  const [popupDateFrom, setPopupDateFrom] = useState("")
+  const [popupDateTo, setPopupDateTo] = useState("")
+  const [popupPage, setPopupPage] = useState(1)
+  const ITEMS_PER_POPUP_PAGE = 10
+
+  const handleScrollPopup = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget
+    if (scrollHeight - scrollTop <= clientHeight + 50) {
+      setPopupPage(p => p + 1)
+    }
+  }
+
   const formatTime = (ts: string) => {
     try {
       return format(new Date(ts), "HH:mm - dd/MM/yyyy", { locale: vi })
@@ -140,6 +155,50 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
       toast.error("Lỗi: " + res.error)
     }
   }
+
+    const filteredFreeInventory = useMemo(() => {
+    return freeInventory.filter(item => {
+      let matchSearch = true
+      if (popupSearchTerm) {
+        const s = popupSearchTerm.toLowerCase()
+        matchSearch = item.ma_lo?.toLowerCase().includes(s) || 
+                      item.nguoi_tao?.toLowerCase().includes(s) || 
+                      item.ghi_chu?.toLowerCase().includes(s)
+      }
+      let matchDate = true
+      if (popupDateFrom || popupDateTo) {
+        const d = new Date(item.ngay_tao)
+        const f = popupDateFrom ? startOfDay(new Date(popupDateFrom)) : new Date(0)
+        const t = popupDateTo ? endOfDay(new Date(popupDateTo)) : new Date(2100, 1, 1)
+        matchDate = isWithinInterval(d, { start: f, end: t })
+      }
+      return matchSearch && matchDate
+    })
+  }, [freeInventory, popupSearchTerm, popupDateFrom, popupDateTo])
+
+  const visibleFreeInventory = filteredFreeInventory.slice(0, popupPage * ITEMS_PER_POPUP_PAGE)
+
+  const filteredAllocatedInventory = useMemo(() => {
+    return allocatedInventory.filter(item => {
+      let matchSearch = true
+      if (popupSearchTerm) {
+        const s = popupSearchTerm.toLowerCase()
+        matchSearch = item.ma_lo?.toLowerCase().includes(s) || 
+                      item.nguoi_tao?.toLowerCase().includes(s) || 
+                      item.ghi_chu?.toLowerCase().includes(s)
+      }
+      let matchDate = true
+      if (popupDateFrom || popupDateTo) {
+        const d = new Date(item.ngay_tao)
+        const f = popupDateFrom ? startOfDay(new Date(popupDateFrom)) : new Date(0)
+        const t = popupDateTo ? endOfDay(new Date(popupDateTo)) : new Date(2100, 1, 1)
+        matchDate = isWithinInterval(d, { start: f, end: t })
+      }
+      return matchSearch && matchDate
+    })
+  }, [allocatedInventory, popupSearchTerm, popupDateFrom, popupDateTo])
+
+  const visibleAllocatedInventory = filteredAllocatedInventory.slice(0, popupPage * ITEMS_PER_POPUP_PAGE)
 
   const filteredDetails = donTong.don_tong_chi_tiet?.filter((ct: any) => {
     const nl = ct.nguyen_lieu
@@ -248,8 +307,8 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
               filteredDetails?.map((ct: any) => {
                 const y = Number(ct.so_luong_yeu_cau)
                 const d = Number(ct.so_luong_da_nhap)
-                const rawPct = Math.round((d / y) * 100)
-                const pct = y > 0 ? (d >= y ? 100 : Math.min(99, rawPct)) : 0
+                const rawPct = Number(((d / y) * 100).toFixed(2))
+                const pct = y > 0 ? (d >= y ? 100 : Math.min(99.99, rawPct)) : 0
                 
                 const quyCachObj = ct.nguyen_lieu?.danh_sach_quy_cach?.find((q: any) => q.ma_quy_cach === ct.ma_quy_cach)
                 
@@ -424,106 +483,193 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
       </Card>
 
       <Dialog open={isPopupOpen} onOpenChange={setIsPopupOpen}>
-        <DialogContent className="sm:max-w-[700px]">
-          <DialogHeader>
-            <DialogTitle>Điều chỉnh vật tư Đơn Tổng</DialogTitle>
+        <DialogContent className="sm:max-w-[1000px] h-[90vh] flex flex-col p-0 gap-0 overflow-hidden">
+          <DialogHeader className="p-6 pb-4 border-b shrink-0">
+            <DialogTitle className="text-xl">Điều chỉnh vật tư Đơn Tổng</DialogTitle>
           </DialogHeader>
           
           {allocatingMaterial && (
-            <div className="py-2">
-              <div className="flex items-center justify-between mb-4 bg-muted p-3 rounded-md border">
-                <div>
-                  <h4 className="font-semibold">{allocatingMaterial.nguyen_lieu?.ten_nguyen_lieu}</h4>
-                  <p className="text-sm text-muted-foreground">Mã: {allocatingMaterial.ma_quy_cach}</p>
+            <div className="flex-1 flex flex-col min-h-0">
+              <div className="p-6 pb-0 shrink-0">
+                <div className="flex items-center justify-between mb-4 bg-muted/40 p-4 rounded-xl border">
+                  <div>
+                    <h4 className="font-bold text-lg text-primary">{allocatingMaterial.nguyen_lieu?.ten_nguyen_lieu}</h4>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline" className="bg-background">Mã: {allocatingMaterial.ma_quy_cach}</Badge>
+                      {allocatingMaterial.nguyen_lieu?.danh_sach_quy_cach?.find((q: any) => q.ma_quy_cach === allocatingMaterial.ma_quy_cach)?.ten && (
+                        <span className="text-sm text-muted-foreground">Quy cách: {allocatingMaterial.nguyen_lieu?.danh_sach_quy_cach?.find((q: any) => q.ma_quy_cach === allocatingMaterial.ma_quy_cach)?.ten}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right bg-background p-3 rounded-lg border shadow-sm">
+                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">Tiến độ nhập kho</p>
+                    <p className="text-base"><span className="font-bold text-primary text-xl">{allocatingMaterial.so_luong_da_nhap}</span> / {allocatingMaterial.so_luong_yeu_cau} <span className="text-sm text-muted-foreground">{allocatingMaterial.nguyen_lieu?.don_vi}</span></p>
+                    {Number(allocatingMaterial.so_luong_da_nhap) < Number(allocatingMaterial.so_luong_yeu_cau) && (
+                      <p className="text-sm font-semibold text-destructive mt-1 flex items-center justify-end gap-1">
+                        Đang thiếu: {Number(allocatingMaterial.so_luong_yeu_cau) - Number(allocatingMaterial.so_luong_da_nhap)}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm">Tiến độ: <span className="font-bold text-primary">{allocatingMaterial.so_luong_da_nhap}</span> / {allocatingMaterial.so_luong_yeu_cau}</p>
-                  {Number(allocatingMaterial.so_luong_da_nhap) < Number(allocatingMaterial.so_luong_yeu_cau) && (
-                    <p className="text-sm font-semibold text-destructive mt-0.5">
-                      Đang thiếu: {Number(allocatingMaterial.so_luong_yeu_cau) - Number(allocatingMaterial.so_luong_da_nhap)}
-                    </p>
-                  )}
+
+                {/* Thanh công cụ Tìm kiếm/Lọc */}
+                <div className="flex flex-col sm:flex-row items-center gap-3 mb-4">
+                  <div className="relative flex-1 w-full">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Tìm mã lô, người tạo, ghi chú..." 
+                      className="pl-9"
+                      value={popupSearchTerm}
+                      onChange={e => setPopupSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <Input type="date" value={popupDateFrom} onChange={e => setPopupDateFrom(e.target.value)} className="w-full sm:w-[130px]" title="Từ ngày" />
+                    <span className="text-muted-foreground">-</span>
+                    <Input type="date" value={popupDateTo} onChange={e => setPopupDateTo(e.target.value)} className="w-full sm:w-[130px]" title="Đến ngày" />
+                  </div>
                 </div>
               </div>
 
-              <Tabs value={popupTab} onValueChange={setPopupTab}>
-                <TabsList className="grid w-full grid-cols-2 mb-4">
+              <Tabs value={popupTab} onValueChange={setPopupTab} className="flex-1 flex flex-col min-h-0 px-6 pb-6">
+                <TabsList className="grid w-full grid-cols-2 mb-4 shrink-0">
                   <TabsTrigger value="add">Cấp phát thêm</TabsTrigger>
                   <TabsTrigger value="withdraw">Rút trả kho</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="add" className="space-y-4">
-                  {freeInventory.length === 0 ? (
-                    <div className="text-center p-8 text-muted-foreground border rounded-md bg-muted/30">
-                      Kho không còn giao dịch nào dư vật tư này.
-                    </div>
-                  ) : (
-                    <div className="max-h-[300px] overflow-y-auto pr-2 space-y-3">
-                      {freeInventory.map(fi => (
-                        <div key={fi.id_so_cai_vat_tu} className="flex items-center justify-between p-3 border rounded-md bg-card shadow-sm hover:border-primary/50 transition-colors">
-                          <div>
-                            <p className="font-semibold text-sm text-primary">{fi.ma_lo}</p>
-                            <p className="text-xs text-muted-foreground">{formatTime(fi.ngay_tao)}</p>
-                            <Badge variant="outline" className="mt-1.5 bg-emerald-50 text-emerald-700 border-emerald-200">
-                              Tồn chưa phân: {fi.free}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">Cấp:</span>
-                            <Input 
-                              type="number" 
-                              min="0" 
-                              max={fi.free}
-                              className="w-24 text-center font-semibold" 
-                              placeholder="0"
-                              value={allocInputs[fi.id_so_cai_vat_tu] || ""}
-                              onChange={e => handleAllocChange(fi.id_so_cai_vat_tu, e.target.value, fi.free)}
-                            />
-                          </div>
-                        </div>
-                      ))}
+                <TabsContent value="add" className="flex-1 flex flex-col min-h-0 m-0 border rounded-xl overflow-hidden relative">
+                  {isFetchingInventory && (
+                    <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-sm flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        <span className="text-sm font-medium text-muted-foreground">Đang tải dữ liệu...</span>
+                      </div>
                     </div>
                   )}
-                  <Button className="w-full mt-2" onClick={handleSubmitAllocation} disabled={isSubmitting || freeInventory.length === 0}>
-                    Xác nhận Cấp phát
-                  </Button>
+                  <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-muted/10" onScroll={handleScrollPopup}>
+                    {!isFetchingInventory && filteredFreeInventory.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        Không tìm thấy lô giao dịch nào phù hợp.
+                      </div>
+                    ) : (
+                      visibleFreeInventory.map(fi => (
+                        <div key={fi.id_so_cai_vat_tu} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-xl bg-card shadow-sm hover:border-primary/50 transition-all gap-4">
+                          <div className="flex items-start gap-4 flex-1 min-w-0 w-full">
+                            {fi.danh_sach_anh && fi.danh_sach_anh.length > 0 ? (
+                              <img src={fi.danh_sach_anh[0]} className="w-14 h-14 object-cover rounded-lg border shrink-0" alt="img" />
+                            ) : (
+                              <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center text-[10px] text-muted-foreground border shrink-0">No img</div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className="font-bold text-base text-primary truncate">{fi.ma_lo}</p>
+                                <span className="text-xs text-muted-foreground flex items-center gap-1 bg-muted px-2 py-0.5 rounded-full whitespace-nowrap"><User className="w-3 h-3"/> {fi.nguoi_tao || 'Hệ thống'}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-0.5">{formatTime(fi.ngay_tao)}</p>
+                              {fi.ghi_chu && <p className="text-sm text-muted-foreground italic line-clamp-1 mt-1" title={fi.ghi_chu}>{fi.ghi_chu}</p>}
+                              
+                              <div className="flex flex-wrap items-center gap-2 mt-2">
+                                <Badge variant="outline" className="text-xs bg-background">
+                                  Tổng lô: {fi.bien_dong_so_luong}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs bg-muted">
+                                  Đã cấp: {fi.allocated}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold px-2">
+                                  Tồn chưa phân: {fi.free}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0 bg-muted/30 p-3 rounded-lg border">
+                            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Số lượng cấp</span>
+                            <div className="flex items-center gap-2">
+                              <Input 
+                                type="number" 
+                                min="0" 
+                                max={fi.free}
+                                className="w-28 text-center font-bold text-lg text-primary" 
+                                placeholder="0"
+                                value={allocInputs[fi.id_so_cai_vat_tu] || ""}
+                                onChange={e => handleAllocChange(fi.id_so_cai_vat_tu, e.target.value, fi.free)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <div className="p-4 bg-background border-t shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                    <Button className="w-full h-12 text-base font-semibold" onClick={handleSubmitAllocation} disabled={isSubmitting || freeInventory.length === 0}>
+                      {isSubmitting ? "Đang xử lý..." : "Xác nhận Cấp phát Vật tư"}
+                    </Button>
+                  </div>
                 </TabsContent>
                 
-                <TabsContent value="withdraw" className="space-y-4">
-                  {allocatedInventory.length === 0 ? (
-                    <div className="text-center p-8 text-muted-foreground border rounded-md bg-muted/30">
-                      Chưa có lô nào cấp phát vật tư này cho đơn tổng.
-                    </div>
-                  ) : (
-                    <div className="max-h-[300px] overflow-y-auto pr-2 space-y-3">
-                      {allocatedInventory.map(al => (
-                        <div key={al.id_cap_phat} className="flex items-center justify-between p-3 border rounded-md bg-card shadow-sm hover:border-destructive/50 transition-colors">
-                          <div>
-                            <p className="font-semibold text-sm text-primary">{al.ma_lo}</p>
-                            <p className="text-xs text-muted-foreground">{formatTime(al.ngay_tao)}</p>
-                            <Badge variant="outline" className="mt-1.5 bg-amber-50 text-amber-700 border-amber-200">
-                              Đã cấp: {al.so_luong_cap_phat}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm text-muted-foreground">Rút ra:</span>
-                            <Input 
-                              type="number" 
-                              min="0" 
-                              max={al.so_luong_cap_phat}
-                              className="w-24 text-center font-semibold border-destructive/50 focus-visible:ring-destructive" 
-                              placeholder="0"
-                              value={withdrawInputs[al.id_cap_phat] || ""}
-                              onChange={e => handleWithdrawChange(al.id_cap_phat, e.target.value, al.so_luong_cap_phat)}
-                            />
-                          </div>
-                        </div>
-                      ))}
+                <TabsContent value="withdraw" className="flex-1 flex flex-col min-h-0 m-0 border rounded-xl overflow-hidden relative">
+                  {isFetchingInventory && (
+                    <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-sm flex items-center justify-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        <span className="text-sm font-medium text-muted-foreground">Đang tải dữ liệu...</span>
+                      </div>
                     </div>
                   )}
-                  <Button variant="destructive" className="w-full mt-2" onClick={handleSubmitWithdrawal} disabled={isSubmitting || allocatedInventory.length === 0}>
-                    Xác nhận Rút trả
-                  </Button>
+                  <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-muted/10" onScroll={handleScrollPopup}>
+                    {!isFetchingInventory && filteredAllocatedInventory.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        Không tìm thấy lô giao dịch nào phù hợp.
+                      </div>
+                    ) : (
+                      visibleAllocatedInventory.map(al => (
+                        <div key={al.id_cap_phat} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-xl bg-card shadow-sm hover:border-destructive/50 transition-all gap-4">
+                          <div className="flex items-start gap-4 flex-1 min-w-0 w-full">
+                            {al.danh_sach_anh && al.danh_sach_anh.length > 0 ? (
+                              <img src={al.danh_sach_anh[0]} className="w-14 h-14 object-cover rounded-lg border shrink-0" alt="img" />
+                            ) : (
+                              <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center text-[10px] text-muted-foreground border shrink-0">No img</div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className="font-bold text-base text-primary truncate">{al.ma_lo}</p>
+                                <span className="text-xs text-muted-foreground flex items-center gap-1 bg-muted px-2 py-0.5 rounded-full whitespace-nowrap"><User className="w-3 h-3"/> {al.nguoi_tao || 'Hệ thống'}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-0.5">{formatTime(al.ngay_tao)}</p>
+                              {al.ghi_chu && <p className="text-sm text-muted-foreground italic line-clamp-1 mt-1" title={al.ghi_chu}>{al.ghi_chu}</p>}
+                              
+                              <div className="flex flex-wrap items-center gap-2 mt-2">
+                                <Badge variant="outline" className="text-xs bg-background">
+                                  Tổng lô: {al.bien_dong_so_luong}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200 font-semibold px-2">
+                                  Đã cấp cho đơn này: {al.so_luong_cap_phat}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0 bg-destructive/5 p-3 rounded-lg border border-destructive/20">
+                            <span className="text-xs text-destructive font-medium uppercase tracking-wider">Số lượng rút</span>
+                            <div className="flex items-center gap-2">
+                              <Input 
+                                type="number" 
+                                min="0" 
+                                max={al.so_luong_cap_phat}
+                                className="w-28 text-center font-bold text-lg border-destructive/50 focus-visible:ring-destructive text-destructive" 
+                                placeholder="0"
+                                value={withdrawInputs[al.id_cap_phat] || ""}
+                                onChange={e => handleWithdrawChange(al.id_cap_phat, e.target.value, al.so_luong_cap_phat)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <div className="p-4 bg-background border-t shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                    <Button variant="destructive" className="w-full h-12 text-base font-semibold" onClick={handleSubmitWithdrawal} disabled={isSubmitting || allocatedInventory.length === 0}>
+                      {isSubmitting ? "Đang xử lý..." : "Xác nhận Rút trả Kho"}
+                    </Button>
+                  </div>
                 </TabsContent>
               </Tabs>
             </div>

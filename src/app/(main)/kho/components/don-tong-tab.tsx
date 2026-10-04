@@ -153,8 +153,8 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
                   const isExpanded = expandedIds.includes(dt.id)
                   const totalNeed = dt.don_tong_chi_tiet?.reduce((sum: number, ct: any) => sum + Number(ct.so_luong_yeu_cau), 0) || 0
                   const totalDone = dt.don_tong_chi_tiet?.reduce((sum: number, ct: any) => sum + Number(ct.so_luong_da_nhap), 0) || 0
-                  const rawPct = Math.round((totalDone / totalNeed) * 100)
-                  const progressPct = totalNeed > 0 ? (totalDone >= totalNeed ? 100 : Math.min(99, rawPct)) : 0
+                  const rawPct = Number(((totalDone / totalNeed) * 100).toFixed(2))
+                  const progressPct = totalNeed > 0 ? (totalDone >= totalNeed ? 100 : Math.min(99.99, rawPct)) : 0
 
                   return (
                     <React.Fragment key={dt.id}>
@@ -212,8 +212,8 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
                                     const nl = ct.nguyen_lieu;
                                     const y = Number(ct.so_luong_yeu_cau);
                                     const d = Number(ct.so_luong_da_nhap);
-                                    const rawPct = Math.round((d / y) * 100);
-                                    const pct = y > 0 ? (d >= y ? 100 : Math.min(99, rawPct)) : 0;
+                                    const rawPct = Number(((d / y) * 100).toFixed(2));
+                                    const pct = y > 0 ? (d >= y ? 100 : Math.min(99.99, rawPct)) : 0;
                                     const quyCachObj = nl?.danh_sach_quy_cach?.find((q: any) => q.ma_quy_cach === ct.ma_quy_cach);
                                     const quyCachName = quyCachObj ? quyCachObj.ten : ct.ma_quy_cach;
 

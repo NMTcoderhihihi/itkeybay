@@ -236,7 +236,7 @@ export async function getFreeInventoryForMaterial(idNguyenLieu: string, maQuyCac
     .select(`
       id,
       bien_dong_so_luong,
-      lo_giao_dich (ma_lo, ngay_tao),
+      lo_giao_dich (ma_lo, ngay_tao, ghi_chu, danh_sach_anh, tai_khoan(ho_ten)),
       chi_tiet_cap_phat (so_luong_cap_phat)
     `)
     .eq('id_nguyen_lieu', idNguyenLieu)
@@ -256,6 +256,9 @@ export async function getFreeInventoryForMaterial(idNguyenLieu: string, maQuyCac
       id_so_cai_vat_tu: sc.id,
       ma_lo: sc.lo_giao_dich?.ma_lo,
       ngay_tao: sc.lo_giao_dich?.ngay_tao,
+      ghi_chu: sc.lo_giao_dich?.ghi_chu,
+      danh_sach_anh: sc.lo_giao_dich?.danh_sach_anh,
+      nguoi_tao: sc.lo_giao_dich?.tai_khoan?.ho_ten,
       bien_dong_so_luong: Number(sc.bien_dong_so_luong),
       allocated,
       free
@@ -303,7 +306,7 @@ export async function getAllocatedInventoryForMaterial(idDonTongChiTiet: string)
       so_cai_vat_tu (
         id,
         bien_dong_so_luong,
-        lo_giao_dich (ma_lo, ngay_tao)
+        lo_giao_dich (ma_lo, ngay_tao, ghi_chu, danh_sach_anh, tai_khoan(ho_ten))
       )
     `)
     .eq('id_don_tong_chi_tiet', idDonTongChiTiet);
@@ -318,6 +321,10 @@ export async function getAllocatedInventoryForMaterial(idDonTongChiTiet: string)
     id_so_cai_vat_tu: cp.so_cai_vat_tu?.id,
     ma_lo: cp.so_cai_vat_tu?.lo_giao_dich?.ma_lo,
     ngay_tao: cp.so_cai_vat_tu?.lo_giao_dich?.ngay_tao,
+    ghi_chu: cp.so_cai_vat_tu?.lo_giao_dich?.ghi_chu,
+    danh_sach_anh: cp.so_cai_vat_tu?.lo_giao_dich?.danh_sach_anh,
+    nguoi_tao: cp.so_cai_vat_tu?.lo_giao_dich?.tai_khoan?.ho_ten,
+    bien_dong_so_luong: Number(cp.so_cai_vat_tu?.bien_dong_so_luong),
     so_luong_cap_phat: Number(cp.so_luong_cap_phat)
   }));
 }
