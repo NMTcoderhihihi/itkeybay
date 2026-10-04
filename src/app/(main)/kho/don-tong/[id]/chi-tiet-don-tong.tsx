@@ -39,6 +39,7 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
 
   // Popup UI State
   const [isFetchingInventory, setIsFetchingInventory] = useState(false)
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [popupSearchTerm, setPopupSearchTerm] = useState("")
   const [popupDateFrom, setPopupDateFrom] = useState("")
   const [popupDateTo, setPopupDateTo] = useState("")
@@ -416,7 +417,7 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
                       <TableCell>
                         {gd.danh_sach_anh && gd.danh_sach_anh.length > 0 ? (
                           /* eslint-disable-next-line @next/next/no-img-element */
-                          <img src={gd.danh_sach_anh[0]} className="w-12 h-12 object-cover rounded-md border shadow-sm" alt="gd" />
+                          <img src={gd.danh_sach_anh[0]} className="w-12 h-12 object-cover rounded-md border shadow-sm cursor-pointer hover:opacity-80 transition-opacity" alt="gd" onClick={() => setPreviewImage(gd.danh_sach_anh[0])} />
                         ) : (
                           <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center text-[10px] text-muted-foreground border">No img</div>
                         )}
@@ -556,7 +557,7 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
                         <div key={fi.id_so_cai_vat_tu} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-xl bg-card shadow-sm hover:border-primary/50 transition-all gap-4">
                           <div className="flex items-start gap-4 flex-1 min-w-0 w-full">
                             {fi.danh_sach_anh && fi.danh_sach_anh.length > 0 ? (
-                              <img src={fi.danh_sach_anh[0]} className="w-14 h-14 object-cover rounded-lg border shrink-0" alt="img" />
+                              <img src={fi.danh_sach_anh[0]} className="w-14 h-14 object-cover rounded-lg border shrink-0 cursor-pointer hover:opacity-80 transition-opacity" alt="img" onClick={() => setPreviewImage(fi.danh_sach_anh[0])} />
                             ) : (
                               <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center text-[10px] text-muted-foreground border shrink-0">No img</div>
                             )}
@@ -625,7 +626,7 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
                         <div key={al.id_cap_phat} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-xl bg-card shadow-sm hover:border-destructive/50 transition-all gap-4">
                           <div className="flex items-start gap-4 flex-1 min-w-0 w-full">
                             {al.danh_sach_anh && al.danh_sach_anh.length > 0 ? (
-                              <img src={al.danh_sach_anh[0]} className="w-14 h-14 object-cover rounded-lg border shrink-0" alt="img" />
+                              <img src={al.danh_sach_anh[0]} className="w-14 h-14 object-cover rounded-lg border shrink-0 cursor-pointer hover:opacity-80 transition-opacity" alt="img" onClick={() => setPreviewImage(al.danh_sach_anh[0])} />
                             ) : (
                               <div className="w-14 h-14 rounded-lg bg-muted flex items-center justify-center text-[10px] text-muted-foreground border shrink-0">No img</div>
                             )}
@@ -673,6 +674,14 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
                 </TabsContent>
               </Tabs>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden bg-transparent border-none shadow-none flex items-center justify-center">
+          {previewImage && (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src={previewImage} alt="Preview" className="max-w-full max-h-[90vh] object-contain rounded-md" />
           )}
         </DialogContent>
       </Dialog>
