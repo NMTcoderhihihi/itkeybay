@@ -299,7 +299,7 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="h-[400px] overflow-y-auto p-6 pt-0">
+          <div className="h-[800px] overflow-y-auto p-6 pt-0">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
               {filteredDetails?.length === 0 ? (
               <div className="col-span-full text-center p-8 text-muted-foreground">Không tìm thấy vật tư nào phù hợp.</div>
@@ -396,7 +396,7 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="h-[400px] overflow-y-auto p-6 pt-0">
+          <div className="h-[800px] overflow-y-auto p-6 pt-0">
             {filteredHistory.length === 0 ? (
               <div className="text-center p-8 text-muted-foreground">Chưa có giao dịch nào liên kết với đơn tổng này.</div>
             ) : (
