@@ -299,7 +299,7 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="h-[800px] overflow-y-auto p-6 pt-0">
+          <div className="max-h-[800px] overflow-y-auto p-6 pt-0">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
               {filteredDetails?.length === 0 ? (
               <div className="col-span-full text-center p-8 text-muted-foreground">Không tìm thấy vật tư nào phù hợp.</div>
@@ -396,7 +396,7 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="h-[800px] overflow-y-auto p-6 pt-0">
+          <div className="max-h-[800px] overflow-y-auto p-6 pt-0">
             {filteredHistory.length === 0 ? (
               <div className="text-center p-8 text-muted-foreground">Chưa có giao dịch nào liên kết với đơn tổng này.</div>
             ) : (
@@ -484,49 +484,49 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
 
       <Dialog open={isPopupOpen} onOpenChange={setIsPopupOpen}>
         <DialogContent className="sm:max-w-[1000px] h-[90vh] flex flex-col p-0 gap-0 overflow-hidden">
-          <DialogHeader className="p-6 pb-4 border-b shrink-0">
-            <DialogTitle className="text-xl">Điều chỉnh vật tư Đơn Tổng</DialogTitle>
+          <DialogHeader className="p-4 pb-3 border-b shrink-0">
+            <DialogTitle className="text-lg">Điều chỉnh vật tư Đơn Tổng</DialogTitle>
           </DialogHeader>
           
           {allocatingMaterial && (
             <div className="flex-1 flex flex-col min-h-0">
-              <div className="p-6 pb-0 shrink-0">
-                <div className="flex items-center justify-between mb-4 bg-muted/40 p-4 rounded-xl border">
-                  <div>
-                    <h4 className="font-bold text-lg text-primary">{allocatingMaterial.nguyen_lieu?.ten_nguyen_lieu}</h4>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="bg-background">Mã: {allocatingMaterial.ma_quy_cach}</Badge>
+              <div className="p-4 pb-0 shrink-0">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 bg-muted/30 p-2.5 px-4 rounded-lg border gap-2">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <h4 className="font-semibold text-base text-primary">{allocatingMaterial.nguyen_lieu?.ten_nguyen_lieu}</h4>
+                    <div className="flex items-center gap-1.5">
+                      <Badge variant="outline" className="bg-background text-[10px] py-0">Mã: {allocatingMaterial.ma_quy_cach}</Badge>
                       {allocatingMaterial.nguyen_lieu?.danh_sach_quy_cach?.find((q: any) => q.ma_quy_cach === allocatingMaterial.ma_quy_cach)?.ten && (
-                        <span className="text-sm text-muted-foreground">Quy cách: {allocatingMaterial.nguyen_lieu?.danh_sach_quy_cach?.find((q: any) => q.ma_quy_cach === allocatingMaterial.ma_quy_cach)?.ten}</span>
+                        <span className="text-xs text-muted-foreground">QC: {allocatingMaterial.nguyen_lieu?.danh_sach_quy_cach?.find((q: any) => q.ma_quy_cach === allocatingMaterial.ma_quy_cach)?.ten}</span>
                       )}
                     </div>
                   </div>
-                  <div className="text-right bg-background p-3 rounded-lg border shadow-sm">
-                    <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">Tiến độ nhập kho</p>
-                    <p className="text-base"><span className="font-bold text-primary text-xl">{allocatingMaterial.so_luong_da_nhap}</span> / {allocatingMaterial.so_luong_yeu_cau} <span className="text-sm text-muted-foreground">{allocatingMaterial.nguyen_lieu?.don_vi}</span></p>
+                  <div className="text-right flex items-center gap-3">
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tiến độ:</span>
+                    <div className="text-sm"><span className="font-bold text-primary text-base">{allocatingMaterial.so_luong_da_nhap}</span> / {allocatingMaterial.so_luong_yeu_cau} <span className="text-xs text-muted-foreground">{allocatingMaterial.nguyen_lieu?.don_vi}</span></div>
                     {Number(allocatingMaterial.so_luong_da_nhap) < Number(allocatingMaterial.so_luong_yeu_cau) && (
-                      <p className="text-sm font-semibold text-destructive mt-1 flex items-center justify-end gap-1">
-                        Đang thiếu: {Number(allocatingMaterial.so_luong_yeu_cau) - Number(allocatingMaterial.so_luong_da_nhap)}
-                      </p>
+                      <Badge variant="destructive" className="text-[10px] py-0 font-semibold bg-destructive/10 text-destructive border-destructive/20">
+                        Thiếu: {Number(allocatingMaterial.so_luong_yeu_cau) - Number(allocatingMaterial.so_luong_da_nhap)}
+                      </Badge>
                     )}
                   </div>
                 </div>
 
                 {/* Thanh công cụ Tìm kiếm/Lọc */}
-                <div className="flex flex-col sm:flex-row items-center gap-3 mb-4">
+                <div className="flex flex-col sm:flex-row items-center gap-2 mb-3">
                   <div className="relative flex-1 w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input 
                       placeholder="Tìm mã lô, người tạo, ghi chú..." 
-                      className="pl-9"
+                      className="pl-8 h-9 text-sm"
                       value={popupSearchTerm}
                       onChange={e => setPopupSearchTerm(e.target.value)}
                     />
                   </div>
                   <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Input type="date" value={popupDateFrom} onChange={e => setPopupDateFrom(e.target.value)} className="w-full sm:w-[130px]" title="Từ ngày" />
-                    <span className="text-muted-foreground">-</span>
-                    <Input type="date" value={popupDateTo} onChange={e => setPopupDateTo(e.target.value)} className="w-full sm:w-[130px]" title="Đến ngày" />
+                    <Input type="date" value={popupDateFrom} onChange={e => setPopupDateFrom(e.target.value)} className="w-full sm:w-[130px] h-9 text-sm" title="Từ ngày" />
+                    <span className="text-muted-foreground text-sm">-</span>
+                    <Input type="date" value={popupDateTo} onChange={e => setPopupDateTo(e.target.value)} className="w-full sm:w-[130px] h-9 text-sm" title="Đến ngày" />
                   </div>
                 </div>
               </div>
@@ -599,8 +599,8 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
                       ))
                     )}
                   </div>
-                  <div className="p-4 bg-background border-t shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-                    <Button className="w-full h-12 text-base font-semibold" onClick={handleSubmitAllocation} disabled={isSubmitting || freeInventory.length === 0}>
+                  <div className="p-3 bg-background border-t shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                    <Button className="w-full h-9 text-sm font-semibold" onClick={handleSubmitAllocation} disabled={isSubmitting || freeInventory.length === 0}>
                       {isSubmitting ? "Đang xử lý..." : "Xác nhận Cấp phát Vật tư"}
                     </Button>
                   </div>
@@ -665,8 +665,8 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
                       ))
                     )}
                   </div>
-                  <div className="p-4 bg-background border-t shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-                    <Button variant="destructive" className="w-full h-12 text-base font-semibold" onClick={handleSubmitWithdrawal} disabled={isSubmitting || allocatedInventory.length === 0}>
+                  <div className="p-3 bg-background border-t shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                    <Button variant="destructive" className="w-full h-9 text-sm font-semibold" onClick={handleSubmitWithdrawal} disabled={isSubmitting || allocatedInventory.length === 0}>
                       {isSubmitting ? "Đang xử lý..." : "Xác nhận Rút trả Kho"}
                     </Button>
                   </div>
