@@ -8,7 +8,6 @@ import { NguyenLieu } from "@/app/actions/kho"
 import { DanhMucVatTu } from "./danh-muc-vat-tu"
 import { TongQuanKho } from "./tong-quan-kho"
 import { PhieuGiaoDich } from "./phieu-giao-dich"
-import { DonTongTab } from "./don-tong-tab"
 import { Package2, History, ClipboardList, PlusCircle, ListChecks } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -74,13 +73,7 @@ export function KhoClient({
             <span>{t("warehouse.importExportVoucher")}</span>
           </TabsTrigger>
 
-          <TabsTrigger
-            value="don-tong"
-            className="gap-2 rounded-full border border-transparent data-[state=active]:!bg-primary data-[state=active]:!text-primary-foreground data-[state=active]:font-bold data-[state=active]:shadow-md data-[state=active]:ring-2 data-[state=active]:ring-primary/40 text-muted-foreground hover:text-foreground !h-9 px-4 transition-all"
-          >
-            <ListChecks className="h-4 w-4" />
-            {t("masterOrder.title")}
-          </TabsTrigger>
+          
         </TabsList>
 
         <div className="flex-1 mt-4 overflow-y-auto pb-8">
@@ -97,12 +90,7 @@ export function KhoClient({
             />
           </TabsContent>
 
-          <TabsContent value="don-tong" className="m-0 h-full">
-            <DonTongTab
-              donTongList={donTongList}
-              nguyenLieuList={nguyenLieuList}
-            />
-          </TabsContent>
+          
 
           {session.role === "Quan ly" && (
             <TabsContent value="danh-muc" className="m-0 h-full">
