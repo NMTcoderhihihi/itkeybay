@@ -19,7 +19,6 @@ export default async function DonTongPage() {
 
   return (
     <div className="flex flex-col h-full w-full max-w-7xl mx-auto p-4 space-y-4">
-      <h2 className="text-2xl font-bold tracking-tight">Đơn tổng</h2>
       <div className="flex-1 overflow-auto rounded-lg border bg-background shadow-sm">
         <DonTongTab donTongList={donTongList || []} nguyenLieuList={nguyenLieuList || []} />
       </div>
