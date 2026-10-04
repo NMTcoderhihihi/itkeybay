@@ -240,8 +240,9 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="h-[400px] overflow-y-auto p-6 pt-0 grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-            {filteredDetails?.length === 0 ? (
+          <div className="h-[400px] overflow-y-auto p-6 pt-0">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+              {filteredDetails?.length === 0 ? (
               <div className="col-span-full text-center p-8 text-muted-foreground">Không tìm thấy vật tư nào phù hợp.</div>
             ) : (
               filteredDetails?.map((ct: any) => {
@@ -309,6 +310,7 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
                 )
               })
             )}
+            </div>
           </div>
         </CardContent>
       </Card>
