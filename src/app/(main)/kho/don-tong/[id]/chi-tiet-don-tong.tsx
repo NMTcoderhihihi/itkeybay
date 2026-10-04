@@ -531,8 +531,8 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
                 </div>
               </div>
 
-              <Tabs value={popupTab} onValueChange={setPopupTab} className="flex-1 flex flex-col min-h-0 px-6 pb-6">
-                <TabsList className="grid w-full grid-cols-2 mb-4 shrink-0">
+              <Tabs value={popupTab} onValueChange={setPopupTab} className="flex-1 flex flex-col min-h-0 px-4 pb-4">
+                <TabsList className="grid w-full grid-cols-2 mb-3 shrink-0 h-9">
                   <TabsTrigger value="add">Cấp phát thêm</TabsTrigger>
                   <TabsTrigger value="withdraw">Rút trả kho</TabsTrigger>
                 </TabsList>
