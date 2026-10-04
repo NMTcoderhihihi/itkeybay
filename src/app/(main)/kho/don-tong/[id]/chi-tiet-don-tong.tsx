@@ -253,26 +253,26 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
                 const quyCachObj = ct.nguyen_lieu?.danh_sach_quy_cach?.find((q: any) => q.ma_quy_cach === ct.ma_quy_cach)
                 
                 return (
-                  <div key={ct.id} className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 p-4 rounded-xl border bg-card hover:bg-accent/5 transition-colors shadow-sm">
-                    <div className="flex-1 space-y-3 w-full">
+                  <div key={ct.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl border bg-card hover:bg-accent/5 transition-colors shadow-sm overflow-hidden">
+                    <div className="flex-1 space-y-3 w-full min-w-0">
                       <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <h3 className="font-semibold text-lg text-foreground">{ct.nguyen_lieu?.ten_nguyen_lieu}</h3>
-                          <div className="flex items-center gap-2 mt-1">
+                        <div className="min-w-0 w-full">
+                          <h3 className="font-semibold text-lg text-foreground truncate">{ct.nguyen_lieu?.ten_nguyen_lieu}</h3>
+                          <div className="flex flex-wrap items-center gap-2 mt-1">
                             {quyCachObj?.ten && (
-                              <Badge variant="outline" className="bg-background text-xs font-normal">
+                              <Badge variant="outline" className="bg-background text-xs font-normal max-w-full truncate block">
                                 Quy cách: {quyCachObj.ten}
                               </Badge>
                             )}
-                            <Badge variant="secondary" className="bg-muted text-xs font-normal">
+                            <Badge variant="secondary" className="bg-muted text-xs font-normal whitespace-nowrap">
                               Mã: {ct.ma_quy_cach}
                             </Badge>
                           </div>
                         </div>
                       </div>
                       
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 pt-1">
-                        <div className="grid grid-cols-2 sm:flex sm:gap-8 gap-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-4 pt-1">
+                        <div className="grid grid-cols-2 sm:flex sm:gap-6 gap-4">
                           <div className="space-y-1">
                             <span className="text-xs text-muted-foreground uppercase tracking-wider font-medium">Yêu cầu</span>
                             <div className="font-semibold text-base">{y} <span className="text-xs text-muted-foreground font-normal">{ct.nguyen_lieu?.don_vi}</span></div>
@@ -284,19 +284,23 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
                         </div>
                         
                         {d < y ? (
-                          <div className="text-sm bg-destructive/10 text-destructive px-3 py-1.5 rounded-md font-medium border border-destructive/20 inline-flex items-center w-fit">
+                          <div className="text-sm bg-destructive/10 text-destructive px-3 py-1.5 rounded-md font-medium border border-destructive/20 inline-flex items-center w-fit whitespace-nowrap">
                             Đang thiếu: {y - d} {ct.nguyen_lieu?.don_vi}
                           </div>
+                        ) : d > y ? (
+                          <div className="text-sm bg-amber-500/10 text-amber-600 px-3 py-1.5 rounded-md font-medium border border-amber-500/20 inline-flex items-center w-fit whitespace-nowrap">
+                            Dư vật tư: {d - y} {ct.nguyen_lieu?.don_vi}
+                          </div>
                         ) : (
-                          <div className="text-sm bg-emerald-500/10 text-emerald-600 px-3 py-1.5 rounded-md font-medium border border-emerald-500/20 inline-flex items-center w-fit">
+                          <div className="text-sm bg-emerald-500/10 text-emerald-600 px-3 py-1.5 rounded-md font-medium border border-emerald-500/20 inline-flex items-center w-fit whitespace-nowrap">
                             Đã nhận đủ hàng
                           </div>
                         )}
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-4 w-full md:w-auto justify-end">
-                      <Button variant="outline" size="sm" onClick={() => handleOpenPopup(ct)}>
+                    <div className="flex flex-col items-center justify-center gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
+                      <Button variant="outline" size="sm" onClick={() => handleOpenPopup(ct)} className="w-full sm:w-auto">
                         <SlidersHorizontal className="w-4 h-4 mr-1" /> Điều chỉnh
                       </Button>
                       <CircularProgressRing progress={pct} size={56} strokeWidth={4} />

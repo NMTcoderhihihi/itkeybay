@@ -229,11 +229,11 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
                                                 {nl?.ten_nguyen_lieu?.charAt(0) || '?'}
                                               </div>
                                             )}
-                                            <div className="flex flex-col">
+                                            <div className="flex flex-col min-w-0">
                                               <span className="text-sm font-semibold truncate max-w-[150px]">{nl?.ten_nguyen_lieu}</span>
-                                              <span className="text-[11px] text-muted-foreground">{quyCachName}</span>
+                                              <span className="text-[11px] text-muted-foreground truncate max-w-[150px]">{quyCachName}</span>
                                               <span className="text-[11px] text-muted-foreground mt-0.5">
-                                                {t("masterOrder.imported")} <span className="font-semibold text-foreground">{d}</span> / {y} {nl?.don_vi}
+                                                {t("masterOrder.imported")} <span className={d > y ? "font-semibold text-amber-500" : "font-semibold text-foreground"}>{d}</span> / {y} {nl?.don_vi}
                                               </span>
                                             </div>
                                           </div>
