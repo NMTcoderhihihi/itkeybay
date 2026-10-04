@@ -186,7 +186,7 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1" onClick={e => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" onClick={() => router.push(`/kho/don-tong/${dt.id}`)} className="h-8 w-8 text-blue-500 hover:bg-blue-500/10">
+                            <Button variant="ghost" size="icon" onClick={() => router.push(`/don-tong/${dt.id}`)} className="h-8 w-8 text-blue-500 hover:bg-blue-500/10">
                               <Eye className="w-4 h-4" />
                             </Button>
                             <Button variant="ghost" size="icon" onClick={() => handleEdit(dt)} className="h-8 w-8 text-primary hover:bg-primary/10">
