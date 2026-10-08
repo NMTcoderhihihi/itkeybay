@@ -128,7 +128,7 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
 
       {/* Danh sách */}
       <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
@@ -254,6 +254,102 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
               )}
             </TableBody>
           </Table>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="grid grid-cols-1 gap-3 p-3 md:hidden">
+          {filteredList.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">{t("masterOrder.notFound")}</div>
+          ) : (
+            filteredList.map((dt) => {
+              const isExpanded = expandedIds.includes(dt.id)
+              const totalNeed = dt.don_tong_chi_tiet?.reduce((sum: number, ct: any) => sum + Number(ct.so_luong_yeu_cau), 0) || 0
+              const totalDone = dt.don_tong_chi_tiet?.reduce((sum: number, ct: any) => sum + Number(ct.so_luong_da_nhap), 0) || 0
+              const rawPct = Number(((totalDone / totalNeed) * 100).toFixed(2))
+              const progressPct = totalNeed > 0 ? (totalDone >= totalNeed ? 100 : Math.min(99.99, rawPct)) : 0
+
+              return (
+                <div key={dt.id} className="border rounded-lg bg-background p-3 flex flex-col gap-3 shadow-sm">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-base">{dt.ma_don_tong}</h3>
+                      <p className="text-sm font-medium text-muted-foreground">{dt.ten_don || '-'}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{format(new Date(dt.ngay_tao), 'dd/MM/yyyy HH:mm', { locale: vi })}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <CircularProgressRing progress={progressPct} size={40} strokeWidth={3} />
+                      {dt.trang_thai === 'DA_DU' ? (
+                        <Badge className="bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/20 text-[10px]">{t("masterOrder.statusEnough")}</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-amber-600 border-amber-500/30 bg-amber-500/5 text-[10px]">{t("masterOrder.statusNotEnough")}</Badge>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between mt-2 pt-2 border-t border-dashed">
+                    <Button variant="ghost" size="sm" onClick={() => toggleExpand(dt.id)} className="h-8 text-xs text-muted-foreground">
+                      {isExpanded ? <><ChevronUp className="w-4 h-4 mr-1" /> Thu gọn</> : <><ChevronDown className="w-4 h-4 mr-1" /> Chi tiết</>}
+                    </Button>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => router.push(`/don-tong/${dt.id}`)} className="h-8 w-8 text-blue-500 hover:bg-blue-500/10">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(dt)} className="h-8 w-8 text-primary hover:bg-primary/10">
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(dt.id)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="bg-muted/10 p-3 rounded-lg border-l-2 border-l-primary/50 mt-1">
+                      <h4 className="text-xs font-semibold mb-2">{t("masterOrder.detailsProgress")}</h4>
+                      <div className="flex flex-col gap-2">
+                        {dt.don_tong_chi_tiet?.length === 0 ? (
+                          <div className="text-xs text-muted-foreground">{t("masterOrder.noDetails")}</div>
+                        ) : (
+                          dt.don_tong_chi_tiet?.map((ct: any) => {
+                            const nl = ct.nguyen_lieu;
+                            const y = Number(ct.so_luong_yeu_cau);
+                            const d = Number(ct.so_luong_da_nhap);
+                            const rawPct = Number(((d / y) * 100).toFixed(2));
+                            const pct = y > 0 ? (d >= y ? 100 : Math.min(99.99, rawPct)) : 0;
+                            const quyCachObj = nl?.danh_sach_quy_cach?.find((q: any) => q.ma_quy_cach === ct.ma_quy_cach);
+                            const quyCachName = quyCachObj ? quyCachObj.ten : ct.ma_quy_cach;
+
+                            return (
+                              <div key={ct.id} className="bg-background p-2 rounded-md border flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  {nl?.anh_minh_hoa ? (
+                                    /* eslint-disable-next-line @next/next/no-img-element */
+                                    <img src={nl.anh_minh_hoa} alt="" className="w-8 h-8 rounded-full object-cover border shadow-sm" />
+                                  ) : (
+                                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                                      {nl?.ten_nguyen_lieu?.charAt(0) || '?'}
+                                    </div>
+                                  )}
+                                  <div className="flex flex-col min-w-0">
+                                    <span className="text-[12px] font-semibold truncate max-w-[120px]">{nl?.ten_nguyen_lieu}</span>
+                                    <span className="text-[10px] text-muted-foreground truncate max-w-[120px]">{quyCachName}</span>
+                                    <span className="text-[10px] text-muted-foreground mt-0.5">
+                                      <span className={d > y ? "font-semibold text-amber-500" : "font-semibold text-foreground"}>{d}</span> / {y} {nl?.don_vi}
+                                    </span>
+                                  </div>
+                                </div>
+                                <CircularProgressRing progress={pct} size={28} strokeWidth={2} />
+                              </div>
+                            )
+                          })
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })
+          )}
         </div>
       </div>
 
