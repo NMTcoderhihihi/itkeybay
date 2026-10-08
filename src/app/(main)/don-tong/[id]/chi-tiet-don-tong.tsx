@@ -26,8 +26,13 @@ export function ChiTietDonTongClient({ donTong, giaoDichList, isManager = false 
   
   // Quick Edit States
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
+  const [optimisticStatus, setOptimisticStatus] = useState(donTong.trang_thai)
   const [isEditingNote, setIsEditingNote] = useState(false)
   const [noteContent, setNoteContent] = useState(donTong.ghi_chu || "")
+
+  useEffect(() => {
+    setOptimisticStatus(donTong.trang_thai)
+  }, [donTong.trang_thai])
 
   // Search History State
   const [historySearchTerm, setHistorySearchTerm] = useState("")
@@ -70,13 +75,20 @@ export function ChiTietDonTongClient({ donTong, giaoDichList, isManager = false 
 
   const handleToggleStatus = async () => {
     if (!isManager) return;
+    
+    const newStatus = optimisticStatus === 'DA_DU' ? 'CHUA_DU' : 'DA_DU';
+    // Optimistic UI update
+    setOptimisticStatus(newStatus);
     setIsUpdatingStatus(true);
-    const newStatus = donTong.trang_thai === 'DA_DU' ? 'CHUA_DU' : 'DA_DU';
+    
     const res = await capNhatThongTinNhanhDonTong(donTong.id, { trang_thai: newStatus });
+    
     if (res.success) {
       toast.success("Đã cập nhật trạng thái đơn tổng");
       router.refresh();
     } else {
+      // Revert if failed
+      setOptimisticStatus(donTong.trang_thai);
       toast.error("Lỗi: " + res.error);
     }
     setIsUpdatingStatus(false);
@@ -282,10 +294,10 @@ export function ChiTietDonTongClient({ donTong, giaoDichList, isManager = false 
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold tracking-tight">{donTong.ma_don_tong}</h1>
             <Badge 
-              variant={donTong.trang_thai === 'DA_DU' ? 'default' : 'secondary'} 
-              className={donTong.trang_thai === 'DA_DU' ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : ''}
+              variant={optimisticStatus === 'DA_DU' ? 'default' : 'secondary'} 
+              className={optimisticStatus === 'DA_DU' ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : ''}
             >
-              {donTong.trang_thai === 'DA_DU' ? t("masterOrder.statusEnough") : t("masterOrder.statusNotEnough")}
+              {optimisticStatus === 'DA_DU' ? t("masterOrder.statusEnough") : t("masterOrder.statusNotEnough")}
             </Badge>
           </div>
           {donTong.ten_don && <p className="text-muted-foreground mt-1">{donTong.ten_don}</p>}
@@ -313,7 +325,7 @@ export function ChiTietDonTongClient({ donTong, giaoDichList, isManager = false 
               <div className="flex items-center space-x-2 mt-2">
                 <Checkbox 
                   id="status-checkbox" 
-                  checked={donTong.trang_thai === 'DA_DU'} 
+                  checked={optimisticStatus === 'DA_DU'} 
                   onCheckedChange={handleToggleStatus}
                   disabled={isUpdatingStatus || !isManager}
                 />
