@@ -169,21 +169,6 @@ export async function taoPhieuGiaoDichKho(payload: {
         await supabase.from('chi_tiet_cap_phat').insert(capPhatInserts);
       }
 
-      // Kiểm tra và cập nhật trạng thái đơn tổng nếu đã đủ
-      for (const dt of orderedDonTong) {
-        if (!dt) continue;
-        const { data: updatedCtList } = await supabase
-          .from('don_tong_chi_tiet')
-          .select('so_luong_yeu_cau, so_luong_da_nhap')
-          .eq('id_don_tong', dt.id);
-
-        if (updatedCtList && updatedCtList.length > 0) {
-          const isAllDone = updatedCtList.every(ct => Number(ct.so_luong_da_nhap) >= Number(ct.so_luong_yeu_cau));
-          if (isAllDone && dt.trang_thai !== 'DA_DU') {
-            await supabase.from('don_tong').update({ trang_thai: 'DA_DU' }).eq('id', dt.id);
-          }
-        }
-      }
     }
   }
 

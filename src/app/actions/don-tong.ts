@@ -282,17 +282,6 @@ export async function allocateFreeInventory(idDonTongChiTiet: string, allocation
     return { success: false, error: error.message };
   }
   
-  // Re-check master order status
-  const { data: updatedCtList } = await supabase
-    .from('don_tong_chi_tiet')
-    .select('so_luong_yeu_cau, so_luong_da_nhap')
-    .eq('id_don_tong', idDonTong);
-
-  if (updatedCtList && updatedCtList.length > 0) {
-    const isAllDone = updatedCtList.every(ct => Number(ct.so_luong_da_nhap) >= Number(ct.so_luong_yeu_cau));
-    await supabase.from('don_tong').update({ trang_thai: isAllDone ? 'DA_DU' : 'CHUA_DU' }).eq('id', idDonTong);
-  }
-
   revalidatePath('/kho', 'layout');
   return { success: true };
 }
@@ -346,17 +335,27 @@ export async function withdrawAllocatedInventory(withdrawals: { id_cap_phat: str
       }
     }
 
-    const { data: updatedCtList } = await supabase
-      .from('don_tong_chi_tiet')
-      .select('so_luong_yeu_cau, so_luong_da_nhap')
-      .eq('id_don_tong', idDonTong);
-
-    if (updatedCtList && updatedCtList.length > 0) {
-      const isAllDone = updatedCtList.every(ct => Number(ct.so_luong_da_nhap) >= Number(ct.so_luong_yeu_cau));
-      await supabase.from('don_tong').update({ trang_thai: isAllDone ? 'DA_DU' : 'CHUA_DU' }).eq('id', idDonTong);
-    }
-
     revalidatePath('/kho', 'layout');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+
+export async function capNhatThongTinNhanhDonTong(id: string, payload: { trang_thai?: string, ghi_chu?: string }) {
+  try {
+    const updateData: any = {};
+    if (payload.trang_thai !== undefined) updateData.trang_thai = payload.trang_thai;
+    if (payload.ghi_chu !== undefined) updateData.ghi_chu = payload.ghi_chu;
+
+    const { error } = await supabase
+      .from('don_tong')
+      .update(updateData)
+      .eq('id', id);
+
+    if (error) return { success: false, error: error.message };
+    
+    revalidatePath('/kho');
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message };

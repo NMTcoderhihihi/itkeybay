@@ -8,19 +8,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { CircularProgressRing } from "@/components/ui/circular-progress-ring"
-import { ArrowLeft, Clock, Package, FileText, User, Search, Plus, SlidersHorizontal } from "lucide-react"
+import { ArrowLeft, Clock, Package, FileText, User, Search, Plus, SlidersHorizontal, Loader2, Edit2 } from "lucide-react"
 import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns"
 import { vi } from "date-fns/locale"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { getFreeInventoryForMaterial, allocateFreeInventory, getAllocatedInventoryForMaterial, withdrawAllocatedInventory } from "@/app/actions/don-tong"
+import { getFreeInventoryForMaterial, allocateFreeInventory, getAllocatedInventoryForMaterial, withdrawAllocatedInventory, capNhatThongTinNhanhDonTong } from "@/app/actions/don-tong"
 import { toast } from "sonner"
 
 export function ChiTietDonTongClient({ donTong, giaoDichList, isManager = false }: { donTong: any, giaoDichList: any[], isManager?: boolean }) {
   const { t } = useTranslation()
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
+  
+  // Quick Edit States
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
+  const [isEditingNote, setIsEditingNote] = useState(false)
+  const [noteContent, setNoteContent] = useState(donTong.ghi_chu || "")
 
   // Search History State
   const [historySearchTerm, setHistorySearchTerm] = useState("")
@@ -58,6 +64,31 @@ export function ChiTietDonTongClient({ donTong, giaoDichList, isManager = false 
       return format(new Date(ts), "HH:mm - dd/MM/yyyy", { locale: vi })
     } catch {
       return ts
+    }
+  }
+
+  const handleToggleStatus = async () => {
+    if (!isManager) return;
+    setIsUpdatingStatus(true);
+    const newStatus = donTong.trang_thai === 'DA_DU' ? 'CHUA_DU' : 'DA_DU';
+    const res = await capNhatThongTinNhanhDonTong(donTong.id, { trang_thai: newStatus });
+    if (res.success) {
+      toast.success("Đã cập nhật trạng thái đơn tổng");
+      router.refresh();
+    } else {
+      toast.error("Lỗi: " + res.error);
+    }
+    setIsUpdatingStatus(false);
+  }
+
+  const handleSaveNote = async () => {
+    const res = await capNhatThongTinNhanhDonTong(donTong.id, { ghi_chu: noteContent });
+    if (res.success) {
+      toast.success("Đã lưu ghi chú");
+      setIsEditingNote(false);
+      router.refresh();
+    } else {
+      toast.error("Lỗi: " + res.error);
     }
   }
 
@@ -249,7 +280,17 @@ export function ChiTietDonTongClient({ donTong, giaoDichList, isManager = false 
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold tracking-tight">{donTong.ma_don_tong}</h1>
-            <Badge variant={donTong.trang_thai === 'DA_DU' ? 'default' : 'secondary'} className={donTong.trang_thai === 'DA_DU' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}>
+            <Badge 
+              variant={donTong.trang_thai === 'DA_DU' ? 'default' : 'secondary'} 
+              className={`
+                ${donTong.trang_thai === 'DA_DU' ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : ''} 
+                ${isManager ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}
+                ${isUpdatingStatus ? 'opacity-50 pointer-events-none' : ''}
+              `}
+              onClick={handleToggleStatus}
+              title={isManager ? "Nhấn để chuyển đổi trạng thái (Đủ / Chưa đủ)" : ""}
+            >
+              {isUpdatingStatus && <Loader2 className="w-3 h-3 mr-1 animate-spin inline-block" />}
               {donTong.trang_thai === 'DA_DU' ? t("masterOrder.statusEnough") : t("masterOrder.statusNotEnough")}
             </Badge>
           </div>
@@ -272,14 +313,40 @@ export function ChiTietDonTongClient({ donTong, giaoDichList, isManager = false 
               {formatTime(donTong.ngay_tao)}
             </p>
           </div>
-          {donTong.ghi_chu && (
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">{t("inventory.note")}</p>
-              <div className="bg-muted/40 p-2 rounded-md text-sm">
-                {donTong.ghi_chu}
-              </div>
+          <div className="flex flex-col h-full">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-sm text-muted-foreground">{t("inventory.note")}</p>
+              {isManager && !isEditingNote && (
+                <Button variant="ghost" size="sm" className="h-6 text-xs px-2" onClick={() => setIsEditingNote(true)}>
+                  <Edit2 className="w-3 h-3 mr-1" />
+                  Sửa
+                </Button>
+              )}
             </div>
-          )}
+            
+            {isEditingNote ? (
+              <div className="flex flex-col gap-2 flex-1">
+                <Textarea 
+                  value={noteContent}
+                  onChange={(e) => setNoteContent(e.target.value)}
+                  placeholder="Nhập ghi chú..."
+                  className="min-h-[80px] text-sm resize-none"
+                />
+                <div className="flex justify-end gap-2 mt-auto">
+                  <Button variant="ghost" size="sm" onClick={() => { setIsEditingNote(false); setNoteContent(donTong.ghi_chu || "") }}>
+                    Hủy
+                  </Button>
+                  <Button size="sm" onClick={handleSaveNote}>
+                    Lưu
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-muted/40 p-3 rounded-md text-sm flex-1 whitespace-pre-wrap">
+                {donTong.ghi_chu || <span className="text-muted-foreground italic">Không có ghi chú</span>}
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
 
