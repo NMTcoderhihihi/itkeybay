@@ -13,6 +13,7 @@ import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns"
 import { vi } from "date-fns/locale"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getFreeInventoryForMaterial, allocateFreeInventory, getAllocatedInventoryForMaterial, withdrawAllocatedInventory, capNhatThongTinNhanhDonTong } from "@/app/actions/don-tong"
@@ -282,15 +283,8 @@ export function ChiTietDonTongClient({ donTong, giaoDichList, isManager = false 
             <h1 className="text-2xl font-bold tracking-tight">{donTong.ma_don_tong}</h1>
             <Badge 
               variant={donTong.trang_thai === 'DA_DU' ? 'default' : 'secondary'} 
-              className={`
-                ${donTong.trang_thai === 'DA_DU' ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : ''} 
-                ${isManager ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}
-                ${isUpdatingStatus ? 'opacity-50 pointer-events-none' : ''}
-              `}
-              onClick={handleToggleStatus}
-              title={isManager ? "Nhấn để chuyển đổi trạng thái (Đủ / Chưa đủ)" : ""}
+              className={donTong.trang_thai === 'DA_DU' ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : ''}
             >
-              {isUpdatingStatus && <Loader2 className="w-3 h-3 mr-1 animate-spin inline-block" />}
               {donTong.trang_thai === 'DA_DU' ? t("masterOrder.statusEnough") : t("masterOrder.statusNotEnough")}
             </Badge>
           </div>
@@ -306,12 +300,32 @@ export function ChiTietDonTongClient({ donTong, giaoDichList, isManager = false 
           </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4">
-          <div>
-            <p className="text-sm text-muted-foreground mb-1">{t("masterOrder.createdAt")}</p>
-            <p className="font-medium flex items-center gap-2">
-              <Clock className="w-4 h-4 text-muted-foreground" />
-              {formatTime(donTong.ngay_tao)}
-            </p>
+          <div className="flex flex-col gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">{t("masterOrder.createdAt")}</p>
+              <p className="font-medium flex items-center gap-2">
+                <Clock className="w-4 h-4 text-muted-foreground" />
+                {formatTime(donTong.ngay_tao)}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Trạng thái chốt đơn</p>
+              <div className="flex items-center space-x-2 mt-2">
+                <Checkbox 
+                  id="status-checkbox" 
+                  checked={donTong.trang_thai === 'DA_DU'} 
+                  onCheckedChange={handleToggleStatus}
+                  disabled={isUpdatingStatus || !isManager}
+                />
+                <label 
+                  htmlFor="status-checkbox" 
+                  className={`text-sm font-medium leading-none flex items-center gap-2 ${isManager ? 'cursor-pointer' : 'cursor-not-allowed opacity-70'}`}
+                >
+                  {isUpdatingStatus && <Loader2 className="w-3 h-3 animate-spin text-primary" />}
+                  Đánh dấu "Đã đủ"
+                </label>
+              </div>
+            </div>
           </div>
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between mb-1">
