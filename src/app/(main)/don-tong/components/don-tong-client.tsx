@@ -16,7 +16,7 @@ import { CircularProgressRing } from "@/components/ui/circular-progress-ring"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
-export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongList: any[], nguyenLieuList: any[] }) {
+export function DonTongTab({ donTongList = [], nguyenLieuList = [], isManager = false }: { donTongList: any[], nguyenLieuList: any[], isManager?: boolean }) {
   const { t } = useTranslation()
   const router = useRouter()
 
@@ -121,9 +121,11 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
             </SelectContent>
           </Select>
         </div>
-        <Button onClick={handleAdd} className="w-full md:w-auto shrink-0 gap-2">
-          <Plus className="w-4 h-4" /> {t("masterOrder.addNew")}
-        </Button>
+        {isManager && (
+          <Button onClick={handleAdd} className="w-full md:w-auto shrink-0 gap-2">
+            <Plus className="w-4 h-4" /> {t("masterOrder.addNew")}
+          </Button>
+        )}
       </div>
 
       {/* Danh sách */}
@@ -189,12 +191,16 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
                             <Button variant="ghost" size="icon" onClick={() => router.push(`/don-tong/${dt.id}`)} className="h-8 w-8 text-blue-500 hover:bg-blue-500/10">
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleEdit(dt)} className="h-8 w-8 text-primary hover:bg-primary/10">
-                              <Edit2 className="w-4 h-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleDelete(dt.id)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            {isManager && (
+                              <>
+                                <Button variant="ghost" size="icon" onClick={() => handleEdit(dt)} className="h-8 w-8 text-primary hover:bg-primary/10">
+                                  <Edit2 className="w-4 h-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => handleDelete(dt.id)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -294,12 +300,16 @@ export function DonTongTab({ donTongList = [], nguyenLieuList = [] }: { donTongL
                       <Button variant="ghost" size="icon" onClick={() => router.push(`/don-tong/${dt.id}`)} className="h-8 w-8 text-blue-500 hover:bg-blue-500/10">
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(dt)} className="h-8 w-8 text-primary hover:bg-primary/10">
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(dt.id)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      {isManager && (
+                        <>
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(dt)} className="h-8 w-8 text-primary hover:bg-primary/10">
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(dt.id)} className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
 

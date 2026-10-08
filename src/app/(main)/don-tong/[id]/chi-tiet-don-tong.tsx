@@ -17,7 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getFreeInventoryForMaterial, allocateFreeInventory, getAllocatedInventoryForMaterial, withdrawAllocatedInventory } from "@/app/actions/don-tong"
 import { toast } from "sonner"
 
-export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, giaoDichList: any[] }) {
+export function ChiTietDonTongClient({ donTong, giaoDichList, isManager = false }: { donTong: any, giaoDichList: any[], isManager?: boolean }) {
   const { t } = useTranslation()
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
@@ -361,9 +361,11 @@ export function ChiTietDonTongClient({ donTong, giaoDichList }: { donTong: any, 
                     </div>
                     
                     <div className="flex flex-col items-center justify-center gap-2 w-full sm:w-auto shrink-0 mt-2 sm:mt-0">
-                      <Button variant="outline" size="sm" onClick={() => handleOpenPopup(ct)} className="w-full sm:w-auto">
-                        <SlidersHorizontal className="w-4 h-4 mr-1" /> Điều chỉnh
-                      </Button>
+                      {isManager && (
+                        <Button variant="outline" size="sm" onClick={() => handleOpenPopup(ct)} className="w-full sm:w-auto">
+                          <SlidersHorizontal className="w-4 h-4 mr-1" /> Điều chỉnh
+                        </Button>
+                      )}
                       <CircularProgressRing progress={pct} size={56} strokeWidth={4} />
                     </div>
                   </div>
