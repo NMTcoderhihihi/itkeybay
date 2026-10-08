@@ -8,7 +8,8 @@ import {
   Users, 
   Factory, 
   LayoutDashboard,
-  Box
+  Box,
+  ListChecks
 } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 
@@ -19,6 +20,7 @@ export function BottomNav({ isManager }: { isManager: boolean }) {
   const navItems = [
     { name: t('nav.home'), href: "/dashboard", icon: LayoutDashboard, show: isManager },
     { name: t('nav.inventory'), href: "/kho", icon: Package, show: true },
+    { name: t('masterOrder.title'), href: "/don-tong", icon: ListChecks, show: true },
     { name: t('nav.production'), href: "/san-xuat", icon: Factory, show: true },
     { name: t('nav.hr'), href: "/nhan-su", icon: Users, show: isManager },
     { name: t('nav.categories'), href: "/danh-muc", icon: Box, show: isManager },
