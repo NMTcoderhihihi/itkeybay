@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react"
 import { getTongQuanTonKho, getSoCaiChiTietPaginated, getDanhSachDanhMuc, TrangThaiLocSoCai, getSoCaiChiTiet } from "@/app/actions/giao-dich"
+import { getDanhSachDonTong } from "@/app/actions/don-tong"
 import { getTaiKhoan } from "@/app/actions/nhan-su"
 import { getCongHangList } from "@/app/actions/san-xuat"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -53,12 +54,14 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
     id_tai_khoan: 'ALL',
     id_cong_hang: 'ALL',
     id_danh_muc: 'ALL',
+    id_don_tong: 'ALL',
   })
   
   // Filter Options
   const [danhMucList, setDanhMucList] = useState<any[]>([])
   const [taiKhoanList, setTaiKhoanList] = useState<any[]>([])
   const [congHangList, setCongHangList] = useState<any[]>([])
+  const [donTongList, setDonTongList] = useState<any[]>([])
   
   // Image preview
   const [previewImage, setPreviewImage] = useState<string | null>(null)
@@ -71,11 +74,13 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
     Promise.all([
       getDanhSachDanhMuc(),
       getTaiKhoan(),
-      getCongHangList()
-    ]).then(([dm, tk, ch]) => {
+      getCongHangList(),
+      getDanhSachDonTong()
+    ]).then(([dm, tk, ch, dt]) => {
       setDanhMucList(dm)
       setTaiKhoanList(tk)
       setCongHangList(ch)
+      setDonTongList(dt)
     })
   }, [])
 
@@ -155,6 +160,7 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
       id_tai_khoan: 'ALL',
       id_cong_hang: 'ALL',
       id_danh_muc: 'ALL',
+      id_don_tong: 'ALL',
     }
     setFilters(defaultFilters)
     setCurrentPage(1)
@@ -477,6 +483,21 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                         </select>
                       </div>
 
+                      {/* Lọc Đơn tổng */}
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-muted-foreground">Đơn tổng</label>
+                        <select
+                          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+                          value={filters.id_don_tong}
+                          onChange={(e) => setFilters(f => ({ ...f, id_don_tong: e.target.value }))}
+                        >
+                          <option value="ALL">Tất cả đơn tổng</option>
+                          {donTongList.map(dt => (
+                            <option key={dt.id} value={dt.id}>{dt.ma_don_tong} - {dt.ten_don}</option>
+                          ))}
+                        </select>
+                      </div>
+
                       <div className="col-span-full flex justify-end gap-2 mt-2">
                         <Button variant="ghost" size="sm" onClick={handleResetFilters}>Đặt lại</Button>
                         <Button size="sm" onClick={handleApplyFilters}>Lọc dữ liệu</Button>
@@ -500,6 +521,7 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                           <TableHead>Người thực hiện</TableHead>
                           <TableHead>{t('inventory.reason')}</TableHead>
                           <TableHead>{t('inventory.spec')}</TableHead>
+                          <TableHead>Cấp cho Đơn tổng</TableHead>
                           <TableHead className="text-right">{t('inventory.change')}</TableHead>
                           <TableHead className="text-right">{t('inventory.balance')}</TableHead>
                           <TableHead>Ghi chú</TableHead>
@@ -523,6 +545,26 @@ export function TongQuanKho({ initialData = [] }: { initialData?: any[] }) {
                               <Badge variant="outline" className="text-xs">
                                 {selectedItem?.danh_sach_quy_cach?.find((qc: any) => qc.ma_quy_cach === row.ma_quy_cach)?.ten || row.ma_quy_cach}
                               </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {row.chi_tiet_cap_phat?.length > 0 ? (
+                                <div className="flex flex-col gap-1 text-xs min-w-[140px]">
+                                  {row.chi_tiet_cap_phat.map((cp: any, idx: number) => {
+                                    const dt = cp.don_tong_chi_tiet?.don_tong;
+                                    if (!dt) return null;
+                                    return (
+                                      <div key={idx} className="flex items-center justify-between gap-2 border-b last:border-0 pb-1 last:pb-0">
+                                        <span className="font-medium text-primary truncate max-w-[100px]" title={dt.ten_don}>{dt.ma_don_tong}</span>
+                                        <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-700 border-emerald-200">
+                                          {cp.so_luong_cap_phat}
+                                        </Badge>
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground text-xs italic">-</span>
+                              )}
                             </TableCell>
                             <TableCell className="text-right">
                               <div className={`flex items-center justify-end gap-1 ${row.bien_dong_so_luong > 0 ? 'text-green-600' : 'text-red-600'}`}>

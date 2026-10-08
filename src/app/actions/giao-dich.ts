@@ -259,6 +259,7 @@ export type TrangThaiLocSoCai = {
   id_tai_khoan?: string;
   id_cong_hang?: string;
   id_danh_muc?: string;
+  id_don_tong?: string;
 }
 
 export async function getSoCaiChiTietPaginated(
@@ -281,6 +282,16 @@ export async function getSoCaiChiTietPaginated(
         id_danh_muc,
         danh_muc_giao_dich (ten_danh_muc, loai_giao_dich),
         tai_khoan (ho_ten)
+      ),
+      chi_tiet_cap_phat (
+        so_luong_cap_phat,
+        don_tong_chi_tiet (
+          don_tong (
+            id,
+            ma_don_tong,
+            ten_don
+          )
+        )
       )
     `, { count: 'exact' })
     .eq('id_nguyen_lieu', id_nguyen_lieu);
@@ -307,6 +318,18 @@ export async function getSoCaiChiTietPaginated(
 
   if (filters?.id_danh_muc && filters.id_danh_muc !== 'ALL') {
     query = query.eq('lo_giao_dich.id_danh_muc', filters.id_danh_muc);
+  }
+
+  if (filters?.id_don_tong && filters.id_don_tong !== 'ALL') {
+    const { data: cpData } = await supabase
+      .from('chi_tiet_cap_phat')
+      .select('id_so_cai_vat_tu, don_tong_chi_tiet!inner(id_don_tong)')
+      .eq('don_tong_chi_tiet.id_don_tong', filters.id_don_tong);
+    
+    if (cpData) {
+      const scIds = cpData.map((x: any) => x.id_so_cai_vat_tu);
+      query = query.in('id', scIds.length > 0 ? scIds : ['00000000-0000-0000-0000-000000000000']);
+    }
   }
 
   const from = (page - 1) * limit;
